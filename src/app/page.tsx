@@ -4,10 +4,12 @@ import { AdSlot } from "@/components/ads/AdSlot";
 import { SelfServeAdLauncher } from "@/components/ads/SelfServeAdLauncher";
 import { SelfServeAdStrip } from "@/components/ads/SelfServeAdStrip";
 import { SubscribeDrawer } from "@/components/subscribers/SubscribeDrawer";
-import { TrendCard } from "@/components/trends/TrendCard";
+import { InfiniteTrendGrid } from "@/components/trends/InfiniteTrendGrid";
 import { TrendFilters } from "@/components/trends/TrendFilters";
+import { TrendViewPing } from "@/components/trends/TrendViewPing";
 import { immigrationHubTopics, sportsHubTopics } from "@/lib/content/influencers";
 import { htCopy } from "@/lib/i18n/ht";
+import { normalizeTrendCategory } from "@/lib/trends/categories";
 import { getInfluencerTopics, getTrendFeed } from "@/lib/trends/query";
 
 type HomePageProps = {
@@ -15,63 +17,13 @@ type HomePageProps = {
     timeframe?: string;
     category?: string;
     popularityWindow?: string;
-    page?: string;
   }>;
 };
-
-const ALLOWED_CATEGORIES = new Set([
-  "all",
-  "general",
-  "politics",
-  "music",
-  "disaster",
-  "diaspora",
-  "sports",
-  "culture",
-  "community",
-  "immigration",
-]);
-
-function normalizeCategory(input?: string) {
-  if (!input) {
-    return "all";
-  }
-  const value = input.trim().toLowerCase();
-  const mapped =
-    value === "jeneral"
-      ? "general"
-      : value === "espò" || value === "espo"
-        ? "sports"
-        : value === "imigrasyon"
-          ? "immigration"
-          : value === "kilti"
-            ? "culture"
-            : value === "kominote"
-              ? "community"
-              : value === "dezas"
-                ? "disaster"
-                : value === "mizik"
-                  ? "music"
-                  : value === "dyaspora"
-                    ? "diaspora"
-                    : value;
-
-  return ALLOWED_CATEGORIES.has(mapped) ? mapped : "all";
-}
-
-function normalizePage(input?: string) {
-  const parsed = Number(input ?? "1");
-  if (!Number.isFinite(parsed) || parsed < 1) {
-    return 1;
-  }
-  return Math.floor(parsed);
-}
 
 export default async function Home({ searchParams }: HomePageProps) {
   const params = await searchParams;
   const timeframe = params.timeframe === "weekly" ? "weekly" : "daily";
-  const category = normalizeCategory(params.category);
-  const page = normalizePage(params.page);
+  const category = normalizeTrendCategory(params.category);
   const popularityWindow =
     params.popularityWindow === "1h" || params.popularityWindow === "5h"
       ? params.popularityWindow
@@ -80,10 +32,6 @@ export default async function Home({ searchParams }: HomePageProps) {
   const influencerTopics = getInfluencerTopics().slice(0, 8);
   const headliner = trends[0];
   const moreTrends = trends.slice(1);
-  const storiesPerLoad = 8;
-  const visibleStoriesCount = page * storiesPerLoad;
-  const visibleTrends = moreTrends.slice(0, visibleStoriesCount);
-  const hasMoreStories = moreTrends.length > visibleStoriesCount;
   const contactEmail = process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? htCopy.footerContactEmail;
 
   return (
@@ -164,6 +112,7 @@ export default async function Home({ searchParams }: HomePageProps) {
 
           {headliner ? (
             <section className="rounded-2xl border border-red-400/30 bg-white/[0.03] p-5">
+              <TrendViewPing clusterId={headliner.clusterId} />
               <div className="mb-2 flex items-center justify-between text-xs text-neutral-400">
                 <span className="rounded-full border border-red-300/40 bg-red-300/10 px-2 py-1 text-red-200">
                   {htCopy.megaTrendLabel}
@@ -179,6 +128,9 @@ export default async function Home({ searchParams }: HomePageProps) {
                 </span>
                 <span className="rounded-full border border-white/20 px-2 py-1">
                   Sosyal {(headliner.socialScore ?? 0).toFixed(1)}
+                </span>
+                <span className="rounded-full border border-white/20 px-2 py-1">
+                  👁 {headliner.viewCount.toLocaleString()} views
                 </span>
               </div>
               <Link
@@ -205,26 +157,13 @@ export default async function Home({ searchParams }: HomePageProps) {
             </section>
           ) : null}
 
-          <section className="grid gap-4 md:grid-cols-2">
-            {moreTrends.length === 0 && !headliner ? (
-              <div className="rounded-xl border border-white/10 bg-white/[0.03] p-6 text-neutral-300">
-                {htCopy.noData}
-              </div>
-            ) : (
-              visibleTrends.map((trend) => <TrendCard key={trend.clusterId} trend={trend} />)
-            )}
-          </section>
-
-          {hasMoreStories ? (
-            <div className="flex justify-center">
-              <Link
-                href={`/?timeframe=${timeframe}&category=${category}&popularityWindow=${popularityWindow}&page=${page + 1}`}
-                className="rounded-full border border-white/20 px-5 py-2 text-sm font-semibold text-neutral-100 transition hover:border-cyan-300/50 hover:text-cyan-100"
-              >
-                Louvri plis istwa
-              </Link>
+          {moreTrends.length === 0 && !headliner ? (
+            <div className="rounded-xl border border-white/10 bg-white/[0.03] p-6 text-neutral-300">
+              {htCopy.noData}
             </div>
-          ) : null}
+          ) : (
+            <InfiniteTrendGrid trends={moreTrends} initialVisibleCount={8} chunkSize={8} />
+          )}
 
           <AdSlot slotId="feedMid" format="rectangle" />
 
@@ -295,7 +234,18 @@ export default async function Home({ searchParams }: HomePageProps) {
           <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
             <h2 className="text-lg font-bold text-white">{htCopy.categoryTitle}</h2>
             <div className="mt-3 flex flex-wrap gap-2">
-              {["imigrasyon", "mizik", "dyaspora", "kilti", "politik", "espò", "viral", "foutbòl"].map((tag) => (
+              {[
+                "imigrasyon",
+                "mizik",
+                "dyaspora",
+                "kilti",
+                "politik",
+                "espò",
+                "viral",
+                "foutbòl",
+                "komik",
+                "relijyon",
+              ].map((tag) => (
                 <span
                   key={tag}
                   className="rounded-full border border-white/20 bg-white/[0.02] px-2 py-1 text-xs text-neutral-300"

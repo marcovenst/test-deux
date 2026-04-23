@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { TrendViewPing } from "@/components/trends/TrendViewPing";
 import { supabaseAdmin } from "@/lib/db/client";
 import { extractPostMedia } from "@/lib/media/postMedia";
 
@@ -65,6 +66,7 @@ export default async function ClusterPage({ params }: ClusterPageProps) {
         </Link>
 
         <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-6">
+          <TrendViewPing clusterId={cluster.id} />
           <h1 className="text-3xl font-semibold text-white">
             {summary?.cluster_title ?? cluster.title}
           </h1>

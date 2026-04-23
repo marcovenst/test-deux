@@ -52,10 +52,13 @@ async function getRedditToken() {
   return payload.access_token;
 }
 
-export function createRedditAdapter(query = "Haiti OR Haitian"): SourceAdapter {
+export function createRedditAdapter(
+  query = "Haiti OR Haitian",
+  options?: { sourceName?: string },
+): SourceAdapter {
   return {
     source: {
-      name: "reddit-search",
+      name: options?.sourceName ?? "reddit-search",
       platform: "reddit",
     },
     async fetchRecords() {

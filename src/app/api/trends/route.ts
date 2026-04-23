@@ -1,44 +1,11 @@
 import { NextResponse } from "next/server";
 
+import { normalizeTrendCategory } from "@/lib/trends/categories";
 import { getTrendFeed } from "@/lib/trends/query";
 
-const ALLOWED_CATEGORIES = new Set([
-  "all",
-  "general",
-  "politics",
-  "music",
-  "disaster",
-  "diaspora",
-  "sports",
-  "culture",
-  "community",
-  "immigration",
-]);
-
 function normalizeCategory(input: string | null) {
-  if (!input) {
-    return undefined;
-  }
-  const value = input.trim().toLowerCase();
-  const mapped =
-    value === "jeneral"
-      ? "general"
-      : value === "espò" || value === "espo"
-        ? "sports"
-        : value === "imigrasyon"
-          ? "immigration"
-          : value === "kilti"
-            ? "culture"
-            : value === "kominote"
-              ? "community"
-              : value === "dezas"
-                ? "disaster"
-                : value === "mizik"
-                  ? "music"
-                  : value === "dyaspora"
-                    ? "diaspora"
-                    : value;
-  return ALLOWED_CATEGORIES.has(mapped) ? mapped : undefined;
+  const normalized = normalizeTrendCategory(input, { defaultCategory: "all" });
+  return normalized === "all" ? undefined : normalized;
 }
 
 export async function GET(request: Request) {

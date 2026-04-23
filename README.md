@@ -24,6 +24,9 @@ cp .env.example .env.local
    - `supabase/migrations/0001_core_schema.sql`
    - `supabase/migrations/0002_subscribers.sql`
    - `supabase/migrations/0003_self_serve_ads.sql`
+   - `supabase/migrations/0004_cluster_views.sql`
+   - `supabase/migrations/0005_cluster_reactions.sql`
+   - `supabase/migrations/0006_cluster_play_metrics.sql`
 
 5. Start dev server:
 
@@ -102,3 +105,17 @@ curl -X POST "$NEXT_PUBLIC_APP_URL/api/jobs/schedule" \
 - `pnpm lint`
 - `pnpm test`
 - `pnpm build`
+
+## Adding New Content Categories (No Code Change)
+
+To add/rename categories, edit:
+
+- `src/config/trend-categories.json`
+
+Each category supports:
+
+- `id`: canonical category key used in APIs/feed
+- `labelHt`: Haitian Creole UI label
+- `aliases`: alternative words mapped to this category (for URL/query normalization)
+
+After editing, restart dev server.

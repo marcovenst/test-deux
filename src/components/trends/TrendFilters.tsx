@@ -1,18 +1,8 @@
 import Link from "next/link";
 import { categoryLabelsHt } from "@/lib/i18n/ht";
+import { TREND_CATEGORIES } from "@/lib/trends/categories";
 
-const CATEGORIES = [
-  "all",
-  "general",
-  "politics",
-  "music",
-  "disaster",
-  "diaspora",
-  "sports",
-  "culture",
-  "community",
-  "immigration",
-];
+const CATEGORIES = TREND_CATEGORIES;
 
 export function TrendFilters({
   selectedCategory,

@@ -1,0 +1,69 @@
+{
+  "categories": [
+    {
+      "id": "all",
+      "labelHt": "tout",
+      "aliases": ["tout"]
+    },
+    {
+      "id": "general",
+      "labelHt": "jeneral",
+      "aliases": ["jeneral"]
+    },
+    {
+      "id": "politics",
+      "labelHt": "politik",
+      "aliases": []
+    },
+    {
+      "id": "music",
+      "labelHt": "mizik",
+      "aliases": []
+    },
+    {
+      "id": "disaster",
+      "labelHt": "dezas",
+      "aliases": []
+    },
+    {
+      "id": "diaspora",
+      "labelHt": "dyaspora",
+      "aliases": []
+    },
+    {
+      "id": "sports",
+      "labelHt": "espò",
+      "aliases": ["espo"]
+    },
+    {
+      "id": "culture",
+      "labelHt": "kilti",
+      "aliases": []
+    },
+    {
+      "id": "community",
+      "labelHt": "kominote",
+      "aliases": []
+    },
+    {
+      "id": "immigration",
+      "labelHt": "imigrasyon",
+      "aliases": []
+    },
+    {
+      "id": "funny",
+      "labelHt": "komik",
+      "aliases": []
+    },
+    {
+      "id": "religion",
+      "labelHt": "relijyon",
+      "aliases": ["lafwa"]
+    },
+    {
+      "id": "viral",
+      "labelHt": "viral",
+      "aliases": ["viralite"]
+    }
+  ]
+}

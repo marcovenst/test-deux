@@ -14,6 +14,17 @@ export type TrendFeedItem = {
   summary: string;
   trendCategory: string;
   trendScore: number;
+  viewCount: number;
+  reactions: {
+    saRaz: number;
+    saKomik: number;
+    saEnteresan: number;
+    totalVotes: number;
+  };
+  reactionScore: number;
+  playCount: number;
+  averagePlaySeconds: number;
+  interactionScore: number;
   popularityScore?: number;
   googleSearchScore?: number;
   socialScore?: number;
@@ -94,6 +105,17 @@ function getFallbackFeed(): TrendFeedItem[] {
     summary: item.summary,
     trendCategory: item.trendCategory,
     trendScore: item.trendScore,
+    viewCount: 0,
+    reactions: {
+      saRaz: 0,
+      saKomik: 0,
+      saEnteresan: 0,
+      totalVotes: 0,
+    },
+    reactionScore: 0,
+    playCount: 0,
+    averagePlaySeconds: 0,
+    interactionScore: 0,
     sentiment: item.sentiment,
     tags: item.tags,
     sourceCount: item.sourceCount,
@@ -157,22 +179,118 @@ export async function getTrendFeed(
         });
       }
     }
-    const clusterIds = Array.from(latestByCluster.keys()).slice(0, 40);
-    if (clusterIds.length === 0) {
+    const scoredClusterIds = Array.from(latestByCluster.keys());
+    if (scoredClusterIds.length === 0) {
       return [];
     }
 
-    let clusterQuery = supabaseAdmin
+    let clusterMetaQuery = supabaseAdmin
       .from("clusters")
-      .select("id,title,trend_category")
-      .in("id", clusterIds);
+      .select("id,title,trend_category,last_seen_at")
+      .in("id", scoredClusterIds.slice(0, 500));
     if (category && category !== "all") {
-      clusterQuery = clusterQuery.eq("trend_category", category);
+      clusterMetaQuery = clusterMetaQuery.eq("trend_category", category);
     }
-    const { data: clusters, error: clusterError } = await clusterQuery;
+    const { data: clusterMetaRows, error: clusterError } = await clusterMetaQuery;
     if (clusterError) {
       throw clusterError;
     }
+    if (!clusterMetaRows || clusterMetaRows.length === 0) {
+      return [];
+    }
+
+    const clusterMetaById = new Map(
+      clusterMetaRows.map((cluster) => [cluster.id as string, cluster]),
+    );
+    const scopedScoredIds = scoredClusterIds.filter((id) => clusterMetaById.has(id));
+    const baseClusterIds = scopedScoredIds.slice(0, 40);
+
+    const { data: reactionRows } = await supabaseAdmin
+      .from("cluster_reaction_votes")
+      .select("cluster_id,reaction")
+      .in("cluster_id", scopedScoredIds)
+      .limit(20000);
+
+    const reactionsByCluster = new Map<
+      string,
+      {
+        saRaz: number;
+        saKomik: number;
+        saEnteresan: number;
+        totalVotes: number;
+      }
+    >();
+
+    for (const row of reactionRows ?? []) {
+      const clusterId = row.cluster_id as string;
+      const current = reactionsByCluster.get(clusterId) ?? {
+        saRaz: 0,
+        saKomik: 0,
+        saEnteresan: 0,
+        totalVotes: 0,
+      };
+      if (row.reaction === "sa_raz") {
+        current.saRaz += 1;
+      } else if (row.reaction === "sa_komik") {
+        current.saKomik += 1;
+      } else if (row.reaction === "sa_enteresan") {
+        current.saEnteresan += 1;
+      }
+      current.totalVotes += 1;
+      reactionsByCluster.set(clusterId, current);
+    }
+
+    const categoryReactionHeat = new Map<string, number>();
+    for (const clusterId of baseClusterIds) {
+      const cluster = clusterMetaById.get(clusterId);
+      if (!cluster) {
+        continue;
+      }
+      const votes = reactionsByCluster.get(clusterId)?.totalVotes ?? 0;
+      if (votes <= 0) {
+        continue;
+      }
+      const key = (cluster.trend_category as string | null) ?? "general";
+      categoryReactionHeat.set(key, (categoryReactionHeat.get(key) ?? 0) + votes);
+    }
+
+    const boostedCategories = new Set(
+      [...categoryReactionHeat.entries()]
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 3)
+        .map(([trendCategory]) => trendCategory),
+    );
+
+    const baseSet = new Set(baseClusterIds);
+    const relatedCandidates = scopedScoredIds
+      .filter((clusterId) => {
+        if (baseSet.has(clusterId)) {
+          return false;
+        }
+        const cluster = clusterMetaById.get(clusterId);
+        if (!cluster) {
+          return false;
+        }
+        const trendCategory = (cluster.trend_category as string | null) ?? "general";
+        return boostedCategories.has(trendCategory);
+      })
+      .sort((a, b) => {
+        const reactionDiff =
+          (reactionsByCluster.get(b)?.totalVotes ?? 0) - (reactionsByCluster.get(a)?.totalVotes ?? 0);
+        if (reactionDiff !== 0) {
+          return reactionDiff;
+        }
+        return (
+          (latestByCluster.get(b)?.score ?? 0) - (latestByCluster.get(a)?.score ?? 0)
+        );
+      })
+      .slice(0, 20);
+
+    const clusterIds =
+      boostedCategories.size > 0 ? [...baseClusterIds, ...relatedCandidates] : baseClusterIds;
+    const clusters = clusterIds
+      .map((clusterId) => clusterMetaById.get(clusterId))
+      .filter((value): value is NonNullable<(typeof clusterMetaRows)[number]> => Boolean(value));
 
     const { data: summaries } = await supabaseAdmin
       .from("cluster_summaries")
@@ -210,6 +328,35 @@ export async function getTrendFeed(
       });
       sourcesByCluster.set(item.cluster_id as string, existing);
     }
+
+    const { data: viewRows } = await supabaseAdmin
+      .from("cluster_views")
+      .select("cluster_id,total_views")
+      .in("cluster_id", clusterIds);
+
+    const viewsByCluster = new Map<string, number>(
+      (viewRows ?? []).map((row) => [row.cluster_id as string, Number(row.total_views ?? 0)]),
+    );
+    const { data: playRows } = await supabaseAdmin
+      .from("cluster_play_metrics")
+      .select("cluster_id,total_plays,total_play_seconds")
+      .in("cluster_id", clusterIds);
+
+    const playsByCluster = new Map<
+      string,
+      {
+        totalPlays: number;
+        totalPlaySeconds: number;
+      }
+    >(
+      (playRows ?? []).map((row) => [
+        row.cluster_id as string,
+        {
+          totalPlays: Number(row.total_plays ?? 0),
+          totalPlaySeconds: Number(row.total_play_seconds ?? 0),
+        },
+      ]),
+    );
 
     const itemsWithSignals = await Promise.all(
       (clusters ?? []).map(async (cluster) => {
@@ -291,11 +438,37 @@ export async function getTrendFeed(
           mentionCount: focusedItems.length > 0 ? focusedItems.length : relevantItems.length,
           platformCount: [...platformSet].filter((p) => FOCUSED_SOCIAL_PLATFORMS.has(p)).length || platformSet.size,
         });
+        const reactionStats = reactionsByCluster.get(cluster.id as string) ?? {
+          saRaz: 0,
+          saKomik: 0,
+          saEnteresan: 0,
+          totalVotes: 0,
+        };
+        const reactionScore = Number(
+          Math.min(100, Math.log10(reactionStats.totalVotes + 1) * 20).toFixed(2),
+        );
+        const viewCount = viewsByCluster.get(cluster.id as string) ?? 0;
+        const playStats = playsByCluster.get(cluster.id as string) ?? {
+          totalPlays: 0,
+          totalPlaySeconds: 0,
+        };
+        const averagePlaySeconds =
+          playStats.totalPlays > 0 ? playStats.totalPlaySeconds / playStats.totalPlays : 0;
+        const interactionScore = Number(
+          (
+            Math.min(100, Math.log10(viewCount + 1) * 18) +
+            Math.min(100, Math.log10(playStats.totalPlays + 1) * 24) +
+            Math.min(100, Math.log10(averagePlaySeconds + 1) * 20) +
+            reactionScore
+          ).toFixed(2),
+        );
         const popularityScore = Number(
           (
-            (latestByCluster.get(cluster.id as string)?.score ?? 0) * 0.35 +
-            googleSearchScore * 0.35 +
-            socialScore * 0.3
+            (latestByCluster.get(cluster.id as string)?.score ?? 0) * 0.24 +
+            googleSearchScore * 0.24 +
+            socialScore * 0.2 +
+            reactionScore * 0.14 +
+            interactionScore * 0.18
           ).toFixed(2),
         );
 
@@ -308,6 +481,12 @@ export async function getTrendFeed(
           summary: (summary?.summary as string | undefined) ?? "Summary is being generated.",
           trendCategory: (cluster.trend_category as string | null) ?? "general",
           trendScore: latestByCluster.get(cluster.id as string)?.score ?? 0,
+          viewCount,
+          reactions: reactionStats,
+          reactionScore,
+          playCount: playStats.totalPlays,
+          averagePlaySeconds: Number(averagePlaySeconds.toFixed(1)),
+          interactionScore,
           popularityScore,
           googleSearchScore,
           socialScore,

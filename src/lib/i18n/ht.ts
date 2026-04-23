@@ -1,3 +1,5 @@
+import { categoryLabelsFromConfigHt } from "@/lib/trends/categories";
+
 /**
  * Haitian Creole copy dictionary for manual edits.
  * Update any labels/messages here to change UI translation.
@@ -39,16 +41,5 @@ export const htCopy = {
   footerContactEmail: "hello@zenrezoa.com",
 };
 
-export const categoryLabelsHt: Record<string, string> = {
-  all: "tout",
-  general: "jeneral",
-  politics: "politik",
-  music: "mizik",
-  disaster: "dezas",
-  diaspora: "dyaspora",
-  sports: "espò",
-  culture: "kilti",
-  community: "kominote",
-  immigration: "imigrasyon",
-};
+export const categoryLabelsHt: Record<string, string> = categoryLabelsFromConfigHt;
 

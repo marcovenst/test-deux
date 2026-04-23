@@ -143,3 +143,16 @@ export type SelfServeAdOrderRow = {
   updated_at: string;
 };
 
+export type ClusterViewRow = {
+  cluster_id: string;
+  total_views: number;
+  updated_at: string;
+};
+
+export type ClusterPlayMetricRow = {
+  cluster_id: string;
+  total_plays: number;
+  total_play_seconds: number;
+  updated_at: string;
+};
+

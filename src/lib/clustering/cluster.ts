@@ -26,6 +26,15 @@ function inferCategory(text: string): string {
   if (/election|government|minister|policy|senate|president/.test(lower)) {
     return "politics";
   }
+  if (/church|pastor|prayer|gospel|bible|religion|faith|vodou|vodun|spiritual/.test(lower)) {
+    return "religion";
+  }
+  if (/funny|comedy|meme|joke|lol|skit|humor|komik|ri anpil|viral video/.test(lower)) {
+    return "funny";
+  }
+  if (/viral|trending|buzz|exploded online|shared widely/.test(lower)) {
+    return "viral";
+  }
   if (/music|kompa|concert|artist|album/.test(lower)) {
     return "music";
   }

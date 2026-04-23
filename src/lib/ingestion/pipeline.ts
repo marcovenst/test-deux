@@ -70,6 +70,89 @@ const INFLUENCER_SOCIAL_SCRAPES: ScrapeSourceConfig[] = haitianInfluencers.flatM
   ],
 );
 
+const CATEGORY_QUERY_HINTS: Record<string, string[]> = {
+  politics: ["Haiti politics", "Ayiti eleksyon", "Haitian government"],
+  immigration: ["Haitian immigration", "TPS Haiti", "USCIS Haiti update"],
+  sports: ["Haiti football", "Grenadiers", "Haitian sports"],
+  music: ["Haitian music", "kompa new release", "Ayiti mizik"],
+  culture: ["Haitian culture", "Ayiti kilti", "Haitian festivals"],
+  disaster: ["Haiti emergency", "Ayiti dezas", "Haiti weather alert"],
+  community: ["Haitian community", "diaspora Haiti", "Ayiti kominote"],
+  diaspora: ["Haitian diaspora", "Ayisyen diaspora", "Haiti abroad"],
+  funny: ["Haitian funny videos", "Ayiti komik", "Haiti meme viral"],
+  religion: ["Haiti church community", "Ayiti relijyon", "Haitian gospel and faith"],
+  viral: ["Haiti viral videos", "Ayiti trending now", "Haitian internet buzz"],
+  general: ["Haiti news", "Ayiti news", "Haitian latest updates"],
+};
+
+async function getEngagementBoostQueries(limit = 4) {
+  const { data: clusters } = await supabaseAdmin
+    .from("clusters")
+    .select("id,trend_category,last_seen_at")
+    .order("last_seen_at", { ascending: false })
+    .limit(250);
+
+  if (!clusters || clusters.length === 0) {
+    return [] as string[];
+  }
+
+  const clusterIds = clusters.map((cluster) => cluster.id as string);
+  const { data: views } = await supabaseAdmin
+    .from("cluster_views")
+    .select("cluster_id,total_views")
+    .in("cluster_id", clusterIds);
+  const { data: plays } = await supabaseAdmin
+    .from("cluster_play_metrics")
+    .select("cluster_id,total_plays,total_play_seconds")
+    .in("cluster_id", clusterIds);
+  const { data: votes } = await supabaseAdmin
+    .from("cluster_reaction_votes")
+    .select("cluster_id")
+    .in("cluster_id", clusterIds)
+    .limit(20000);
+
+  const viewMap = new Map((views ?? []).map((row) => [row.cluster_id as string, Number(row.total_views ?? 0)]));
+  const playMap = new Map(
+    (plays ?? []).map((row) => [
+      row.cluster_id as string,
+      {
+        plays: Number(row.total_plays ?? 0),
+        seconds: Number(row.total_play_seconds ?? 0),
+      },
+    ]),
+  );
+  const voteMap = new Map<string, number>();
+  for (const row of votes ?? []) {
+    const clusterId = row.cluster_id as string;
+    voteMap.set(clusterId, (voteMap.get(clusterId) ?? 0) + 1);
+  }
+
+  const categoryScores = new Map<string, number>();
+  for (const cluster of clusters) {
+    const clusterId = cluster.id as string;
+    const viewCount = viewMap.get(clusterId) ?? 0;
+    const playStats = playMap.get(clusterId) ?? { plays: 0, seconds: 0 };
+    const avgPlay = playStats.plays > 0 ? playStats.seconds / playStats.plays : 0;
+    const voteCount = voteMap.get(clusterId) ?? 0;
+    const engagementScore =
+      Math.log10(viewCount + 1) * 1.6 +
+      Math.log10(playStats.plays + 1) * 2.2 +
+      Math.log10(avgPlay + 1) * 1.4 +
+      Math.log10(voteCount + 1) * 2.1;
+    const category = (cluster.trend_category as string | null) ?? "general";
+    categoryScores.set(category, (categoryScores.get(category) ?? 0) + engagementScore);
+  }
+
+  const boostedCategories = [...categoryScores.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3)
+    .map(([category]) => category);
+
+  return boostedCategories
+    .flatMap((category) => CATEGORY_QUERY_HINTS[category] ?? [])
+    .slice(0, limit);
+}
+
 async function createIngestionRun(sourceName: string, platform: SourceAdapter["source"]["platform"]) {
   const { data, error } = await supabaseAdmin
     .from("ingestion_runs")
@@ -181,6 +264,7 @@ async function writeNormalizedRecords(
 }
 
 export async function runIngestionPipeline() {
+  const engagementBoostQueries = await getEngagementBoostQueries();
   const influencerXQueries = haitianInfluencers.flatMap((influencer) => {
     const aliasTerms = influencer.aliases;
     const handleTerms = influencer.xHandles.map((handle) => `from:${handle}`);
@@ -200,8 +284,17 @@ export async function runIngestionPipeline() {
     createScrapeAdapter(INFLUENCER_SOCIAL_SCRAPES),
     createRedditAdapter("Haiti OR Ayiti OR Haitian OR Kreyol"),
     createRedditAdapter("Haitian immigration OR USCIS OR TPS Haiti OR parole Haiti"),
+    ...engagementBoostQueries.map((query, index) =>
+      createRedditAdapter(query, { sourceName: `reddit-engagement-${index + 1}` }),
+    ),
     createYoutubeAdapter("Haiti OR Ayiti diaspora news"),
     createYoutubeAdapter("USCIS Haitian TPS update OR Haitian immigration lawyer"),
+    ...engagementBoostQueries.map((query, index) =>
+      createYoutubeAdapter(query, {
+        sourceName: `youtube-engagement-${index + 1}`,
+        maxResults: 20,
+      }),
+    ),
     ...influencerYouTubeQueries.map((item) =>
       createYoutubeAdapter(item.query, {
         sourceName: item.sourceName,
@@ -217,6 +310,12 @@ export async function runIngestionPipeline() {
       sourceName: "x-apify-influencers",
       maxItems: 150,
     }),
+    ...engagementBoostQueries.map((query, index) =>
+      createXApifyAdapter([query, "Haiti", "Ayiti"], {
+        sourceName: `x-apify-engagement-${index + 1}`,
+        maxItems: 120,
+      }),
+    ),
   ];
 
   const results: Array<{
