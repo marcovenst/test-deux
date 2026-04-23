@@ -1,0 +1,17 @@
+<svg width="1200" height="800" viewBox="0 0 1200 800" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="g3" x1="0" y1="800" x2="1200" y2="0" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#4C1D95"/>
+      <stop offset="1" stop-color="#0F172A"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="800" fill="url(#g3)"/>
+  <circle cx="300" cy="600" r="190" fill="#F472B6" fill-opacity="0.24"/>
+  <circle cx="930" cy="210" r="150" fill="#22D3EE" fill-opacity="0.2"/>
+  <text x="90" y="350" fill="#FFFFFF" font-family="Arial, Helvetica, sans-serif" font-size="68" font-weight="700">
+    Culture Spotlight
+  </text>
+  <text x="90" y="430" fill="#DDD6FE" font-family="Arial, Helvetica, sans-serif" font-size="34">
+    Viral Haitian stories in music, food, and language
+  </text>
+</svg>

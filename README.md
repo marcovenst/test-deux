@@ -1,36 +1,104 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Zen Rezo A
 
-## Getting Started
+Zen Rezo A is a Haitian news/trends aggregator built with Next.js + Supabase.
 
-First, run the development server:
+It ingests data from RSS/web/social providers, clusters related stories, scores trends, and renders searchable story landing pages (`/cluster/[id]`) plus archive browsing (`/news`).
+
+## Local Setup
+
+1. Install dependencies:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Copy environment variables:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+cp .env.example .env.local
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+3. Fill real values in `.env.local` (at minimum Supabase + ingestion secret).
 
-## Learn More
+4. Run database migrations in Supabase SQL editor:
+   - `supabase/migrations/0001_core_schema.sql`
+   - `supabase/migrations/0002_subscribers.sql`
+   - `supabase/migrations/0003_self_serve_ads.sql`
 
-To learn more about Next.js, take a look at the following resources:
+5. Start dev server:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+pnpm dev
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Production Readiness Checklist
 
-## Deploy on Vercel
+### Required (must-have)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- Set real values for:
+  - `SUPABASE_URL`
+  - `SUPABASE_SERVICE_ROLE_KEY`
+  - `INGESTION_SHARED_SECRET`
+  - `NEXT_PUBLIC_APP_URL` (your production domain)
+- Apply both Supabase migrations.
+- Deploy app and confirm `/api/health` returns `ok: true`.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Live data providers
+
+- RSS + web scraping work without API keys.
+- Optional providers (enable by adding credentials):
+  - YouTube: `YOUTUBE_API_KEY`
+  - Reddit: `REDDIT_CLIENT_ID`, `REDDIT_CLIENT_SECRET`
+  - X via Apify: `APIFY_TOKEN`, `APIFY_ACTOR_ID`
+  - Summaries: `ANTHROPIC_API_KEY`
+
+If optional credentials are missing, ingestion still runs, but those sources are skipped.
+
+### Background jobs / schedules
+
+To run jobs manually (use your shared secret):
+
+```bash
+curl -X POST "$NEXT_PUBLIC_APP_URL/api/jobs/pipeline" \
+  -H "Authorization: Bearer $INGESTION_SHARED_SECRET"
+```
+
+To configure QStash schedules:
+
+```bash
+curl -X POST "$NEXT_PUBLIC_APP_URL/api/jobs/schedule" \
+  -H "Authorization: Bearer $INGESTION_SHARED_SECRET"
+```
+
+### Subscriber notifications (optional)
+
+- Email: set `RESEND_API_KEY` and `RESEND_FROM_EMAIL`
+- SMS: set `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_FROM_NUMBER`
+
+### Self-serve ads ($5 checkout)
+
+- Set:
+  - `STRIPE_SECRET_KEY`
+  - `STRIPE_WEBHOOK_SECRET`
+- Create a Stripe webhook endpoint to:
+  - `POST /api/ads/self-serve/webhook`
+  - listen for `checkout.session.completed`
+- Users can then submit and pay directly from the homepage footer button.
+- Supported plans:
+  - `$5` for 1 day
+  - `$20` for 5 days
+  - `$50` for 30 days
+
+## Useful Endpoints
+
+- `GET /api/health` - deployment/runtime readiness checks
+- `GET /api/trends` - trend feed API
+- `GET /api/search?q=...` - deep archive search
+- `GET /news` - archive index page
+- `GET /search` - user search page
+
+## Commands
+
+- `pnpm lint`
+- `pnpm test`
+- `pnpm build`

@@ -1,102 +1,326 @@
-import Image from "next/image";
+import Link from "next/link";
 
-export default function Home() {
+import { AdSlot } from "@/components/ads/AdSlot";
+import { SelfServeAdLauncher } from "@/components/ads/SelfServeAdLauncher";
+import { SelfServeAdStrip } from "@/components/ads/SelfServeAdStrip";
+import { SubscribeDrawer } from "@/components/subscribers/SubscribeDrawer";
+import { TrendCard } from "@/components/trends/TrendCard";
+import { TrendFilters } from "@/components/trends/TrendFilters";
+import { immigrationHubTopics, sportsHubTopics } from "@/lib/content/influencers";
+import { htCopy } from "@/lib/i18n/ht";
+import { getInfluencerTopics, getTrendFeed } from "@/lib/trends/query";
+
+type HomePageProps = {
+  searchParams: Promise<{
+    timeframe?: string;
+    category?: string;
+    popularityWindow?: string;
+    page?: string;
+  }>;
+};
+
+const ALLOWED_CATEGORIES = new Set([
+  "all",
+  "general",
+  "politics",
+  "music",
+  "disaster",
+  "diaspora",
+  "sports",
+  "culture",
+  "community",
+  "immigration",
+]);
+
+function normalizeCategory(input?: string) {
+  if (!input) {
+    return "all";
+  }
+  const value = input.trim().toLowerCase();
+  const mapped =
+    value === "jeneral"
+      ? "general"
+      : value === "espò" || value === "espo"
+        ? "sports"
+        : value === "imigrasyon"
+          ? "immigration"
+          : value === "kilti"
+            ? "culture"
+            : value === "kominote"
+              ? "community"
+              : value === "dezas"
+                ? "disaster"
+                : value === "mizik"
+                  ? "music"
+                  : value === "dyaspora"
+                    ? "diaspora"
+                    : value;
+
+  return ALLOWED_CATEGORIES.has(mapped) ? mapped : "all";
+}
+
+function normalizePage(input?: string) {
+  const parsed = Number(input ?? "1");
+  if (!Number.isFinite(parsed) || parsed < 1) {
+    return 1;
+  }
+  return Math.floor(parsed);
+}
+
+export default async function Home({ searchParams }: HomePageProps) {
+  const params = await searchParams;
+  const timeframe = params.timeframe === "weekly" ? "weekly" : "daily";
+  const category = normalizeCategory(params.category);
+  const page = normalizePage(params.page);
+  const popularityWindow =
+    params.popularityWindow === "1h" || params.popularityWindow === "5h"
+      ? params.popularityWindow
+      : "24h";
+  const trends = await getTrendFeed(timeframe, category, popularityWindow);
+  const influencerTopics = getInfluencerTopics().slice(0, 8);
+  const headliner = trends[0];
+  const moreTrends = trends.slice(1);
+  const storiesPerLoad = 8;
+  const visibleStoriesCount = page * storiesPerLoad;
+  const visibleTrends = moreTrends.slice(0, visibleStoriesCount);
+  const hasMoreStories = moreTrends.length > visibleStoriesCount;
+  const contactEmail = process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? htCopy.footerContactEmail;
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <div className="min-h-screen bg-neutral-950 text-neutral-100">
+      <header className="sticky top-0 z-30 border-b border-white/10 bg-neutral-950/95 backdrop-blur">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-6">
+          <div>
+            <p className="text-2xl font-extrabold tracking-tight text-red-400">{htCopy.brandName}</p>
+            <p className="text-xs text-neutral-400">{htCopy.tagLine}</p>
+            <div className="mt-2 flex items-center gap-2">
+              <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.04] px-2.5 py-1 text-[11px] text-neutral-200">
+                <span className="h-2 w-2 rounded-full bg-[#1D4ED8]" />
+                <span className="h-2 w-2 rounded-full bg-white" />
+                <span className="h-2 w-2 rounded-full bg-[#DC2626]" />
+              </div>
+              <SelfServeAdLauncher buttonLabel="Mete anons" subtle />
+            </div>
+          </div>
+          <div className="flex items-center gap-2 sm:gap-3">
+            <span className="rounded-full border border-emerald-400/30 bg-emerald-400/10 px-3 py-1 text-xs text-emerald-200">
+              {htCopy.liveLabel}
+            </span>
+            <Link
+              href="/news"
+              className="rounded-full border border-white/20 px-4 py-2 text-sm font-semibold text-white"
+            >
+              {htCopy.archiveCta}
+            </Link>
+            <SubscribeDrawer />
+            <Link
+              href="/search"
+              className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-neutral-900"
+            >
+              {htCopy.searchCta}
+            </Link>
+          </div>
         </div>
+      </header>
+
+      <main className="mx-auto grid max-w-7xl gap-6 px-4 py-8 sm:px-6 lg:grid-cols-[1fr_320px]">
+        <section className="space-y-6">
+          <section className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03]">
+            <div className="h-1 w-full bg-gradient-to-r from-[#1D4ED8] via-white to-[#DC2626]" />
+            <p className="px-4 py-2 text-xs text-neutral-300">{htCopy.haitiSignatureText}</p>
+          </section>
+
+          <section className="rounded-2xl border border-white/10 bg-gradient-to-br from-red-500/20 via-fuchsia-500/10 to-cyan-500/10 p-5">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-red-200">
+              {htCopy.heroBadge}
+            </p>
+            <h1 className="mt-2 text-3xl font-black leading-tight sm:text-4xl">
+              {htCopy.heroTitle}
+            </h1>
+            <p className="mt-3 max-w-3xl text-sm text-neutral-200 sm:text-base">
+              {htCopy.heroSubtitle}
+            </p>
+            <div className="mt-4">
+              <TrendFilters selectedCategory={category} selectedTimeframe={timeframe} />
+              <div className="mt-3 flex flex-wrap gap-2">
+                {(["1h", "5h", "24h"] as const).map((window) => (
+                  <Link
+                    key={window}
+                    href={`/?timeframe=${timeframe}&category=${category}&popularityWindow=${window}`}
+                    className={`rounded-full px-3 py-1 text-xs ${
+                      popularityWindow === window
+                        ? "bg-amber-300 text-black"
+                        : "border border-white/20 text-neutral-300"
+                    }`}
+                  >
+                    TikTok + X + Facebook + YouTube {window}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          <AdSlot slotId="feedTop" format="horizontal" />
+
+          {headliner ? (
+            <section className="rounded-2xl border border-red-400/30 bg-white/[0.03] p-5">
+              <div className="mb-2 flex items-center justify-between text-xs text-neutral-400">
+                <span className="rounded-full border border-red-300/40 bg-red-300/10 px-2 py-1 text-red-200">
+                  {htCopy.megaTrendLabel}
+                </span>
+                <span>{htCopy.trendScoreLabel} {headliner.trendScore.toFixed(1)}</span>
+              </div>
+              <div className="mb-2 flex flex-wrap gap-2 text-[11px] text-neutral-300">
+                <span className="rounded-full border border-white/20 px-2 py-1">
+                  Popilarite entènèt {(headliner.popularityScore ?? 0).toFixed(1)}
+                </span>
+                <span className="rounded-full border border-white/20 px-2 py-1">
+                  Google {(headliner.googleSearchScore ?? 0).toFixed(1)}
+                </span>
+                <span className="rounded-full border border-white/20 px-2 py-1">
+                  Sosyal {(headliner.socialScore ?? 0).toFixed(1)}
+                </span>
+              </div>
+              <Link
+                href={`/cluster/${headliner.clusterId}`}
+                className="text-2xl font-bold leading-tight text-white transition hover:text-red-200"
+              >
+                {headliner.title}
+              </Link>
+              <p className="mt-3 text-neutral-300">{headliner.summary}</p>
+              <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                {headliner.topSources.map((source) => (
+                  <a
+                    key={`${source.sourceName}-${source.sourceUrl}`}
+                    href={source.sourceUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="rounded-lg border border-white/10 bg-black/20 p-3 text-sm transition hover:border-red-300/40"
+                  >
+                    <p className="font-medium text-white">{source.sourceName}</p>
+                    <p className="line-clamp-2 text-xs text-neutral-400">{source.snippet}</p>
+                  </a>
+                ))}
+              </div>
+            </section>
+          ) : null}
+
+          <section className="grid gap-4 md:grid-cols-2">
+            {moreTrends.length === 0 && !headliner ? (
+              <div className="rounded-xl border border-white/10 bg-white/[0.03] p-6 text-neutral-300">
+                {htCopy.noData}
+              </div>
+            ) : (
+              visibleTrends.map((trend) => <TrendCard key={trend.clusterId} trend={trend} />)
+            )}
+          </section>
+
+          {hasMoreStories ? (
+            <div className="flex justify-center">
+              <Link
+                href={`/?timeframe=${timeframe}&category=${category}&popularityWindow=${popularityWindow}&page=${page + 1}`}
+                className="rounded-full border border-white/20 px-5 py-2 text-sm font-semibold text-neutral-100 transition hover:border-cyan-300/50 hover:text-cyan-100"
+              >
+                Louvri plis istwa
+              </Link>
+            </div>
+          ) : null}
+
+          <AdSlot slotId="feedMid" format="rectangle" />
+
+          <section className="rounded-2xl border border-cyan-400/20 bg-cyan-400/10 p-5 text-sm text-cyan-50">
+            <p>{htCopy.footerNote}</p>
+            <p className="mt-2 text-cyan-100/90">{htCopy.archiveBlurb}</p>
+          </section>
+        </section>
+
+        <aside className="space-y-4">
+          <AdSlot slotId="sidebar" format="rectangle" />
+          <SelfServeAdStrip />
+
+          <section className="rounded-2xl border border-amber-300/30 bg-amber-400/10 p-4">
+            <h2 className="text-lg font-bold text-white">{htCopy.immigrationHubTitle}</h2>
+            <p className="mt-1 text-xs text-neutral-300">{htCopy.immigrationHubSubtitle}</p>
+            <div className="mt-3 space-y-3">
+              {immigrationHubTopics.map((topic) => (
+                <article
+                  key={topic.title}
+                  className="rounded-lg border border-white/10 bg-black/20 p-3"
+                >
+                  <p className="text-sm font-semibold text-amber-100">{topic.title}</p>
+                  <p className="mt-1 text-xs text-neutral-300">{topic.snippet}</p>
+                  <p className="mt-2 text-[11px] text-amber-200">{topic.sourceHint}</p>
+                </article>
+              ))}
+            </div>
+          </section>
+
+          <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+            <h2 className="text-lg font-bold text-white">{htCopy.influencerTitle}</h2>
+            <p className="mt-1 text-xs text-neutral-400">
+              {htCopy.influencerSubtitle}
+            </p>
+            <div className="mt-4 space-y-3">
+              {influencerTopics.map((item, idx) => (
+                <article
+                  key={`${item.influencer}-${idx}`}
+                  className="rounded-lg border border-white/10 bg-black/20 p-3"
+                >
+                  <p className="text-sm font-semibold text-red-200">{item.influencer}</p>
+                  <p className="mt-1 text-xs text-neutral-300">{item.topic}</p>
+                  <p className="mt-1 text-[11px] text-neutral-500">
+                    {item.platform} • {item.focus}
+                  </p>
+                </article>
+              ))}
+            </div>
+          </section>
+
+          <section className="rounded-2xl border border-emerald-400/30 bg-emerald-500/10 p-4">
+            <h2 className="text-lg font-bold text-white">{htCopy.sportsHubTitle}</h2>
+            <p className="mt-1 text-xs text-neutral-300">{htCopy.sportsHubSubtitle}</p>
+            <div className="mt-3 space-y-3">
+              {sportsHubTopics.map((topic) => (
+                <article
+                  key={topic.title}
+                  className="rounded-lg border border-white/10 bg-black/20 p-3"
+                >
+                  <p className="text-sm font-semibold text-emerald-200">{topic.title}</p>
+                  <p className="mt-1 text-xs text-neutral-300">{topic.snippet}</p>
+                </article>
+              ))}
+            </div>
+          </section>
+
+          <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+            <h2 className="text-lg font-bold text-white">{htCopy.categoryTitle}</h2>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {["imigrasyon", "mizik", "dyaspora", "kilti", "politik", "espò", "viral", "foutbòl"].map((tag) => (
+                <span
+                  key={tag}
+                  className="rounded-full border border-white/20 bg-white/[0.02] px-2 py-1 text-xs text-neutral-300"
+                >
+                  #{tag}
+                </span>
+              ))}
+            </div>
+          </section>
+        </aside>
       </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
+
+      <footer className="border-t border-white/10 bg-neutral-950/90">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-4 text-xs text-neutral-400 sm:px-6">
+          <div className="space-y-1">
+            <p>{htCopy.footerRights}</p>
+            <p>
+              {htCopy.footerContactLead}{" "}
+              <a href={`mailto:${contactEmail}`} className="text-cyan-200 hover:text-cyan-100">
+                {contactEmail}
+              </a>
+            </p>
+          </div>
+          <SelfServeAdLauncher buttonLabel="Mete anons ou" />
+        </div>
       </footer>
     </div>
   );
