@@ -81,6 +81,56 @@ async function sendSms(to: string, message: string) {
   return { ok: true };
 }
 
+function getBaseUrl() {
+  return process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+}
+
+function buildDailyDigestEmail(input: {
+  subscriberName: string | null;
+  trends: Awaited<ReturnType<typeof getTrendFeed>>;
+}) {
+  const baseUrl = getBaseUrl();
+  const introName = input.subscriberName ? `Bonjou ${input.subscriberName},` : "Bonjou,";
+  const headline = input.trends[0];
+  const majorStories = input.trends.slice(0, 6);
+  const lines = majorStories
+    .map(
+      (trend, index) =>
+        `${index + 1}. ${trend.title}\n   - ${trend.summary}\n   - Li plis: ${baseUrl}/cluster/${trend.clusterId}`,
+    )
+    .join("\n\n");
+
+  const subject = headline
+    ? `Zen Rezo A • Rezime jounen an: ${headline.title}`
+    : "Zen Rezo A • Rezime jounen an";
+
+  const message = `${introName}
+
+Men gwo istwa ki make jounen an nan kominote a:
+
+${lines}
+
+Pou wè tout detay yo, videyo yo, ak plis sijè k ap monte:
+${baseUrl}
+
+Mèsi paske ou abòne ak Zen Rezo A.`;
+
+  return { subject, message };
+}
+
+function buildDailyDigestSms(input: {
+  trends: Awaited<ReturnType<typeof getTrendFeed>>;
+}) {
+  const baseUrl = getBaseUrl();
+  const top = input.trends.slice(0, 3);
+  const recap =
+    top.length > 0
+      ? top.map((item, index) => `${index + 1}) ${item.title.slice(0, 70)}`).join(" | ")
+      : "Pa gen gwo aktyalite nouvo pou moman an.";
+
+  return `Zen Rezo A rezime jounen an: ${recap}. Gade plis sou ${baseUrl}`;
+}
+
 export async function notifySubscribersForNewStories() {
   const trends = await getTrendFeed("daily", "all", "1h");
   const topTrends = trends.slice(0, 12);
@@ -132,6 +182,70 @@ export async function notifySubscribersForNewStories() {
       cluster_id: clusterId,
       channel: subscriber.contact_channel,
       message: body,
+      status: deliveryResult.ok ? "sent" : "failed",
+      error: deliveryResult.ok ? null : deliveryResult.error ?? "delivery failed",
+      sent_at: deliveryResult.ok ? new Date().toISOString() : null,
+    });
+
+    if (deliveryResult.ok) {
+      sent += 1;
+    } else {
+      failed += 1;
+    }
+  }
+
+  return {
+    checked: subscribers.length,
+    queued,
+    sent,
+    failed,
+  };
+}
+
+export async function sendDailySubscriberDigest() {
+  const trends = await getTrendFeed("daily", "all", "24h");
+  const topTrends = trends.slice(0, 10);
+
+  const { data: subscribers } = await supabaseAdmin
+    .from("subscribers")
+    .select("id,full_name,email,phone,contact_channel")
+    .eq("is_active", true)
+    .limit(5000);
+
+  if (!subscribers || subscribers.length === 0) {
+    return { checked: 0, queued: 0, sent: 0, failed: 0 };
+  }
+
+  let queued = 0;
+  let sent = 0;
+  let failed = 0;
+
+  for (const subscriber of subscribers) {
+    queued += 1;
+    let deliveryResult: { ok: boolean; error?: string } = { ok: false, error: "unknown" };
+    let messageBody = "";
+
+    if (subscriber.contact_channel === "email" && subscriber.email) {
+      const digest = buildDailyDigestEmail({
+        subscriberName: subscriber.full_name,
+        trends: topTrends,
+      });
+      messageBody = digest.message;
+      deliveryResult = await sendEmail(subscriber.email, digest.subject, digest.message);
+    } else if (subscriber.contact_channel === "phone" && subscriber.phone) {
+      const smsDigest = buildDailyDigestSms({ trends: topTrends });
+      messageBody = smsDigest;
+      deliveryResult = await sendSms(subscriber.phone, smsDigest);
+    } else {
+      deliveryResult = { ok: false, error: "missing contact destination" };
+      messageBody = "daily digest skipped: missing contact destination";
+    }
+
+    await supabaseAdmin.from("subscriber_notifications").insert({
+      subscriber_id: subscriber.id,
+      cluster_id: null,
+      channel: subscriber.contact_channel,
+      message: messageBody,
       status: deliveryResult.ok ? "sent" : "failed",
       error: deliveryResult.ok ? null : deliveryResult.error ?? "delivery failed",
       sent_at: deliveryResult.ok ? new Date().toISOString() : null,

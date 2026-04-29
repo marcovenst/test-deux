@@ -36,6 +36,10 @@ This app now supports subscriber capture (email or phone), category interests, a
   - Protected endpoint.
   - Tries to notify matching subscribers for top new trends.
 
+- `POST /api/jobs/newsletter`
+  - Protected endpoint.
+  - Sends a daily digest recap (major stories) to all active subscribers and includes a CTA link back to the landing page.
+
 ## Storage
 
 Subscribers are saved in two places:

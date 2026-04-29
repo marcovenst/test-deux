@@ -31,9 +31,11 @@ create table if not exists public.subscriber_interests (
   subscriber_id uuid not null references public.subscribers(id) on delete cascade,
   category text not null,
   keyword text,
-  created_at timestamptz not null default now(),
-  unique(subscriber_id, category, coalesce(keyword, ''))
+  created_at timestamptz not null default now()
 );
+
+create unique index if not exists idx_subscriber_interests_unique
+  on public.subscriber_interests (subscriber_id, category, coalesce(keyword, ''));
 
 create index if not exists idx_subscriber_interests_subscriber
   on public.subscriber_interests (subscriber_id);

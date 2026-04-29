@@ -77,6 +77,9 @@ curl -X POST "$NEXT_PUBLIC_APP_URL/api/jobs/schedule" \
 
 - Email: set `RESEND_API_KEY` and `RESEND_FROM_EMAIL`
 - SMS: set `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_FROM_NUMBER`
+- Daily digest job:
+  - `POST /api/jobs/newsletter` (protected with `INGESTION_SHARED_SECRET`)
+  - Sends all active subscribers a daily recap and invites them back to the landing page.
 
 ### Self-serve ads ($5 checkout)
 

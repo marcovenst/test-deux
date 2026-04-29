@@ -23,7 +23,7 @@ export const htCopy = {
     "Pa gen done ap viv ankò. Lanse pipeline ingestion la pou chaje done yo epi wè tandans yo.",
   influencerTitle: "Sa enfliyansè yo ap pale",
   influencerSubtitle:
-    "Greg Promo, Jeanne Douze, ak lòt gwo kont sou X, Facebook, TikTok, YouTube.",
+    "Blogè, animatè medya, atis, espòtif, politisyen, ak lòt pèsonalite ayisyen sou X, Facebook, TikTok, YouTube.",
   sportsHubTitle: "Work Hub Espò",
   sportsHubSubtitle:
     "Fokus sou ekip nasyonal Ayiti a, foutbòl, ak gwo nouvèl espò kominote a.",

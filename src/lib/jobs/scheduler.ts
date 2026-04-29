@@ -12,6 +12,7 @@ const SCHEDULES: ScheduleEntry[] = [
   { destinationPath: "/api/jobs/cluster", cron: "*/15 * * * *" },
   { destinationPath: "/api/jobs/score", cron: "*/20 * * * *" },
   { destinationPath: "/api/jobs/summarize", cron: "*/30 * * * *" },
+  { destinationPath: "/api/jobs/newsletter", cron: "0 13 * * *" },
 ];
 
 export async function setupQStashSchedules() {

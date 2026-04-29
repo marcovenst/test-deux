@@ -131,11 +131,11 @@ function getFallbackFeed(): TrendFeedItem[] {
 }
 
 export function getInfluencerTopics(): InfluencerTopic[] {
-  return haitianInfluencers.flatMap((influencer) => [
+  const influencerTopics = haitianInfluencers.flatMap((influencer) => [
     {
       influencer: influencer.name,
       focus: influencer.focus,
-      topic: `Sa ${influencer.name} ap di sou nouvèl cho nan kominote ayisyen an`,
+      topic: `Sa ${influencer.name} ap di sou sijè ki cho nan kominote ayisyen an`,
       platform: "X / YouTube",
     },
     {
@@ -145,6 +145,41 @@ export function getInfluencerTopics(): InfluencerTopic[] {
       platform: "TikTok / Facebook",
     },
   ]);
+
+  const communityVoiceTopics: InfluencerTopic[] = [
+    {
+      influencer: "Blogè ak analis sou entènèt",
+      focus: "analiz cho, opinyon piblik, deba",
+      topic: "Sa blogè ayisyen yo ap mete devan sou nouvèl ki pi diskite yo",
+      platform: "X / Facebook / YouTube",
+    },
+    {
+      influencer: "Animatè medya ak jounalis",
+      focus: "aktyalite, entèvyou, verifikasyon enfòmasyon",
+      topic: "Pwen kle medya ayisyen yo ap repete sou dosye jounen an",
+      platform: "YouTube / Facebook / X",
+    },
+    {
+      influencer: "Atis ak kreyatè",
+      focus: "mizik, kilti, showbiz, tandans viral",
+      topic: "Sa atis ak kreyatè yo ap pouse sou kilti ak videyo viral",
+      platform: "TikTok / Instagram / YouTube",
+    },
+    {
+      influencer: "Espòtif ak kominote espò",
+      focus: "match, seleksyon, transfè, opinyon fanatik",
+      topic: "Sa jwè, ansyen jwè, ak fanatik espò yo ap di sou pèfòmans ekip yo",
+      platform: "X / YouTube / Facebook",
+    },
+    {
+      influencer: "Aktè politik ak lidè opinyon",
+      focus: "politik piblik, eleksyon, gouvènans",
+      topic: "Mesaj politik ki pi pataje sou rezo sosyal nan kominote a",
+      platform: "X / Facebook / medya sosyal",
+    },
+  ];
+
+  return [...communityVoiceTopics, ...influencerTopics];
 }
 
 export async function getTrendFeed(
