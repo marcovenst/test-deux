@@ -57,6 +57,11 @@ export default async function ClusterPage({ params }: ClusterPageProps) {
   const videoHighlights = normalizedPosts
     .filter((item) => item.media.kind === "embed" || item.media.kind === "video")
     .slice(0, 3);
+  const fallbackHighlights = normalizedPosts.slice(0, 3);
+  const fallbackSummary = fallbackHighlights
+    .map((item) => item.post.snippet)
+    .filter((value): value is string => Boolean(value))
+    .join(" ");
 
   return (
     <main className="min-h-screen bg-slate-950 px-6 py-12 text-slate-100">
@@ -82,7 +87,10 @@ export default async function ClusterPage({ params }: ClusterPageProps) {
             </span>
           </div>
           <p className="mt-4 text-slate-300">
-            {summary?.summary ?? "Rezime a ap prepare pou sijè sa a."}
+            {summary?.summary ??
+              (fallbackSummary
+                ? `Rezime rapid: ${fallbackSummary}`
+                : "Rezime a ap prepare pou sijè sa a.")}
           </p>
           {summary?.trend_reason ? (
             <p className="mt-3 text-sm text-cyan-100">
@@ -117,7 +125,24 @@ export default async function ClusterPage({ params }: ClusterPageProps) {
                 ))}
               </ul>
             </article>
-          ) : null}
+          ) : (
+            <article className="rounded-xl border border-cyan-300/25 bg-cyan-300/10 p-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-cyan-100">
+                Rezime rapid sou sous yo
+              </p>
+              <p className="mt-2 text-sm text-cyan-50">
+                Pa gen videyo dirèk nan sijè sa a kounye a, men men pwen ki pi enpòtan yo:
+              </p>
+              <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-cyan-50/90">
+                {fallbackHighlights.map((item) => (
+                  <li key={`${item.post.source_url}-${item.index}`}>
+                    {item.post.title}
+                    {item.post.snippet ? ` — ${item.post.snippet}` : ""}
+                  </li>
+                ))}
+              </ul>
+            </article>
+          )}
 
           {normalizedPosts.map(({ post, media, index }) => {
             return (

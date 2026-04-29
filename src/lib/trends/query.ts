@@ -52,6 +52,20 @@ export type InfluencerTopic = {
 
 const FOCUSED_SOCIAL_PLATFORMS = new Set(["tiktok", "x", "facebook", "youtube"]);
 
+function buildCreoleFallbackSummary(input: {
+  clusterTitle: string;
+  sourceSnippets: string[];
+}) {
+  const snippets = input.sourceSnippets
+    .map((snippet) => snippet.trim())
+    .filter(Boolean)
+    .slice(0, 2);
+  if (snippets.length === 0) {
+    return `Rezime rapid: sijè "${input.clusterTitle}" ap suiv pa kominote a pandan nou kontinye mete ajou plis detay.`;
+  }
+  return `Rezime rapid sou "${input.clusterTitle}": ${snippets.join(" ")}. N ap kontinye mete ajou pwen yo an Kreyòl.`;
+}
+
 function normalizePlatformName(input: string) {
   const value = input.toLowerCase();
   if (value.includes("twitter")) {
@@ -513,7 +527,12 @@ export async function getTrendFeed(
             (summary?.cluster_title as string | undefined) ??
             (cluster.title as string) ??
             "Untitled cluster",
-          summary: (summary?.summary as string | undefined) ?? "Summary is being generated.",
+          summary:
+            (summary?.summary as string | undefined) ??
+            buildCreoleFallbackSummary({
+              clusterTitle: (cluster.title as string) ?? "sijè sa a",
+              sourceSnippets: sources.map((source) => source.snippet ?? ""),
+            }),
           trendCategory: (cluster.trend_category as string | null) ?? "general",
           trendScore: latestByCluster.get(cluster.id as string)?.score ?? 0,
           viewCount,
