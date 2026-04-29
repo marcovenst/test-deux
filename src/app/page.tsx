@@ -7,6 +7,7 @@ import { SubscribeDrawer } from "@/components/subscribers/SubscribeDrawer";
 import { InfiniteTrendGrid } from "@/components/trends/InfiniteTrendGrid";
 import { TrendFilters } from "@/components/trends/TrendFilters";
 import { TrendViewPing } from "@/components/trends/TrendViewPing";
+import { VideoSpotlight } from "@/components/trends/VideoSpotlight";
 import { communityResourceLinks, dailyHighlights } from "@/lib/content/editorial";
 import { immigrationHubTopics, sportsHubTopics } from "@/lib/content/influencers";
 import { htCopy } from "@/lib/i18n/ht";
@@ -130,6 +131,8 @@ export default async function Home({ searchParams }: HomePageProps) {
               ))}
             </div>
           </section>
+
+          <VideoSpotlight trends={trends} />
 
           <AdSlot slotId="feedTop" format="horizontal" />
 

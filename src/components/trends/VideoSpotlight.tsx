@@ -1,0 +1,70 @@
+import Link from "next/link";
+
+import type { TrendFeedItem } from "@/lib/trends/query";
+
+type VideoSpotlightProps = {
+  trends: TrendFeedItem[];
+};
+
+export function VideoSpotlight({ trends }: VideoSpotlightProps) {
+  const videoItems = trends
+    .map((trend) => ({
+      trend,
+      media: trend.topSources.find((source) => source.embedUrl || source.videoUrl),
+    }))
+    .filter((item): item is { trend: TrendFeedItem; media: NonNullable<(typeof item)["media"]> } =>
+      Boolean(item.media),
+    )
+    .slice(0, 4);
+
+  if (videoItems.length === 0) {
+    return null;
+  }
+
+  return (
+    <section className="rounded-2xl border border-fuchsia-300/30 bg-fuchsia-500/10 p-4">
+      <div className="mb-3 flex items-center justify-between">
+        <h2 className="text-sm font-bold uppercase tracking-[0.12em] text-fuchsia-100">
+          Videyo k ap fè bri
+        </h2>
+        <Link href="/search?query=video" className="text-xs text-fuchsia-200 hover:text-white">
+          Plis videyo →
+        </Link>
+      </div>
+      <div className="grid gap-4 md:grid-cols-2">
+        {videoItems.map(({ trend, media }) => (
+          <article key={trend.clusterId} className="rounded-xl border border-white/15 bg-black/25 p-3">
+            <div className="overflow-hidden rounded-lg border border-white/10 bg-black">
+              {media.embedUrl ? (
+                <iframe
+                  src={media.embedUrl}
+                  title={trend.title}
+                  loading="lazy"
+                  allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
+                  allowFullScreen
+                  className="aspect-video w-full"
+                />
+              ) : media.videoUrl ? (
+                <video
+                  src={media.videoUrl}
+                  controls
+                  muted
+                  preload="metadata"
+                  playsInline
+                  className="aspect-video w-full object-cover"
+                />
+              ) : null}
+            </div>
+            <Link
+              href={`/cluster/${trend.clusterId}`}
+              className="mt-3 block text-sm font-semibold text-white transition hover:text-fuchsia-100"
+            >
+              {trend.title}
+            </Link>
+            <p className="mt-1 text-xs text-neutral-300">{media.sourceName}</p>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
