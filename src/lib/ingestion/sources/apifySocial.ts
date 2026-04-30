@@ -1,7 +1,7 @@
 import { getEnv, isConfigured } from "@/lib/config/env";
 import type { RawIngestionRecord, SourceAdapter } from "@/lib/ingestion/types";
 
-type SocialNetwork = "x" | "instagram" | "tiktok";
+type SocialNetwork = "x" | "instagram" | "tiktok" | "facebook";
 
 type ApifySocialOptions = {
   sourceName: string;
@@ -9,6 +9,7 @@ type ApifySocialOptions = {
   searchTerms: string[];
   maxItems?: number;
   network: SocialNetwork;
+  inputCandidates?: Array<Record<string, unknown>>;
 };
 
 function toStringValue(input: unknown): string | null {
@@ -94,8 +95,15 @@ function mapItemToRecord(network: SocialNetwork, item: Record<string, unknown>):
   };
 }
 
-async function runApifyActor(actorId: string, token: string, searchTerms: string[], maxItems: number) {
+async function runApifyActor(
+  actorId: string,
+  token: string,
+  searchTerms: string[],
+  maxItems: number,
+  customCandidates?: Array<Record<string, unknown>>,
+) {
   const candidateInputs: Array<Record<string, unknown>> = [
+    ...(customCandidates ?? []),
     { searchTerms, maxItems, sort: "Latest" },
     { queries: searchTerms, maxItems, sort: "Latest" },
     { search: searchTerms.join(" OR "), maxItems },
@@ -153,6 +161,7 @@ export function createApifySocialAdapter(options: ApifySocialOptions): SourceAda
         env.APIFY_TOKEN,
         options.searchTerms,
         options.maxItems ?? 100,
+        options.inputCandidates,
       );
       return items
         .map((item) => mapItemToRecord(options.network, item))

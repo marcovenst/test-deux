@@ -80,6 +80,14 @@ export async function GET() {
           : "Apify TikTok actor missing; TikTok ingestion disabled",
     },
     {
+      name: "apify-facebook",
+      ok: isConfigured(env.APIFY_TOKEN) && isConfigured(env.APIFY_FACEBOOK_ACTOR_ID),
+      message:
+        isConfigured(env.APIFY_TOKEN) && isConfigured(env.APIFY_FACEBOOK_ACTOR_ID)
+          ? "configured"
+          : "Apify Facebook actor missing; Facebook ingestion disabled",
+    },
+    {
       name: "qstash",
       ok: isConfigured(env.UPSTASH_QSTASH_TOKEN),
       message: isConfigured(env.UPSTASH_QSTASH_TOKEN)
@@ -109,6 +117,7 @@ export async function GET() {
       item.name === "youtube" ||
       item.name === "reddit" ||
       item.name === "apify" ||
+      item.name === "apify-facebook" ||
       item.name === "apify-instagram" ||
       item.name === "apify-tiktok" ||
       item.name === "qstash",

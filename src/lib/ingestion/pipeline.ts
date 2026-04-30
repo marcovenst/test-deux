@@ -281,6 +281,15 @@ export async function runIngestionPipeline() {
     })),
   );
   const influencerSocialQueries = haitianInfluencers.flatMap((influencer) => influencer.aliases);
+  const influencerFacebookUrls = haitianInfluencers.flatMap((influencer) => influencer.facebookProfiles);
+  const baseFacebookUrls = [
+    "https://www.facebook.com/HaitianTimes",
+    "https://www.facebook.com/lenouvelliste",
+  ];
+  const facebookUrls = Array.from(new Set([...baseFacebookUrls, ...influencerFacebookUrls])).slice(
+    0,
+    30,
+  );
 
   const adapters: SourceAdapter[] = [
     createRssAdapter(DEFAULT_RSS_FEEDS),
@@ -347,6 +356,28 @@ export async function runIngestionPipeline() {
       actorId: env.APIFY_TIKTOK_ACTOR_ID,
       searchTerms: influencerSocialQueries,
       maxItems: 120,
+    }),
+    createApifySocialAdapter({
+      sourceName: "facebook-apify",
+      network: "facebook",
+      actorId: env.APIFY_FACEBOOK_ACTOR_ID,
+      searchTerms: ["Haiti", "Ayiti", "diaspora ayisyen"],
+      maxItems: 100,
+      inputCandidates: [
+        { facebookUrls, resultsLimit: 100, includeVideoTranscript: false },
+        { startUrls: facebookUrls.map((url) => ({ url })), maxItems: 100 },
+      ],
+    }),
+    createApifySocialAdapter({
+      sourceName: "facebook-apify-influencers",
+      network: "facebook",
+      actorId: env.APIFY_FACEBOOK_ACTOR_ID,
+      searchTerms: influencerSocialQueries,
+      maxItems: 100,
+      inputCandidates: [
+        { facebookUrls: influencerFacebookUrls, resultsLimit: 100, includeVideoTranscript: false },
+        { startUrls: influencerFacebookUrls.map((url) => ({ url })), maxItems: 100 },
+      ],
     }),
   ];
 

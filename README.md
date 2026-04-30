@@ -53,6 +53,7 @@ pnpm dev
   - YouTube: `YOUTUBE_API_KEY`
   - Reddit: `REDDIT_CLIENT_ID`, `REDDIT_CLIENT_SECRET`
   - X via Apify: `APIFY_TOKEN`, `APIFY_ACTOR_ID`
+  - Facebook via Apify: `APIFY_TOKEN`, `APIFY_FACEBOOK_ACTOR_ID`
   - Instagram via Apify: `APIFY_TOKEN`, `APIFY_INSTAGRAM_ACTOR_ID`
   - TikTok via Apify: `APIFY_TOKEN`, `APIFY_TIKTOK_ACTOR_ID`
   - Summaries: `ANTHROPIC_API_KEY`

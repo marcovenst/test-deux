@@ -8,6 +8,7 @@ const envSchema = z.object({
   SUPABASE_ANON_KEY: z.string().min(1).optional(),
   APIFY_TOKEN: z.string().min(1).optional(),
   APIFY_ACTOR_ID: z.string().min(1).optional(),
+  APIFY_FACEBOOK_ACTOR_ID: z.string().min(1).optional(),
   APIFY_INSTAGRAM_ACTOR_ID: z.string().min(1).optional(),
   APIFY_TIKTOK_ACTOR_ID: z.string().min(1).optional(),
   REDDIT_CLIENT_ID: z.string().min(1).optional(),
