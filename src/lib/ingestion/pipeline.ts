@@ -1,6 +1,8 @@
 import { supabaseAdmin } from "@/lib/db/client";
 import { haitianInfluencers } from "@/lib/content/influencers";
 import { normalizeRecord, normalizedPostToRawPostRow } from "@/lib/ingestion/normalize";
+import { getEnv } from "@/lib/config/env";
+import { createApifySocialAdapter } from "@/lib/ingestion/sources/apifySocial";
 import { createRedditAdapter } from "@/lib/ingestion/sources/reddit";
 import { createRssAdapter } from "@/lib/ingestion/sources/rss";
 import { createScrapeAdapter } from "@/lib/ingestion/sources/scrape";
@@ -264,6 +266,7 @@ async function writeNormalizedRecords(
 }
 
 export async function runIngestionPipeline() {
+  const env = getEnv();
   const engagementBoostQueries = await getEngagementBoostQueries();
   const influencerXQueries = haitianInfluencers.flatMap((influencer) => {
     const aliasTerms = influencer.aliases;
@@ -277,6 +280,7 @@ export async function runIngestionPipeline() {
       sourceName: `youtube-${influencer.name.toLowerCase().replace(/\s+/g, "-")}`,
     })),
   );
+  const influencerSocialQueries = haitianInfluencers.flatMap((influencer) => influencer.aliases);
 
   const adapters: SourceAdapter[] = [
     createRssAdapter(DEFAULT_RSS_FEEDS),
@@ -316,6 +320,34 @@ export async function runIngestionPipeline() {
         maxItems: 120,
       }),
     ),
+    createApifySocialAdapter({
+      sourceName: "instagram-apify",
+      network: "instagram",
+      actorId: env.APIFY_INSTAGRAM_ACTOR_ID,
+      searchTerms: ["Haiti", "Ayiti", "Haitian", "Kreyol", "diaspora ayisyen"],
+      maxItems: 120,
+    }),
+    createApifySocialAdapter({
+      sourceName: "instagram-apify-influencers",
+      network: "instagram",
+      actorId: env.APIFY_INSTAGRAM_ACTOR_ID,
+      searchTerms: influencerSocialQueries,
+      maxItems: 120,
+    }),
+    createApifySocialAdapter({
+      sourceName: "tiktok-apify",
+      network: "tiktok",
+      actorId: env.APIFY_TIKTOK_ACTOR_ID,
+      searchTerms: ["Haiti", "Ayiti", "Haitian", "Kreyol", "viral ayiti"],
+      maxItems: 120,
+    }),
+    createApifySocialAdapter({
+      sourceName: "tiktok-apify-influencers",
+      network: "tiktok",
+      actorId: env.APIFY_TIKTOK_ACTOR_ID,
+      searchTerms: influencerSocialQueries,
+      maxItems: 120,
+    }),
   ];
 
   const results: Array<{

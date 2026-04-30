@@ -64,6 +64,22 @@ export async function GET() {
           : "Apify credentials missing; X ingestion disabled",
     },
     {
+      name: "apify-instagram",
+      ok: isConfigured(env.APIFY_TOKEN) && isConfigured(env.APIFY_INSTAGRAM_ACTOR_ID),
+      message:
+        isConfigured(env.APIFY_TOKEN) && isConfigured(env.APIFY_INSTAGRAM_ACTOR_ID)
+          ? "configured"
+          : "Apify Instagram actor missing; Instagram ingestion disabled",
+    },
+    {
+      name: "apify-tiktok",
+      ok: isConfigured(env.APIFY_TOKEN) && isConfigured(env.APIFY_TIKTOK_ACTOR_ID),
+      message:
+        isConfigured(env.APIFY_TOKEN) && isConfigured(env.APIFY_TIKTOK_ACTOR_ID)
+          ? "configured"
+          : "Apify TikTok actor missing; TikTok ingestion disabled",
+    },
+    {
       name: "qstash",
       ok: isConfigured(env.UPSTASH_QSTASH_TOKEN),
       message: isConfigured(env.UPSTASH_QSTASH_TOKEN)
@@ -86,7 +102,17 @@ export async function GET() {
     message: dbReachable ? "reachable" : "cannot query Supabase",
   });
 
-  const ok = checks.every((item) => item.ok || item.name === "anthropic" || item.name === "youtube" || item.name === "reddit" || item.name === "apify" || item.name === "qstash");
+  const ok = checks.every(
+    (item) =>
+      item.ok ||
+      item.name === "anthropic" ||
+      item.name === "youtube" ||
+      item.name === "reddit" ||
+      item.name === "apify" ||
+      item.name === "apify-instagram" ||
+      item.name === "apify-tiktok" ||
+      item.name === "qstash",
+  );
 
   return NextResponse.json(
     {
