@@ -11,8 +11,22 @@ import { VideoSpotlight } from "@/components/trends/VideoSpotlight";
 import { communityResourceLinks, dailyHighlights } from "@/lib/content/editorial";
 import { immigrationHubTopics, sportsHubTopics } from "@/lib/content/influencers";
 import { htCopy } from "@/lib/i18n/ht";
+import { buildHomeSidebarSlices } from "@/lib/trends/homeSidebar";
 import { normalizeTrendCategory } from "@/lib/trends/categories";
 import { getInfluencerTopics, getTrendFeed } from "@/lib/trends/query";
+
+const HOME_CATEGORY_TAGS: { label: string; category: string }[] = [
+  { label: "imigrasyon", category: "immigration" },
+  { label: "mizik", category: "music" },
+  { label: "dyaspora", category: "diaspora" },
+  { label: "kilti", category: "culture" },
+  { label: "politik", category: "politics" },
+  { label: "espò", category: "sports" },
+  { label: "viral", category: "viral" },
+  { label: "foutbòl", category: "sports" },
+  { label: "komik", category: "funny" },
+  { label: "relijyon", category: "religion" },
+];
 
 type HomePageProps = {
   searchParams: Promise<{
@@ -31,7 +45,18 @@ export default async function Home({ searchParams }: HomePageProps) {
       ? params.popularityWindow
       : "24h";
   const trends = await getTrendFeed(timeframe, category, popularityWindow);
-  const influencerTopics = getInfluencerTopics().slice(0, 8);
+  const [hubFeed, immigrationFeed, sportsFeed] = await Promise.all([
+    getTrendFeed(timeframe, "all", popularityWindow),
+    getTrendFeed(timeframe, "immigration", popularityWindow),
+    getTrendFeed(timeframe, "sports", popularityWindow),
+  ]);
+  const { immigrationLive, sportsLive, influencerLive, dailyPick } = buildHomeSidebarSlices({
+    trends,
+    hubFeed,
+    immigrationFeed,
+    sportsFeed,
+  });
+  const influencerTopicsFallback = getInfluencerTopics().slice(0, 8);
   const headliner = trends[0];
   const moreTrends = trends.slice(1);
   const contactEmail = process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? htCopy.footerContactEmail;
@@ -184,15 +209,30 @@ export default async function Home({ searchParams }: HomePageProps) {
               </Link>
             </div>
             <div className="grid gap-3 md:grid-cols-3">
-              {dailyHighlights.map((item) => (
-                <article
-                  key={item.title}
-                  className="rounded-xl border border-white/10 bg-black/20 p-3"
-                >
-                  <p className="text-sm font-semibold text-white">{item.title}</p>
-                  <p className="mt-1 text-xs text-neutral-300">{item.snippet}</p>
-                </article>
-              ))}
+              {dailyPick.length > 0
+                ? dailyPick.map((t) => (
+                    <Link
+                      key={t.clusterId}
+                      href={`/cluster/${t.clusterId}`}
+                      className="block rounded-xl border border-white/10 bg-black/20 p-3 transition hover:border-cyan-400/40 hover:bg-black/30"
+                    >
+                      <p className="text-sm font-semibold text-white">{t.title}</p>
+                      <p className="mt-1 line-clamp-3 text-xs text-neutral-300">{t.summary}</p>
+                      <p className="mt-2 text-[11px] text-cyan-200/90">
+                        {htCopy.trendScoreLabel} {t.trendScore.toFixed(1)}
+                      </p>
+                    </Link>
+                  ))
+                : dailyHighlights.map((item) => (
+                    <Link
+                      key={item.title}
+                      href={`/search?q=${encodeURIComponent(item.title)}`}
+                      className="block rounded-xl border border-white/10 bg-black/20 p-3 transition hover:border-cyan-400/40"
+                    >
+                      <p className="text-sm font-semibold text-white">{item.title}</p>
+                      <p className="mt-1 text-xs text-neutral-300">{item.snippet}</p>
+                    </Link>
+                  ))}
             </div>
           </section>
 
@@ -204,19 +244,44 @@ export default async function Home({ searchParams }: HomePageProps) {
           <SelfServeAdStrip />
 
           <section className="rounded-2xl border border-amber-300/30 bg-amber-400/10 p-4">
-            <h2 className="text-lg font-bold text-white">{htCopy.immigrationHubTitle}</h2>
-            <p className="mt-1 text-xs text-neutral-300">{htCopy.immigrationHubSubtitle}</p>
+            <div className="flex items-start justify-between gap-2">
+              <div>
+                <h2 className="text-lg font-bold text-white">{htCopy.immigrationHubTitle}</h2>
+                <p className="mt-1 text-xs text-neutral-300">{htCopy.immigrationHubSubtitle}</p>
+              </div>
+              <Link
+                href={`/?timeframe=${timeframe}&category=immigration&popularityWindow=${popularityWindow}`}
+                className="shrink-0 text-xs text-amber-200 underline-offset-2 hover:text-amber-100 hover:underline"
+              >
+                Gade tout →
+              </Link>
+            </div>
             <div className="mt-3 space-y-3">
-              {immigrationHubTopics.map((topic) => (
-                <article
-                  key={topic.title}
-                  className="rounded-lg border border-white/10 bg-black/20 p-3"
-                >
-                  <p className="text-sm font-semibold text-amber-100">{topic.title}</p>
-                  <p className="mt-1 text-xs text-neutral-300">{topic.snippet}</p>
-                  <p className="mt-2 text-[11px] text-amber-200">{topic.sourceHint}</p>
-                </article>
-              ))}
+              {immigrationLive.length > 0
+                ? immigrationLive.map((t) => (
+                    <Link
+                      key={t.clusterId}
+                      href={`/cluster/${t.clusterId}`}
+                      className="block rounded-lg border border-white/10 bg-black/20 p-3 transition hover:border-amber-300/50 hover:bg-black/30"
+                    >
+                      <p className="text-sm font-semibold text-amber-100">{t.title}</p>
+                      <p className="mt-1 line-clamp-2 text-xs text-neutral-300">{t.summary}</p>
+                      <p className="mt-2 text-[11px] text-amber-200/90">
+                        {htCopy.trendScoreLabel} {t.trendScore.toFixed(1)}
+                      </p>
+                    </Link>
+                  ))
+                : immigrationHubTopics.map((topic) => (
+                    <Link
+                      key={topic.title}
+                      href={`/search?q=${encodeURIComponent(topic.title)}`}
+                      className="block rounded-lg border border-white/10 bg-black/20 p-3 transition hover:border-amber-300/50"
+                    >
+                      <p className="text-sm font-semibold text-amber-100">{topic.title}</p>
+                      <p className="mt-1 text-xs text-neutral-300">{topic.snippet}</p>
+                      <p className="mt-2 text-[11px] text-amber-200">{topic.sourceHint}</p>
+                    </Link>
+                  ))}
             </div>
           </section>
 
@@ -226,58 +291,91 @@ export default async function Home({ searchParams }: HomePageProps) {
               {htCopy.influencerSubtitle}
             </p>
             <div className="mt-4 space-y-3">
-              {influencerTopics.map((item, idx) => (
-                <article
-                  key={`${item.influencer}-${idx}`}
-                  className="rounded-lg border border-white/10 bg-black/20 p-3"
-                >
-                  <p className="text-sm font-semibold text-red-200">{item.influencer}</p>
-                  <p className="mt-1 text-xs text-neutral-300">{item.topic}</p>
-                  <p className="mt-1 text-[11px] text-neutral-500">
-                    {item.platform} • {item.focus}
-                  </p>
-                </article>
-              ))}
+              {influencerLive.length > 0
+                ? influencerLive.map((t) => {
+                    const names = t.influencers?.slice(0, 2).join(" · ");
+                    const top = t.topSources[0];
+                    const via = names || top?.sourceName || "Sosyal";
+                    return (
+                      <Link
+                        key={t.clusterId}
+                        href={`/cluster/${t.clusterId}`}
+                        className="block rounded-lg border border-white/10 bg-black/20 p-3 transition hover:border-red-300/40 hover:bg-black/30"
+                      >
+                        <p className="text-sm font-semibold text-red-200">{via}</p>
+                        <p className="mt-1 text-sm font-medium text-white">{t.title}</p>
+                        <p className="mt-1 line-clamp-2 text-xs text-neutral-300">{t.summary}</p>
+                      </Link>
+                    );
+                  })
+                : influencerTopicsFallback.map((item, idx) => (
+                    <Link
+                      key={`${item.influencer}-${idx}`}
+                      href={`/search?q=${encodeURIComponent(`${item.influencer} ${item.topic}`)}`}
+                      className="block rounded-lg border border-white/10 bg-black/20 p-3 transition hover:border-red-300/40"
+                    >
+                      <p className="text-sm font-semibold text-red-200">{item.influencer}</p>
+                      <p className="mt-1 text-xs text-neutral-300">{item.topic}</p>
+                      <p className="mt-1 text-[11px] text-neutral-500">
+                        {item.platform} • {item.focus}
+                      </p>
+                    </Link>
+                  ))}
             </div>
           </section>
 
           <section className="rounded-2xl border border-emerald-400/30 bg-emerald-500/10 p-4">
-            <h2 className="text-lg font-bold text-white">{htCopy.sportsHubTitle}</h2>
-            <p className="mt-1 text-xs text-neutral-300">{htCopy.sportsHubSubtitle}</p>
+            <div className="flex items-start justify-between gap-2">
+              <div>
+                <h2 className="text-lg font-bold text-white">{htCopy.sportsHubTitle}</h2>
+                <p className="mt-1 text-xs text-neutral-300">{htCopy.sportsHubSubtitle}</p>
+              </div>
+              <Link
+                href={`/?timeframe=${timeframe}&category=sports&popularityWindow=${popularityWindow}`}
+                className="shrink-0 text-xs text-emerald-200 underline-offset-2 hover:text-emerald-100 hover:underline"
+              >
+                Gade tout →
+              </Link>
+            </div>
             <div className="mt-3 space-y-3">
-              {sportsHubTopics.map((topic) => (
-                <article
-                  key={topic.title}
-                  className="rounded-lg border border-white/10 bg-black/20 p-3"
-                >
-                  <p className="text-sm font-semibold text-emerald-200">{topic.title}</p>
-                  <p className="mt-1 text-xs text-neutral-300">{topic.snippet}</p>
-                </article>
-              ))}
+              {sportsLive.length > 0
+                ? sportsLive.map((t) => (
+                    <Link
+                      key={t.clusterId}
+                      href={`/cluster/${t.clusterId}`}
+                      className="block rounded-lg border border-white/10 bg-black/20 p-3 transition hover:border-emerald-300/50 hover:bg-black/30"
+                    >
+                      <p className="text-sm font-semibold text-emerald-200">{t.title}</p>
+                      <p className="mt-1 line-clamp-2 text-xs text-neutral-300">{t.summary}</p>
+                      <p className="mt-2 text-[11px] text-emerald-200/90">
+                        {htCopy.trendScoreLabel} {t.trendScore.toFixed(1)}
+                      </p>
+                    </Link>
+                  ))
+                : sportsHubTopics.map((topic) => (
+                    <Link
+                      key={topic.title}
+                      href={`/search?q=${encodeURIComponent(topic.title)}`}
+                      className="block rounded-lg border border-white/10 bg-black/20 p-3 transition hover:border-emerald-300/50"
+                    >
+                      <p className="text-sm font-semibold text-emerald-200">{topic.title}</p>
+                      <p className="mt-1 text-xs text-neutral-300">{topic.snippet}</p>
+                    </Link>
+                  ))}
             </div>
           </section>
 
           <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
             <h2 className="text-lg font-bold text-white">{htCopy.categoryTitle}</h2>
             <div className="mt-3 flex flex-wrap gap-2">
-              {[
-                "imigrasyon",
-                "mizik",
-                "dyaspora",
-                "kilti",
-                "politik",
-                "espò",
-                "viral",
-                "foutbòl",
-                "komik",
-                "relijyon",
-              ].map((tag) => (
-                <span
-                  key={tag}
-                  className="rounded-full border border-white/20 bg-white/[0.02] px-2 py-1 text-xs text-neutral-300"
+              {HOME_CATEGORY_TAGS.map(({ label, category: cat }) => (
+                <Link
+                  key={`${label}-${cat}`}
+                  href={`/?timeframe=${timeframe}&category=${cat}&popularityWindow=${popularityWindow}`}
+                  className="rounded-full border border-white/20 bg-white/[0.02] px-2 py-1 text-xs text-neutral-300 transition hover:border-cyan-400/50 hover:text-white"
                 >
-                  #{tag}
-                </span>
+                  #{label}
+                </Link>
               ))}
             </div>
           </section>
@@ -288,7 +386,7 @@ export default async function Home({ searchParams }: HomePageProps) {
               {communityResourceLinks.map((item) => (
                 <Link
                   key={item.title}
-                  href={item.href}
+                  href={`/?timeframe=${timeframe}&category=${item.category}&popularityWindow=${popularityWindow}`}
                   className="block rounded-lg border border-white/15 bg-black/20 p-3 transition hover:border-cyan-300/40"
                 >
                   <p className="text-sm font-semibold text-cyan-100">{item.title}</p>

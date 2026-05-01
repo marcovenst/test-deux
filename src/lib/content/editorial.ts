@@ -20,16 +20,16 @@ export const communityResourceLinks = [
   {
     title: "Resous Imigrasyon",
     description: "Atik ak lyen ofisyèl pou TPS, dosye legal, ak gid dokiman.",
-    href: "/search?query=imigrasyon",
+    category: "immigration" as const,
   },
   {
     title: "Nouvèl Espò Ayiti",
     description: "Swiv ekip nasyonal la, jwè dyaspora yo, ak match enpòtan yo.",
-    href: "/search?query=esp%C3%B2",
+    category: "sports" as const,
   },
   {
     title: "Kilti + Mizik",
     description: "Tandans mizik, evènman kiltirèl, ak kreyatè k ap fè bri sou rezo yo.",
-    href: "/search?query=kilti",
+    category: "music" as const,
   },
 ];
