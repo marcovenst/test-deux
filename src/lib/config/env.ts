@@ -16,6 +16,7 @@ const envSchema = z.object({
   REDDIT_USER_AGENT: z.string().min(1).default("ayiti-buzz-board/1.0"),
   YOUTUBE_API_KEY: z.string().min(1).optional(),
   ANTHROPIC_API_KEY: z.string().min(1).optional(),
+  ANTHROPIC_MODEL: z.string().min(1).optional(),
   UPSTASH_QSTASH_TOKEN: z.string().min(1).optional(),
   INGESTION_SHARED_SECRET: z.string().min(1),
   ADMIN_DASHBOARD_TOKEN: z.string().min(1).optional(),

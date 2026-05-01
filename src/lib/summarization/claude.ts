@@ -34,6 +34,10 @@ type ClusterWithPosts = {
 };
 
 type SummaryPayload = z.infer<typeof summarySchema>;
+const FALLBACK_ANTHROPIC_MODELS = [
+  "claude-3-5-sonnet-latest",
+  "claude-3-5-sonnet-20241022",
+] as const;
 
 function getAnthropicClient() {
   const env = getEnv();
@@ -83,6 +87,9 @@ async function fetchClustersForSummary(limit = 20): Promise<ClusterWithPosts[]> 
 async function summarizeCluster(cluster: ClusterWithPosts) {
   const anthropic = getAnthropicClient();
   let parsed: SummaryPayload;
+  const env = getEnv();
+  const configuredModel = env.ANTHROPIC_MODEL?.trim();
+  const requestedModel = configuredModel || "claude-3-5-sonnet-latest";
   if (!anthropic) {
     parsed = buildFallbackSummary(cluster);
   } else {
@@ -92,18 +99,39 @@ async function summarizeCluster(cluster: ClusterWithPosts) {
       posts: cluster.posts,
     });
 
-    const message = await anthropic.messages.create({
-      model: "claude-sonnet-4-20250514",
-      max_tokens: 1300,
-      temperature: 0.2,
-      system: systemPrompt,
-      messages: [
-        {
-          role: "user",
-          content: userPrompt,
-        },
-      ],
-    });
+    let message: Awaited<ReturnType<typeof anthropic.messages.create>> | null = null;
+    let usedModel = requestedModel;
+    const modelCandidates = Array.from(
+      new Set([requestedModel, ...FALLBACK_ANTHROPIC_MODELS]),
+    );
+    for (const candidate of modelCandidates) {
+      try {
+        message = await anthropic.messages.create({
+          model: candidate,
+          max_tokens: 1300,
+          temperature: 0.2,
+          system: systemPrompt,
+          messages: [
+            {
+              role: "user",
+              content: userPrompt,
+            },
+          ],
+        });
+        usedModel = candidate;
+        break;
+      } catch (error) {
+        const messageText = error instanceof Error ? error.message : String(error);
+        const notFound = messageText.includes("not_found_error") || messageText.includes("model:");
+        if (!notFound || candidate === modelCandidates.at(-1)) {
+          throw error;
+        }
+      }
+    }
+
+    if (!message) {
+      throw new Error("Anthropic request failed: no model response");
+    }
 
     const text = message.content
       .filter((part) => part.type === "text")
@@ -111,6 +139,23 @@ async function summarizeCluster(cluster: ClusterWithPosts) {
       .join("\n");
 
     parsed = summarySchema.parse(JSON.parse(text));
+    await supabaseAdmin.from("cluster_summaries").upsert(
+      {
+        cluster_id: cluster.clusterId,
+        cluster_title: parsed.cluster_title,
+        summary: parsed.summary,
+        key_points: parsed.key_points,
+        trend_reason: parsed.trend_reason,
+        sentiment: parsed.sentiment,
+        tags: parsed.tags,
+        llm_model: usedModel,
+        prompt_version: SUMMARY_PROMPT_VERSION,
+      },
+      {
+        onConflict: "cluster_id",
+      },
+    );
+    return;
   }
   await supabaseAdmin.from("cluster_summaries").upsert(
     {
@@ -121,7 +166,7 @@ async function summarizeCluster(cluster: ClusterWithPosts) {
       trend_reason: parsed.trend_reason,
       sentiment: parsed.sentiment,
       tags: parsed.tags,
-      llm_model: anthropic ? "claude-sonnet-4-20250514" : "fallback-creole-v1",
+      llm_model: "fallback-creole-v1",
       prompt_version: SUMMARY_PROMPT_VERSION,
     },
     {
