@@ -1,6 +1,7 @@
 # Ads / Monetization Guide
 
 You can run ads on Zen Rezo A with either Google AdSense or direct sponsored ads.
+You can also sell sponsored placements with Stripe-powered self-serve checkout.
 
 ## 1) Enable ads
 
@@ -66,6 +67,35 @@ Set:
 
 - `NEXT_PUBLIC_ADS_ENABLED="false"`
 
+## 5) Self-serve paid ads (Stripe)
+
+Self-serve checkout creates an order first, then redirects buyers to Stripe Checkout.
+On successful payment, Stripe calls the webhook and the order is activated.
+
+Required env vars:
+
+- `NEXT_PUBLIC_APP_URL`
+- `STRIPE_SECRET_KEY`
+- `STRIPE_WEBHOOK_SECRET`
+
+Routes involved:
+
+- `POST /api/ads/self-serve/checkout`
+- `POST /api/ads/self-serve/webhook`
+- `GET /api/ads/self-serve/active`
+
+Webhook behavior:
+
+- The webhook validates `stripe-signature` with `STRIPE_WEBHOOK_SECRET`.
+- It handles `checkout.session.completed`.
+- `metadata.adOrderId` is required; missing metadata returns `400`.
+- Duplicate deliveries are idempotent and do not shift an already-active ad window.
+
+Operational checks:
+
+- `GET /api/monetization/health` validates required Stripe config.
+- The same health endpoint reports stale self-serve orders that stay `pending_payment` for more than 6 hours.
+
 ## Files involved
 
 - `src/components/ads/GoogleAdsScript.tsx`
@@ -77,4 +107,10 @@ Set:
 - `src/app/admin/ads/page.tsx`
 - `src/app/api/ads/config/route.ts`
 - `src/app/api/admin/ads/route.ts`
+- `src/components/ads/SelfServeAdLauncher.tsx`
+- `src/components/ads/SelfServeAdStrip.tsx`
+- `src/app/api/ads/self-serve/checkout/route.ts`
+- `src/app/api/ads/self-serve/webhook/route.ts`
+- `src/app/api/ads/self-serve/active/route.ts`
+- `src/lib/ads/selfServe.ts`
 

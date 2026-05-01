@@ -3,6 +3,12 @@ import type { SelfServeAdOrderRow } from "@/lib/db/types";
 
 export type SelfServeAdOrderStatus = "pending_payment" | "paid" | "active" | "cancelled" | "expired";
 export type SelfServeAdPlanId = "daily_1" | "bundle_5" | "monthly_30";
+export type MarkOrderPaidResult = {
+  orderId: string;
+  status: "activated" | "already_active";
+  startsAt: string;
+  endsAt: string;
+};
 
 export type SelfServeAdPlan = {
   id: SelfServeAdPlanId;
@@ -148,20 +154,34 @@ export async function attachCheckoutSession(orderId: string, checkoutSessionId: 
 export async function markOrderPaid(input: {
   orderId: string;
   paymentIntentId?: string;
-}) {
+}): Promise<MarkOrderPaidResult> {
   const now = new Date().toISOString();
   const { data: existing, error: existingError } = await supabaseAdmin
     .from("self_serve_ad_orders")
-    .select("duration_days")
+    .select("status,duration_days,starts_at,ends_at")
     .eq("id", input.orderId)
     .single();
   if (existingError || !existing) {
     throw new Error(existingError?.message ?? "Ad order not found");
   }
 
-  const startsAt = now;
-  const endsAt = computeEndDate(startsAt, Number(existing.duration_days));
-  const { error } = await supabaseAdmin
+  const existingStatus = existing.status as SelfServeAdOrderStatus;
+  if (existingStatus === "active" && existing.starts_at && existing.ends_at) {
+    return {
+      orderId: input.orderId,
+      status: "already_active",
+      startsAt: existing.starts_at,
+      endsAt: existing.ends_at,
+    };
+  }
+
+  if (existingStatus === "cancelled" || existingStatus === "expired") {
+    throw new Error(`Cannot activate ad order with status "${existingStatus}"`);
+  }
+
+  const startsAt = existing.starts_at ?? now;
+  const endsAt = existing.ends_at ?? computeEndDate(startsAt, Number(existing.duration_days));
+  const { data: updated, error } = await supabaseAdmin
     .from("self_serve_ad_orders")
     .update({
       status: "active",
@@ -170,11 +190,43 @@ export async function markOrderPaid(input: {
       stripe_payment_intent_id: input.paymentIntentId ?? null,
       updated_at: now,
     })
-    .eq("id", input.orderId);
+    .eq("id", input.orderId)
+    .in("status", ["pending_payment", "paid"])
+    .select("id,starts_at,ends_at")
+    .maybeSingle();
 
   if (error) {
     throw new Error(error.message);
   }
+
+  if (!updated) {
+    const { data: current, error: currentError } = await supabaseAdmin
+      .from("self_serve_ad_orders")
+      .select("status,starts_at,ends_at")
+      .eq("id", input.orderId)
+      .single();
+    if (currentError || !current) {
+      throw new Error(currentError?.message ?? "Ad order not found");
+    }
+
+    if (current.status === "active" && current.starts_at && current.ends_at) {
+      return {
+        orderId: input.orderId,
+        status: "already_active",
+        startsAt: current.starts_at,
+        endsAt: current.ends_at,
+      };
+    }
+
+    throw new Error(`Unexpected ad order status "${current.status}" while processing payment`);
+  }
+
+  return {
+    orderId: input.orderId,
+    status: "activated",
+    startsAt: updated.starts_at ?? startsAt,
+    endsAt: updated.ends_at ?? endsAt,
+  };
 }
 
 export async function getActiveSelfServeAds(limit = 3) {
@@ -206,6 +258,24 @@ export async function getActiveSelfServeAds(limit = 3) {
   }
 
   return (data ?? []).map((row) => fromRow(row as SelfServeAdOrderRow));
+}
+
+export async function countStalePendingSelfServeAdOrders(maxAgeHours = 6) {
+  const cutoff = new Date(Date.now() - maxAgeHours * 60 * 60 * 1000).toISOString();
+  const { count, error } = await supabaseAdmin
+    .from("self_serve_ad_orders")
+    .select("id", {
+      count: "exact",
+      head: true,
+    })
+    .eq("status", "pending_payment")
+    .lt("created_at", cutoff);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return count ?? 0;
 }
 
 export function getSelfServeAdPlans() {

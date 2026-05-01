@@ -14,7 +14,7 @@ export const htCopy = {
   haitiSignatureText: "Nouvèl ak vwa kominote ayisyen an, an premye.",
   heroBadge: "Nouvèl cho jounen an",
   heroTitle:
-    "Tablo tandans ayisyen: imigrasyon, espò, mizik, dyaspora, kilti, politik, ak tout sa k ap fè bri.",
+    "Aktyalite Lakay: Imigrasyon, Espò, Mizik, Dyaspora, Kilti, Politik, ak tout sa k ap fè bri nan kominote ayisyen an.",
   heroSubtitle:
     "Nou mete sijè ki cho yo devan, ak snippets klè pou w ka deside si w vle klike sou sous orijinal la.",
   megaTrendLabel: "Mega tandans",

@@ -110,30 +110,6 @@ export default async function Home({ searchParams }: HomePageProps) {
             </div>
           </section>
 
-          <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-            <div className="mb-3 flex items-center justify-between">
-              <h2 className="text-sm font-bold uppercase tracking-[0.12em] text-cyan-200">
-                Pwen esansyèl jounen an
-              </h2>
-              <Link href="/search" className="text-xs text-cyan-300 hover:text-cyan-200">
-                Gade plis →
-              </Link>
-            </div>
-            <div className="grid gap-3 md:grid-cols-3">
-              {dailyHighlights.map((item) => (
-                <article
-                  key={item.title}
-                  className="rounded-xl border border-white/10 bg-black/20 p-3"
-                >
-                  <p className="text-sm font-semibold text-white">{item.title}</p>
-                  <p className="mt-1 text-xs text-neutral-300">{item.snippet}</p>
-                </article>
-              ))}
-            </div>
-          </section>
-
-          <VideoSpotlight trends={trends} />
-
           <AdSlot slotId="feedTop" format="horizontal" />
 
           {headliner ? (
@@ -197,6 +173,30 @@ export default async function Home({ searchParams }: HomePageProps) {
             <p>{htCopy.footerNote}</p>
             <p className="mt-2 text-cyan-100/90">{htCopy.archiveBlurb}</p>
           </section>
+
+          <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+            <div className="mb-3 flex items-center justify-between">
+              <h2 className="text-sm font-bold uppercase tracking-[0.12em] text-cyan-200">
+                Pwen esansyèl jounen an
+              </h2>
+              <Link href="/search" className="text-xs text-cyan-300 hover:text-cyan-200">
+                Gade plis →
+              </Link>
+            </div>
+            <div className="grid gap-3 md:grid-cols-3">
+              {dailyHighlights.map((item) => (
+                <article
+                  key={item.title}
+                  className="rounded-xl border border-white/10 bg-black/20 p-3"
+                >
+                  <p className="text-sm font-semibold text-white">{item.title}</p>
+                  <p className="mt-1 text-xs text-neutral-300">{item.snippet}</p>
+                </article>
+              ))}
+            </div>
+          </section>
+
+          <VideoSpotlight trends={trends} />
         </section>
 
         <aside className="space-y-4">

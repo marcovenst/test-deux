@@ -70,19 +70,35 @@ If using direct sponsored mode:
   - [ ] `supabase/migrations/0004_cluster_views.sql`
   - [ ] `supabase/migrations/0005_cluster_reactions.sql`
   - [ ] `supabase/migrations/0006_cluster_play_metrics.sql`
+  - [ ] `supabase/migrations/0007_billing_subscriptions.sql`
 - [ ] Verify key tables exist and are writable by server routes.
 
 ## 4) Stripe (self-serve ads)
 
-- [ ] Create products/prices for:
-  - [ ] `$5` / 1 day
-  - [ ] `$20` / 5 days
-  - [ ] `$50` / 30 days
+- [ ] Confirm `STRIPE_SECRET_KEY` is a live key in production.
+- [ ] Note: checkout currently uses inline Stripe `price_data` from code plans (`$5/1d`, `$20/5d`, `$50/30d`), so Dashboard products are optional.
 - [ ] Add webhook endpoint:
   - [ ] `POST https://<your-domain>/api/ads/self-serve/webhook`
 - [ ] Subscribe webhook to `checkout.session.completed`
 - [ ] Copy endpoint signing secret into `STRIPE_WEBHOOK_SECRET`
 - [ ] Run one live checkout test and confirm ad activation.
+- [ ] Re-send the same webhook event once from Stripe Dashboard and confirm ad window is unchanged (idempotency check).
+- [ ] Trigger `GET /api/monetization/health` and confirm no stale `pending_payment` order warning.
+
+## 4b) Stripe subscriptions (phase 2)
+
+- [ ] Set `STRIPE_SUBSCRIPTION_PRICE_ID` to your recurring Stripe Price ID.
+- [ ] Set `STRIPE_BILLING_WEBHOOK_SECRET` (or rely on `STRIPE_WEBHOOK_SECRET` fallback).
+- [ ] Add billing webhook endpoint:
+  - [ ] `POST https://<your-domain>/api/billing/webhook`
+- [ ] Subscribe webhook to:
+  - [ ] `checkout.session.completed`
+  - [ ] `customer.subscription.updated`
+  - [ ] `customer.subscription.deleted`
+  - [ ] `invoice.payment_failed`
+- [ ] Run one subscription checkout test with `POST /api/billing/checkout`.
+- [ ] Verify billing status with `GET /api/billing/status?userId=<id>`.
+- [ ] Verify entitlement gate with `GET /api/member/content` + header `x-user-id`.
 
 ## 5) Jobs + scheduling
 

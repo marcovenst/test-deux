@@ -25,6 +25,10 @@ const envSchema = z.object({
   TWILIO_ACCOUNT_SID: z.string().min(1).optional(),
   TWILIO_AUTH_TOKEN: z.string().min(1).optional(),
   TWILIO_FROM_NUMBER: z.string().min(1).optional(),
+  STRIPE_SECRET_KEY: z.string().min(1).optional(),
+  STRIPE_WEBHOOK_SECRET: z.string().min(1).optional(),
+  STRIPE_BILLING_WEBHOOK_SECRET: z.string().min(1).optional(),
+  STRIPE_SUBSCRIPTION_PRICE_ID: z.string().min(1).optional(),
 });
 
 export type AppEnv = z.infer<typeof envSchema>;

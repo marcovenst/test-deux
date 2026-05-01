@@ -35,7 +35,9 @@ type ClusterWithPosts = {
 
 type SummaryPayload = z.infer<typeof summarySchema>;
 const FALLBACK_ANTHROPIC_MODELS = [
+  "claude-3-7-sonnet-latest",
   "claude-3-5-sonnet-latest",
+  "claude-sonnet-4-20250514",
   "claude-3-5-sonnet-20241022",
 ] as const;
 
@@ -87,11 +89,13 @@ async function fetchClustersForSummary(limit = 20): Promise<ClusterWithPosts[]> 
 async function summarizeCluster(cluster: ClusterWithPosts) {
   const anthropic = getAnthropicClient();
   let parsed: SummaryPayload;
+  let modelLabel = "fallback-creole-v1";
   const env = getEnv();
   const configuredModel = env.ANTHROPIC_MODEL?.trim();
   const requestedModel = configuredModel || "claude-3-5-sonnet-latest";
   if (!anthropic) {
     parsed = buildFallbackSummary(cluster);
+    modelLabel = "fallback-creole-v1";
   } else {
     const userPrompt = buildUserPrompt({
       clusterId: cluster.clusterId,
@@ -101,6 +105,7 @@ async function summarizeCluster(cluster: ClusterWithPosts) {
 
     let message: Awaited<ReturnType<typeof anthropic.messages.create>> | null = null;
     let usedModel = requestedModel;
+    let lastModelError: Error | null = null;
     const modelCandidates = Array.from(
       new Set([requestedModel, ...FALLBACK_ANTHROPIC_MODELS]),
     );
@@ -123,39 +128,35 @@ async function summarizeCluster(cluster: ClusterWithPosts) {
       } catch (error) {
         const messageText = error instanceof Error ? error.message : String(error);
         const notFound = messageText.includes("not_found_error") || messageText.includes("model:");
-        if (!notFound || candidate === modelCandidates.at(-1)) {
+        if (!notFound) {
           throw error;
         }
+        lastModelError = error instanceof Error ? error : new Error(messageText);
       }
     }
 
     if (!message) {
-      throw new Error("Anthropic request failed: no model response");
+      if (lastModelError) {
+        console.warn(
+          `Summarization model unavailable for cluster ${cluster.clusterId}; using fallback summary`,
+          lastModelError.message,
+        );
+      }
+      parsed = buildFallbackSummary(cluster);
+      modelLabel = "fallback-creole-v1";
+    } else {
+      const text = message.content
+        .filter((part) => part.type === "text")
+        .map((part) => part.text)
+        .join("\n");
+
+      parsed = summarySchema.parse(JSON.parse(text));
+      parsed = {
+        ...parsed,
+        summary: normalizeSummaryText(parsed.summary),
+      };
+      modelLabel = usedModel;
     }
-
-    const text = message.content
-      .filter((part) => part.type === "text")
-      .map((part) => part.text)
-      .join("\n");
-
-    parsed = summarySchema.parse(JSON.parse(text));
-    await supabaseAdmin.from("cluster_summaries").upsert(
-      {
-        cluster_id: cluster.clusterId,
-        cluster_title: parsed.cluster_title,
-        summary: parsed.summary,
-        key_points: parsed.key_points,
-        trend_reason: parsed.trend_reason,
-        sentiment: parsed.sentiment,
-        tags: parsed.tags,
-        llm_model: usedModel,
-        prompt_version: SUMMARY_PROMPT_VERSION,
-      },
-      {
-        onConflict: "cluster_id",
-      },
-    );
-    return;
   }
   await supabaseAdmin.from("cluster_summaries").upsert(
     {
@@ -166,7 +167,7 @@ async function summarizeCluster(cluster: ClusterWithPosts) {
       trend_reason: parsed.trend_reason,
       sentiment: parsed.sentiment,
       tags: parsed.tags,
-      llm_model: "fallback-creole-v1",
+      llm_model: modelLabel,
       prompt_version: SUMMARY_PROMPT_VERSION,
     },
     {
@@ -190,6 +191,102 @@ function trimSentence(value: string, maxLength = 220) {
   return `${cleaned.slice(0, maxLength - 1).trimEnd()}…`;
 }
 
+function ensureTrailingPeriod(text: string) {
+  const cleaned = text.trim();
+  if (!cleaned) {
+    return cleaned;
+  }
+  if (/[.!?…]$/.test(cleaned)) {
+    return cleaned;
+  }
+  return `${cleaned}.`;
+}
+
+function stripRezimePrefix(text: string) {
+  return text.replace(/^\s*rezime\s*:?\s*/i, "").trim();
+}
+
+function stripSourceMentions(text: string) {
+  return normalizeWhitespace(
+    text
+      .replace(/\b(source|sous)\b[:\s-]*/gi, "")
+      .replace(/\b(rss-news|haitian-media-scrape|facebook|youtube|tiktok|x|twitter|instagram|reddit)\b/gi, "")
+      .replace(/\s+/g, " "),
+  );
+}
+
+function normalizeSummaryText(text: string) {
+  const withoutPrefix = stripRezimePrefix(normalizeWhitespace(text));
+  if (!withoutPrefix) {
+    return "Sijè sa a ap devlope, n ap kontinye suiv pwen prensipal yo.";
+  }
+  return ensureTrailingPeriod(withoutPrefix);
+}
+
+function cleanSourceFact(value: string) {
+  return normalizeWhitespace(
+    value
+      .replace(/https?:\/\/\S+/gi, "")
+      .replace(/\[[^\]]+\]\([^)]+\)/g, "")
+      .replace(/\s+/g, " "),
+  );
+}
+
+function extractSourceFact(post: ClusterWithPosts["posts"][number], maxLength = 180) {
+  const raw = post.content?.trim() ? post.content : post.title;
+  const sentence = cleanSourceFact(raw).split(/[.!?]\s+/)[0] ?? "";
+  return trimSentence(sentence, maxLength);
+}
+
+function stableIndex(seed: string, modulo: number) {
+  let hash = 0;
+  for (let i = 0; i < seed.length; i += 1) {
+    hash = (hash * 31 + seed.charCodeAt(i)) % 2147483647;
+  }
+  const value = hash;
+  return modulo > 0 ? value % modulo : 0;
+}
+
+function buildFallbackEnding(input: {
+  cluster: ClusterWithPosts;
+  hasSecondPoint: boolean;
+  sentiment: SummaryPayload["sentiment"];
+}) {
+  const neutralEndings = input.hasSecondPoint
+    ? [
+        "Dosye a kontinye devlope ak nouvo detay.",
+        "Plizyè moun ap suiv kijan sitiyasyon an ap evolye.",
+        "Sijè a rete nan sant diskisyon jounen an.",
+      ]
+    : [
+        "Nouvèl la ap fè anpil pale nan kominote a.",
+        "Sijè a atire anpil atansyon jodi a.",
+        "Plizyè moun ap pataje opinyon yo sou dosye a.",
+      ];
+
+  const positiveEndings = [
+    "Anpil reyaksyon montre yon ton pozitif sou dosye a.",
+    "Kominote a resevwa nouvèl la ak anpil espwa.",
+    "Sa pote yon enèji pozitif nan diskisyon yo.",
+  ];
+
+  const negativeEndings = [
+    "Nouvèl la leve anpil kestyon ak enkyetid.",
+    "Gen anpil deba sou konsekans dosye sa a.",
+    "Anpil moun ap mande plis klarifikasyon sou sitiyasyon an.",
+  ];
+
+  const endingPool =
+    input.sentiment === "positive"
+      ? positiveEndings
+      : input.sentiment === "negative"
+        ? negativeEndings
+        : neutralEndings;
+
+  const seed = `${input.cluster.clusterId}:${input.cluster.title}:${input.sentiment}:${input.hasSecondPoint}`;
+  return endingPool[stableIndex(seed, endingPool.length)] ?? neutralEndings[0];
+}
+
 function guessSentiment(cluster: ClusterWithPosts): SummaryPayload["sentiment"] {
   const text = `${cluster.title} ${cluster.posts.map((item) => item.title).join(" ")}`.toLowerCase();
   const negativeHints = ["crise", "crisis", "violence", "ensikirite", "danger", "catastrophe"];
@@ -206,22 +303,28 @@ function guessSentiment(cluster: ClusterWithPosts): SummaryPayload["sentiment"] 
 function buildFallbackSummary(cluster: ClusterWithPosts): SummaryPayload {
   const topPosts = cluster.posts.slice(0, 3);
   const points = topPosts
-    .map((post) => trimSentence(post.title || post.content, 140))
+    .map((post) => extractSourceFact(post, 140))
     .filter(Boolean)
     .slice(0, 3);
-
-  const primarySnippet = trimSentence(topPosts[0]?.content ?? "", 220);
-  const secondarySnippet = trimSentence(topPosts[1]?.content ?? "", 180);
-  const summaryParts = [
-    `Rezime rapid sou sijè sa a: "${trimSentence(cluster.title, 110)}".`,
-    primarySnippet
-      ? `Pi gwo pwen yo soti nan sous yo montre ke ${primarySnippet.toLowerCase()}.`
-      : "Pi gwo pwen yo ap soti nan plizyè sous serye sou entènèt la.",
-    secondarySnippet
-      ? `Gen lòt sous ki ajoute ke ${secondarySnippet.toLowerCase()}.`
-      : "N ap kontinye rafrechi done yo pandan nouvo post ap antre.",
-    "Rezime sa a fèt otomatikman an Kreyòl pandan mòd AI avanse a poko aktive.",
-  ];
+  const mainPoint = stripSourceMentions(
+    trimSentence(points[0] ?? cluster.title, 180),
+  );
+  const secondaryPoint = stripSourceMentions(trimSentence(points[1] ?? "", 140));
+  const topicRef = trimSentence(mainPoint || cluster.title, 120);
+  const sentiment = guessSentiment(cluster);
+  const hasSecondPoint = Boolean(
+    secondaryPoint && secondaryPoint.toLowerCase() !== mainPoint.toLowerCase(),
+  );
+  const ending = buildFallbackEnding({
+    cluster,
+    hasSecondPoint,
+    sentiment,
+  });
+  const summaryBody =
+    hasSecondPoint
+      ? `Sijè prensipal la konsène "${topicRef}". ${ending}`
+      : `Sijè prensipal la konsène "${topicRef}". ${ending}`;
+  const summary = normalizeSummaryText(summaryBody);
 
   const allText = `${cluster.title} ${cluster.posts.map((post) => post.title).join(" ")}`.toLowerCase();
   const tags = Array.from(
@@ -235,11 +338,11 @@ function buildFallbackSummary(cluster: ClusterWithPosts): SummaryPayload {
 
   return {
     cluster_title: trimSentence(cluster.title, 120) || "Sijè kominote a",
-    summary: summaryParts.join(" "),
+    summary,
     key_points: points.length > 0 ? points : ["Nouvèl yo ap kontinye mete ajou nan kèk minit."],
     trend_reason:
-      "Sijè a sou tandans paske plizyè sous ap pale de li an menm tan epi kominote a ap reyaji sou li sou rezo sosyal yo.",
-    sentiment: guessSentiment(cluster),
+      "Sijè a rete cho paske plizyè sous ap rapòte menm dosye a pandan kominote a ap reyaji sou konsekans li yo.",
+    sentiment,
     tags: tags.length > 0 ? tags : ["kominote", "aktyalite"],
   };
 }

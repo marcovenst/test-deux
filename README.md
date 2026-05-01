@@ -27,6 +27,7 @@ cp .env.example .env.local
    - `supabase/migrations/0004_cluster_views.sql`
    - `supabase/migrations/0005_cluster_reactions.sql`
    - `supabase/migrations/0006_cluster_play_metrics.sql`
+   - `supabase/migrations/0007_billing_subscriptions.sql`
 
 5. Start dev server:
 
@@ -96,6 +97,28 @@ curl -X POST "$NEXT_PUBLIC_APP_URL/api/jobs/schedule" \
   - `$5` for 1 day
   - `$20` for 5 days
   - `$50` for 30 days
+
+### Subscriptions (phase 2)
+
+- Set:
+  - `STRIPE_SECRET_KEY`
+  - `STRIPE_SUBSCRIPTION_PRICE_ID`
+  - `STRIPE_BILLING_WEBHOOK_SECRET` (or fallback to `STRIPE_WEBHOOK_SECRET`)
+- Add Stripe webhook endpoint:
+  - `POST /api/billing/webhook`
+  - listen for:
+    - `checkout.session.completed`
+    - `customer.subscription.updated`
+    - `customer.subscription.deleted`
+    - `invoice.payment_failed`
+- Checkout endpoint:
+  - `POST /api/billing/checkout`
+- Customer portal endpoint:
+  - `POST /api/billing/portal`
+- Billing status endpoint:
+  - `GET /api/billing/status?userId=<id>`
+- Protected example route:
+  - `GET /api/member/content` with `x-user-id` header
 
 ## Useful Endpoints
 

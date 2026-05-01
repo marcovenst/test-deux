@@ -32,24 +32,47 @@ export async function POST(request: Request) {
   if (event.type === "checkout.session.completed") {
     const session = event.data.object as Stripe.Checkout.Session;
     const orderId = session.metadata?.adOrderId;
-    if (orderId) {
-      try {
-        await markOrderPaid({
-          orderId,
-          paymentIntentId:
-            typeof session.payment_intent === "string" ? session.payment_intent : undefined,
-        });
-      } catch (error) {
-        return NextResponse.json(
-          {
-            ok: false,
-            error: error instanceof Error ? error.message : "Failed to activate ad order",
-          },
-          { status: 500 },
-        );
-      }
+    if (!orderId) {
+      console.error("Stripe checkout.session.completed missing adOrderId metadata", {
+        eventId: event.id,
+        sessionId: session.id,
+      });
+      return NextResponse.json(
+        {
+          ok: false,
+          error: "Missing adOrderId metadata in checkout session",
+        },
+        { status: 400 },
+      );
+    }
+
+    try {
+      const activation = await markOrderPaid({
+        orderId,
+        paymentIntentId:
+          typeof session.payment_intent === "string" ? session.payment_intent : undefined,
+      });
+      return NextResponse.json({
+        ok: true,
+        processed: true,
+        eventType: event.type,
+        activationStatus: activation.status,
+      });
+    } catch (error) {
+      console.error("Failed to activate self-serve ad order from webhook", {
+        eventId: event.id,
+        orderId,
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+      return NextResponse.json(
+        {
+          ok: false,
+          error: error instanceof Error ? error.message : "Failed to activate ad order",
+        },
+        { status: 500 },
+      );
     }
   }
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, ignored: true, eventType: event.type });
 }

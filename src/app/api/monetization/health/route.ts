@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { countStalePendingSelfServeAdOrders } from "@/lib/ads/selfServe";
 import { isConfigured } from "@/lib/config/env";
 
 type Check = {
@@ -16,6 +17,8 @@ export async function GET() {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL;
   const stripeSecret = process.env.STRIPE_SECRET_KEY;
   const stripeWebhook = process.env.STRIPE_WEBHOOK_SECRET;
+  const stripeBillingWebhook = process.env.STRIPE_BILLING_WEBHOOK_SECRET ?? stripeWebhook;
+  const stripeSubscriptionPrice = process.env.STRIPE_SUBSCRIPTION_PRICE_ID;
   const adsEnabled = parseBool(process.env.NEXT_PUBLIC_ADS_ENABLED);
   const adProvider = (process.env.NEXT_PUBLIC_AD_PROVIDER ?? "none").trim().toLowerCase();
 
@@ -48,6 +51,20 @@ export async function GET() {
       message: isConfigured(stripeWebhook)
         ? "configured"
         : "STRIPE_WEBHOOK_SECRET missing; paid orders will not auto-activate",
+    },
+    {
+      name: "stripe-billing-webhook-secret",
+      ok: isConfigured(stripeBillingWebhook),
+      message: isConfigured(stripeBillingWebhook)
+        ? "configured"
+        : "STRIPE_BILLING_WEBHOOK_SECRET (or STRIPE_WEBHOOK_SECRET fallback) missing; subscription updates will fail",
+    },
+    {
+      name: "stripe-subscription-price-id",
+      ok: isConfigured(stripeSubscriptionPrice),
+      message: isConfigured(stripeSubscriptionPrice)
+        ? "configured"
+        : "STRIPE_SUBSCRIPTION_PRICE_ID missing; subscription checkout requires explicit priceId in payload",
     },
     {
       name: "ads-enabled",
@@ -118,8 +135,35 @@ export async function GET() {
     );
   }
 
+  let stalePendingOrders = 0;
+  try {
+    stalePendingOrders = await countStalePendingSelfServeAdOrders(6);
+    checks.push({
+      name: "self-serve-pending-orders",
+      ok: stalePendingOrders === 0,
+      message:
+        stalePendingOrders === 0
+          ? "no stale pending self-serve orders"
+          : `${stalePendingOrders} pending self-serve order(s) older than 6h`,
+    });
+  } catch (error) {
+    checks.push({
+      name: "self-serve-pending-orders",
+      ok: false,
+      message:
+        error instanceof Error
+          ? `failed to query pending self-serve orders: ${error.message}`
+          : "failed to query pending self-serve orders",
+    });
+  }
+
   const selfServeReady =
     isConfigured(appUrl) && isConfigured(stripeSecret) && isConfigured(stripeWebhook);
+  const subscriptionsReady =
+    isConfigured(appUrl) &&
+    isConfigured(stripeSecret) &&
+    isConfigured(stripeBillingWebhook) &&
+    isConfigured(stripeSubscriptionPrice);
   const adsenseReady =
     adsEnabled &&
     adProvider === "google" &&
@@ -130,7 +174,7 @@ export async function GET() {
   const directAdReady =
     adsEnabled && adProvider === "direct" && isConfigured(directAdImage) && isConfigured(directAdTarget);
 
-  const monetizationReady = selfServeReady || adsenseReady || directAdReady;
+  const monetizationReady = selfServeReady || subscriptionsReady || adsenseReady || directAdReady;
 
   return NextResponse.json(
     {
@@ -138,8 +182,10 @@ export async function GET() {
       checks,
       summary: {
         selfServeReady,
+        subscriptionsReady,
         adsenseReady,
         directAdReady,
+        stalePendingOrders,
       },
       timestamp: new Date().toISOString(),
     },

@@ -143,6 +143,30 @@ export type SelfServeAdOrderRow = {
   updated_at: string;
 };
 
+export type BillingSubscriptionStatus =
+  | "incomplete"
+  | "incomplete_expired"
+  | "trialing"
+  | "active"
+  | "past_due"
+  | "canceled"
+  | "unpaid";
+
+export type BillingSubscriptionRow = {
+  id: string;
+  user_id: string;
+  stripe_customer_id: string;
+  stripe_subscription_id: string;
+  status: BillingSubscriptionStatus;
+  current_period_end: string | null;
+  cancel_at_period_end: boolean;
+  stripe_price_id: string | null;
+  stripe_latest_event_id: string | null;
+  stripe_latest_event_created: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 export type ClusterViewRow = {
   cluster_id: string;
   total_views: number;
