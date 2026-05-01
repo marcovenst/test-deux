@@ -100,6 +100,7 @@ curl -X POST "$NEXT_PUBLIC_APP_URL/api/jobs/schedule" \
 ## Useful Endpoints
 
 - `GET /api/health` - deployment/runtime readiness checks
+- `GET /api/monetization/health` - monetization readiness checks (Stripe + ads)
 - `GET /api/trends` - trend feed API
 - `GET /api/search?q=...` - deep archive search
 - `GET /news` - archive index page
