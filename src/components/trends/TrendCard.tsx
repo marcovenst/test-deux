@@ -5,6 +5,7 @@ import Link from "next/link";
 
 import type { TrendFeedItem } from "@/lib/trends/query";
 import { htCopy } from "@/lib/i18n/ht";
+import { SummaryListenPanel } from "@/components/trends/SummaryListenPanel";
 
 type ReactionKey = "sa_raz" | "sa_komik" | "sa_enteresan";
 
@@ -471,28 +472,39 @@ export function TrendCard({ trend }: { trend: TrendFeedItem }) {
           </div>
         ) : (
           <div
-            className={`mx-auto flex flex-col justify-between bg-gradient-to-br from-fuchsia-500/45 via-cyan-500/25 to-indigo-500/40 p-4 ${mediaFrameClass}`}
+            className={`relative mx-auto flex flex-col justify-between overflow-hidden bg-gradient-to-br from-fuchsia-500/45 via-cyan-500/25 to-indigo-500/40 p-4 ${mediaFrameClass}`}
           >
-            <div>
+            <div
+              className="pointer-events-none absolute inset-0 opacity-40"
+              style={{
+                background:
+                  "radial-gradient(circle at 30% 20%, rgba(34,211,238,0.35), transparent 50%), radial-gradient(circle at 70% 80%, rgba(217,70,239,0.3), transparent 45%)",
+              }}
+            />
+            <div className="relative z-10">
               <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-cyan-100">
-                AI video recap
+                {htCopy.summaryListenTitle}
               </p>
               <p className="mt-2 text-sm leading-relaxed text-white">
-                Gade rezime vizyèl rapid sou pwen esansyèl istwa sa a.
+                Pa gen videyo dirèk. Koute rezime vwa anba a oswa li tèks la.
               </p>
             </div>
 
-            <div className="flex items-end justify-between">
+            <div className="relative z-10 mt-4 flex items-end justify-between">
               <span className="rounded-full border border-white/20 bg-black/25 px-2 py-1 text-[10px] text-white/90">
-                Preview
+                Animasyon
               </span>
-              <span className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/35 bg-black/35 text-lg text-white">
-                ▶
+              <span className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/35 bg-black/35 text-sm text-white/90">
+                ♪
               </span>
             </div>
           </div>
         )}
       </div>
+
+      {!videoSource ? (
+        <SummaryListenPanel clusterId={trend.clusterId} title={trend.title} summary={trend.summary} />
+      ) : null}
 
       {(videoSource?.embedUrl || videoSource?.videoUrl) && (
         <div className="mt-2 flex items-center justify-end">

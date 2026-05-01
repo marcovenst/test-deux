@@ -33,6 +33,13 @@ export const htCopy = {
   categoryTitle: "Kategori k ap pete",
   footerNote:
     "Zen Rezo A rasanble sous piblik yo sèlman. Toujou verifye enfòmasyon enpòtan yo ak sous ofisyèl.",
+  summaryListenTitle: "Rezime vwa",
+  summaryListenCtaPlay: "Koute",
+  summaryListenCtaPause: "Kanpe",
+  summaryListenHint:
+    "Lè pa gen videyo, ou ka koute rezime a nan Kreyòl oswa vwa ki pi pre (selon navigatè w).",
+  summaryListenUnsupported:
+    "Navigatè a pa pèmèt lekti vwa. Li tèks rezime anba a.",
   cardSourceCta: "Li sous la",
   archiveBlurb:
     "Tout sijè yo rete sou sit la menm lè yo pa sou premye paj la ankò. Vizite achiv la pou jwenn ansyen nouvèl yo.",

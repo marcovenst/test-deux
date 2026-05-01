@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { SummaryListenPanel } from "@/components/trends/SummaryListenPanel";
 import { TrendViewPing } from "@/components/trends/TrendViewPing";
 import { supabaseAdmin } from "@/lib/db/client";
 import { extractPostMedia } from "@/lib/media/postMedia";
@@ -103,6 +104,16 @@ export default async function ClusterPage({ params }: ClusterPageProps) {
                 <li key={point}>{point}</li>
               ))}
             </ul>
+          ) : null}
+          {videoHighlights.length === 0 ? (
+            <SummaryListenPanel
+              clusterId={cluster.id}
+              title={String(summary?.cluster_title ?? cluster.title ?? "")}
+              summary={String(
+                summary?.summary ??
+                  (fallbackSummary ? `Rezime rapid: ${fallbackSummary}` : ""),
+              )}
+            />
           ) : null}
         </section>
 
