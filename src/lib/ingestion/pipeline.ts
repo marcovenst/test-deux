@@ -3,7 +3,6 @@ import { haitianInfluencers } from "@/lib/content/influencers";
 import { normalizeRecord, normalizedPostToRawPostRow } from "@/lib/ingestion/normalize";
 import { getEnv } from "@/lib/config/env";
 import { createApifySocialAdapter } from "@/lib/ingestion/sources/apifySocial";
-import { createRedditAdapter } from "@/lib/ingestion/sources/reddit";
 import { createRssAdapter } from "@/lib/ingestion/sources/rss";
 import { createScrapeAdapter } from "@/lib/ingestion/sources/scrape";
 import { createXApifyAdapter } from "@/lib/ingestion/sources/xApify";
@@ -295,11 +294,6 @@ export async function runIngestionPipeline() {
     createRssAdapter(DEFAULT_RSS_FEEDS),
     createScrapeAdapter(DEFAULT_SCRAPE_SOURCES),
     createScrapeAdapter(INFLUENCER_SOCIAL_SCRAPES),
-    createRedditAdapter("Haiti OR Ayiti OR Haitian OR Kreyol"),
-    createRedditAdapter("Haitian immigration OR USCIS OR TPS Haiti OR parole Haiti"),
-    ...engagementBoostQueries.map((query, index) =>
-      createRedditAdapter(query, { sourceName: `reddit-engagement-${index + 1}` }),
-    ),
     createYoutubeAdapter("Haiti OR Ayiti diaspora news"),
     createYoutubeAdapter("USCIS Haitian TPS update OR Haitian immigration lawyer"),
     ...engagementBoostQueries.map((query, index) =>

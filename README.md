@@ -51,7 +51,6 @@ pnpm dev
 - RSS + web scraping work without API keys.
 - Optional providers (enable by adding credentials):
   - YouTube: `YOUTUBE_API_KEY`
-  - Reddit: `REDDIT_CLIENT_ID`, `REDDIT_CLIENT_SECRET`
   - X via Apify: `APIFY_TOKEN`, `APIFY_ACTOR_ID`
   - Facebook via Apify: `APIFY_TOKEN`, `APIFY_FACEBOOK_ACTOR_ID`
   - Instagram via Apify: `APIFY_TOKEN`, `APIFY_INSTAGRAM_ACTOR_ID`

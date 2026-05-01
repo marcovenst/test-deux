@@ -48,14 +48,6 @@ export async function GET() {
         : "YOUTUBE_API_KEY missing; YouTube ingestion disabled",
     },
     {
-      name: "reddit",
-      ok: isConfigured(env.REDDIT_CLIENT_ID) && isConfigured(env.REDDIT_CLIENT_SECRET),
-      message:
-        isConfigured(env.REDDIT_CLIENT_ID) && isConfigured(env.REDDIT_CLIENT_SECRET)
-          ? "configured"
-          : "Reddit credentials missing; Reddit ingestion disabled",
-    },
-    {
       name: "apify",
       ok: isConfigured(env.APIFY_TOKEN) && isConfigured(env.APIFY_ACTOR_ID),
       message:
@@ -115,7 +107,6 @@ export async function GET() {
       item.ok ||
       item.name === "anthropic" ||
       item.name === "youtube" ||
-      item.name === "reddit" ||
       item.name === "apify" ||
       item.name === "apify-facebook" ||
       item.name === "apify-instagram" ||
