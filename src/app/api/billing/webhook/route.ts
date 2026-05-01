@@ -81,8 +81,11 @@ export async function POST(request: Request) {
       case "invoice.payment_failed": {
         const invoice = event.data.object as Stripe.Invoice;
         const customerId = typeof invoice.customer === "string" ? invoice.customer : invoice.customer?.id;
+        const subscriptionRef = (invoice as Stripe.Invoice & {
+          subscription?: string | Stripe.Subscription | null;
+        }).subscription;
         const subscriptionId =
-          typeof invoice.subscription === "string" ? invoice.subscription : invoice.subscription?.id;
+          typeof subscriptionRef === "string" ? subscriptionRef : subscriptionRef?.id;
         if (!customerId) {
           return NextResponse.json(
             { ok: false, error: "Missing customer on invoice.payment_failed event" },

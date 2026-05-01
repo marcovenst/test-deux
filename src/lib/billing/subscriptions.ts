@@ -187,13 +187,16 @@ export async function syncBillingFromSubscriptionObject(input: {
   }
 
   const stripePriceId = input.subscription.items.data[0]?.price?.id ?? null;
+  const currentPeriodEndUnix = (
+    input.subscription as Stripe.Subscription & { current_period_end?: number | null }
+  ).current_period_end;
 
   return upsertBillingSubscription({
     userId,
     stripeCustomerId,
     stripeSubscriptionId,
     status: stripeStatusToBillingStatus(input.subscription.status),
-    currentPeriodEnd: asIsoFromUnix(input.subscription.current_period_end),
+    currentPeriodEnd: asIsoFromUnix(currentPeriodEndUnix),
     cancelAtPeriodEnd: Boolean(input.subscription.cancel_at_period_end),
     stripePriceId,
     stripeEventId: input.stripeEventId,
