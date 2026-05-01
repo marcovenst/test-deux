@@ -5,6 +5,7 @@ import Link from "next/link";
 
 import type { TrendFeedItem } from "@/lib/trends/query";
 import { htCopy } from "@/lib/i18n/ht";
+import { pickFeaturedImageSource, pickFeaturedVideoSource } from "@/lib/media/pickFeaturedSource";
 import { SummaryListenPanel } from "@/components/trends/SummaryListenPanel";
 
 type ReactionKey = "sa_raz" | "sa_komik" | "sa_enteresan";
@@ -111,9 +112,8 @@ function toLocalReactionStorage(clusterId: string): ReactionTotals | null {
 
 export function TrendCard({ trend }: { trend: TrendFeedItem }) {
   const articleRef = useRef<HTMLElement | null>(null);
-  const videoSource =
-    trend.topSources.find((source) => source.embedUrl || source.videoUrl) ?? null;
-  const imageSource = trend.topSources.find((source) => source.imageUrl) ?? null;
+  const videoSource = pickFeaturedVideoSource(trend.topSources);
+  const imageSource = pickFeaturedImageSource(trend.topSources);
   const mediaAspect = classifyMediaAspect({
     embedUrl: videoSource?.embedUrl,
     videoUrl: videoSource?.videoUrl,

@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import type { TrendFeedItem } from "@/lib/trends/query";
+import { pickFeaturedVideoSource } from "@/lib/media/pickFeaturedSource";
 
 type VideoSpotlightProps = {
   trends: TrendFeedItem[];
@@ -10,7 +11,7 @@ export function VideoSpotlight({ trends }: VideoSpotlightProps) {
   const videoItems = trends
     .map((trend) => ({
       trend,
-      media: trend.topSources.find((source) => source.embedUrl || source.videoUrl),
+      media: pickFeaturedVideoSource(trend.topSources),
     }))
     .filter((item): item is { trend: TrendFeedItem; media: NonNullable<(typeof item)["media"]> } =>
       Boolean(item.media),

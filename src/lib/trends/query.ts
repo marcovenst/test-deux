@@ -51,7 +51,7 @@ export type InfluencerTopic = {
   platform: string;
 };
 
-const FOCUSED_SOCIAL_PLATFORMS = new Set(["tiktok", "x", "facebook", "youtube"]);
+const FOCUSED_SOCIAL_PLATFORMS = new Set(["tiktok", "x", "facebook", "youtube", "instagram"]);
 
 function buildCreoleFallbackSummary(input: {
   clusterTitle: string;
@@ -84,6 +84,9 @@ function normalizePlatformName(input: string) {
   if (value.includes("facebook")) {
     return "facebook";
   }
+  if (value.includes("instagram")) {
+    return "instagram";
+  }
   return value;
 }
 
@@ -93,7 +96,7 @@ function detectFocusedPlatform(input: {
   sourceUrl?: string;
 }) {
   const platform = normalizePlatformName(input.platform);
-  if (platform === "x" || platform === "youtube" || platform === "tiktok" || platform === "facebook") {
+  if (platform === "x" || platform === "youtube" || platform === "tiktok" || platform === "facebook" || platform === "instagram") {
     return platform;
   }
 
@@ -103,6 +106,9 @@ function detectFocusedPlatform(input: {
   }
   if (sourceBlob.includes("facebook") || sourceBlob.includes("fb.com")) {
     return "facebook";
+  }
+  if (sourceBlob.includes("instagram.com")) {
+    return "instagram";
   }
   if (sourceBlob.includes("twitter.com") || sourceBlob.includes("x.com")) {
     return "x";

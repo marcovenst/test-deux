@@ -71,6 +71,39 @@ function mapItemToRecord(network: SocialNetwork, item: Record<string, unknown>):
     pickString(item, ["authorUsername", "authorName", "ownerUsername", "username"]) ??
     getNestedAuthor(item);
 
+  const thumbnailUrl = pickString(item, [
+    "thumbnailUrl",
+    "thumbnail",
+    "displayUrl",
+    "coverUrl",
+    "imageUrl",
+    "previewImageUrl",
+  ]);
+  const apifyVideoUrl = pickString(item, [
+    "videoUrl",
+    "downloadUrl",
+    "mediaUrl",
+    "playAddr",
+    "video_downloadAddr",
+  ]);
+  const tiktokVideoId = pickString(item, ["aweme_id", "videoId", "id"]);
+  const tweetId = pickString(item, ["id", "tweetId", "postId"]);
+
+  const metadata: Record<string, unknown> = {
+    network,
+    author,
+    rawSource: "apify",
+    permalink: sourceUrl,
+  };
+  if (thumbnailUrl) metadata.thumbnailUrl = thumbnailUrl;
+  if (apifyVideoUrl && /^https?:\/\//i.test(apifyVideoUrl)) metadata.videoUrl = apifyVideoUrl;
+  if (network === "tiktok" && tiktokVideoId && /^\d+$/.test(tiktokVideoId)) {
+    metadata.tiktokVideoId = tiktokVideoId;
+  }
+  if (network === "x" && tweetId && /^\d+$/.test(tweetId)) {
+    metadata.tweetId = tweetId;
+  }
+
   return {
     externalId: pickString(item, ["id", "postId", "tweetId"]),
     title,
@@ -86,12 +119,7 @@ function mapItemToRecord(network: SocialNetwork, item: Record<string, unknown>):
       comments: pickNumber(item, ["replyCount", "commentCount", "comments"]),
       views: pickNumber(item, ["viewCount", "videoViewCount", "plays", "playCount"]),
     },
-    metadata: {
-      network,
-      author,
-      rawSource: "apify",
-      permalink: sourceUrl,
-    },
+    metadata,
   };
 }
 

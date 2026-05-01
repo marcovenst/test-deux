@@ -3,6 +3,7 @@ import Link from "next/link";
 import { SummaryListenPanel } from "@/components/trends/SummaryListenPanel";
 import { TrendViewPing } from "@/components/trends/TrendViewPing";
 import { supabaseAdmin } from "@/lib/db/client";
+import { socialSourceUrlRank } from "@/lib/media/pickFeaturedSource";
 import { extractPostMedia } from "@/lib/media/postMedia";
 
 type ClusterPageProps = {
@@ -57,6 +58,10 @@ export default async function ClusterPage({ params }: ClusterPageProps) {
 
   const videoHighlights = normalizedPosts
     .filter((item) => item.media.kind === "embed" || item.media.kind === "video")
+    .sort(
+      (a, b) =>
+        socialSourceUrlRank(a.post.source_url) - socialSourceUrlRank(b.post.source_url),
+    )
     .slice(0, 3);
   const fallbackHighlights = normalizedPosts.slice(0, 3);
   const fallbackSummary = fallbackHighlights
