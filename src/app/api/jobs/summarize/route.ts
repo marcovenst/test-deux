@@ -13,9 +13,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const result = await runSummarizationJob();
+  const body = await request.json().catch(() => ({}));
+  const requestedLimit =
+    typeof body?.limit === "number" && Number.isFinite(body.limit) ? body.limit : 20;
+  const result = await runSummarizationJob(requestedLimit);
   return NextResponse.json({
     ok: true,
+    limit: requestedLimit,
     ...result,
   });
 }

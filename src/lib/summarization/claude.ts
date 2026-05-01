@@ -347,8 +347,9 @@ function buildFallbackSummary(cluster: ClusterWithPosts): SummaryPayload {
   };
 }
 
-export async function runSummarizationJob() {
-  const clusters = await fetchClustersForSummary();
+export async function runSummarizationJob(limit = 20) {
+  const safeLimit = Number.isFinite(limit) ? Math.min(Math.max(Math.floor(limit), 1), 300) : 20;
+  const clusters = await fetchClustersForSummary(safeLimit);
   let summarized = 0;
   const failures: Array<{ clusterId: string; error: string }> = [];
 

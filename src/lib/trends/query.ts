@@ -343,7 +343,7 @@ export async function getTrendFeed(
 
     const { data: summaries } = await supabaseAdmin
       .from("cluster_summaries")
-      .select("cluster_id,summary,sentiment,tags,cluster_title");
+      .select("cluster_id,summary,sentiment,tags,cluster_title,llm_model");
 
     const summaryByCluster = new Map(
       (summaries ?? []).map((summary) => [summary.cluster_id as string, summary]),
@@ -521,6 +521,9 @@ export async function getTrendFeed(
           ).toFixed(2),
         );
 
+        const isFallbackSummary =
+          !summary || (summary.llm_model as string | null | undefined) === "fallback-creole-v1";
+
         return {
           clusterId: cluster.id as string,
           title:
@@ -557,13 +560,19 @@ export async function getTrendFeed(
               return matched?.name;
             })
             .filter((value): value is string => Boolean(value)),
+          isFallbackSummary,
         };
       }),
     );
 
-    const items: TrendFeedItem[] = itemsWithSignals.sort(
-      (a, b) => (b.popularityScore ?? 0) - (a.popularityScore ?? 0),
-    );
+    const items: TrendFeedItem[] = itemsWithSignals
+      .sort((a, b) => {
+        if (a.isFallbackSummary !== b.isFallbackSummary) {
+          return a.isFallbackSummary ? 1 : -1;
+        }
+        return (b.popularityScore ?? 0) - (a.popularityScore ?? 0);
+      })
+      .map(({ isFallbackSummary: _isFallbackSummary, ...item }) => item);
 
     if (items.length === 0) {
       return getFallbackFeed();
