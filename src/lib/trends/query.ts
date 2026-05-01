@@ -7,6 +7,7 @@ import {
   getGoogleSearchInterest,
   type PopularityWindow,
 } from "@/lib/trends/popularity";
+import { clusterMetaMatchesCategory, feedItemMatchesCategory } from "@/lib/trends/topicMatch";
 
 export type TrendFeedItem = {
   clusterId: string;
@@ -233,13 +234,10 @@ export async function getTrendFeed(
       return [];
     }
 
-    let clusterMetaQuery = supabaseAdmin
+    const clusterMetaQuery = supabaseAdmin
       .from("clusters")
       .select("id,title,trend_category,last_seen_at")
       .in("id", scoredClusterIds.slice(0, 500));
-    if (category && category !== "all") {
-      clusterMetaQuery = clusterMetaQuery.eq("trend_category", category);
-    }
     const { data: clusterMetaRows, error: clusterError } = await clusterMetaQuery;
     if (clusterError) {
       throw clusterError;
@@ -337,7 +335,26 @@ export async function getTrendFeed(
 
     const clusterIds =
       boostedCategories.size > 0 ? [...baseClusterIds, ...relatedCandidates] : baseClusterIds;
-    const clusters = clusterIds
+
+    const topicFilterActive = Boolean(category && category !== "all");
+    let finalClusterIds = clusterIds;
+    if (topicFilterActive) {
+      const seen = new Set(clusterIds);
+      const extras = scoredClusterIds
+        .filter((id) => {
+          if (seen.has(id)) return false;
+          const row = clusterMetaById.get(id);
+          return row ? clusterMetaMatchesCategory(row, category!) : false;
+        })
+        .sort(
+          (a, b) =>
+            (latestByCluster.get(b)?.score ?? 0) - (latestByCluster.get(a)?.score ?? 0),
+        )
+        .slice(0, 72);
+      finalClusterIds = [...clusterIds, ...extras];
+    }
+
+    const clusters = finalClusterIds
       .map((clusterId) => clusterMetaById.get(clusterId))
       .filter((value): value is NonNullable<(typeof clusterMetaRows)[number]> => Boolean(value));
 
@@ -354,7 +371,7 @@ export async function getTrendFeed(
       .select(
         "cluster_id,raw_posts!inner(source_name,source_url,snippet,platform,raw_metadata,title,engagement)",
       )
-      .in("cluster_id", clusterIds)
+      .in("cluster_id", finalClusterIds)
       .limit(1000);
 
     const sourcesByCluster = new Map<string, TrendFeedItem["topSources"]>();
@@ -381,7 +398,7 @@ export async function getTrendFeed(
     const { data: viewRows } = await supabaseAdmin
       .from("cluster_views")
       .select("cluster_id,total_views")
-      .in("cluster_id", clusterIds);
+      .in("cluster_id", finalClusterIds);
 
     const viewsByCluster = new Map<string, number>(
       (viewRows ?? []).map((row) => [row.cluster_id as string, Number(row.total_views ?? 0)]),
@@ -389,7 +406,7 @@ export async function getTrendFeed(
     const { data: playRows } = await supabaseAdmin
       .from("cluster_play_metrics")
       .select("cluster_id,total_plays,total_play_seconds")
-      .in("cluster_id", clusterIds);
+      .in("cluster_id", finalClusterIds);
 
     const playsByCluster = new Map<
       string,
@@ -565,7 +582,7 @@ export async function getTrendFeed(
       }),
     );
 
-    const items: TrendFeedItem[] = itemsWithSignals
+    let items: TrendFeedItem[] = itemsWithSignals
       .sort((a, b) => {
         if (a.isFallbackSummary !== b.isFallbackSummary) {
           return a.isFallbackSummary ? 1 : -1;
@@ -573,6 +590,18 @@ export async function getTrendFeed(
         return (b.popularityScore ?? 0) - (a.popularityScore ?? 0);
       })
       .map(({ isFallbackSummary: _isFallbackSummary, ...item }) => item);
+
+    if (topicFilterActive) {
+      const beforeTopic = items;
+      items = items.filter((t) => feedItemMatchesCategory(t, category!));
+      if (items.length === 0) {
+        items = beforeTopic.filter((t) => (t.trendCategory ?? "").toLowerCase() === category!.toLowerCase());
+      }
+      if (items.length === 0) {
+        items = beforeTopic;
+      }
+      items.sort((a, b) => (b.popularityScore ?? 0) - (a.popularityScore ?? 0));
+    }
 
     if (items.length === 0) {
       return getFallbackFeed();

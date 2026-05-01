@@ -116,7 +116,11 @@ export default async function Home({ searchParams }: HomePageProps) {
               {htCopy.heroSubtitle}
             </p>
             <div className="mt-4">
-              <TrendFilters selectedCategory={category} selectedTimeframe={timeframe} />
+              <TrendFilters
+                selectedCategory={category}
+                selectedTimeframe={timeframe}
+                popularityWindow={popularityWindow}
+              />
               <div className="mt-3 flex flex-wrap gap-2">
                 {(["1h", "5h", "24h"] as const).map((window) => (
                   <Link

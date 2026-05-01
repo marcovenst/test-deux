@@ -1,4 +1,7 @@
 import type { TrendFeedItem } from "@/lib/trends/query";
+import { matchesImmigrationTopic, matchesSportsTopic } from "@/lib/trends/topicMatch";
+
+export { matchesImmigrationTopic, matchesSportsTopic };
 
 export function isLiveTrendClusterId(clusterId: string) {
   return clusterId.length > 0 && !clusterId.startsWith("fallback-");
@@ -14,22 +17,6 @@ export function dedupeTrendsByClusterId(items: TrendFeedItem[]): TrendFeedItem[]
     }
   }
   return [...m.values()].sort((a, b) => (b.popularityScore ?? 0) - (a.popularityScore ?? 0));
-}
-
-export function matchesImmigrationTopic(t: TrendFeedItem): boolean {
-  if (t.trendCategory === "immigration" || t.trendCategory === "diaspora") return true;
-  const blob = `${t.title} ${t.summary} ${(t.tags ?? []).join(" ")}`.toLowerCase();
-  return /\b(immigration|uscis|\btps\b|parole|asylum|visa|deport|imigrasyon|deportasyon|viza|refijye|frontyè|border|green card|work permit)\b/i.test(
-    blob,
-  );
-}
-
-export function matchesSportsTopic(t: TrendFeedItem): boolean {
-  if (t.trendCategory === "sports") return true;
-  const blob = `${t.title} ${t.summary} ${(t.tags ?? []).join(" ")}`.toLowerCase();
-  return /\b(esp[oò]|foutb[oò]l|football|soccer|grenady|match|jw[eè]|ekip|fifa|concacaf|lig|stade|stadium|klasman|goal|coup du monde|selection)\b/i.test(
-    blob,
-  );
 }
 
 function hasUsefulSourceLink(t: TrendFeedItem): boolean {
