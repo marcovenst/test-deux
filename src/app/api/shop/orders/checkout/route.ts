@@ -90,7 +90,7 @@ export async function POST(request: Request) {
             currency: "usd",
             unit_amount: platformFee,
             product_data: {
-              name: "Frè platfòm Shop La Caille (7% sou atik)",
+              name: "Frè platfòm Shop Lakay (7% sou atik)",
               description: "Sèvis mache — aplike sou pri atik sèlman",
             },
           },

@@ -65,8 +65,8 @@ export async function POST(request: Request) {
             currency: "usd",
             unit_amount: POSTING_FEE_CENTS,
             product_data: {
-              name: "Shop La Caille — fra pibliyasyon",
-              description: "99¢ pou mete atik ou sou Shop La Caille",
+              name: "Shop Lakay — fra pibliyasyon",
+              description: "99¢ pou mete atik ou sou Shop Lakay",
             },
           },
         },

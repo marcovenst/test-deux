@@ -1,4 +1,4 @@
--- Shop La Caille: marketplace listings and buyer orders
+-- Shop Lakay : Marketplace — listings and buyer orders
 
 create table if not exists public.marketplace_listings (
   id uuid primary key default gen_random_uuid(),

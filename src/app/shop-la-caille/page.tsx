@@ -17,8 +17,8 @@ export default function ShopLaCailleHomePage() {
             href="/shop-la-caille/ashti"
             className="rounded-2xl border border-emerald-400/40 bg-emerald-500/15 p-8 transition hover:border-emerald-300/60 hover:bg-emerald-500/25"
           >
-            <p className="text-2xl font-bold text-emerald-200">{shopLaCailleCopy.ashtiLabel}</p>
-            <p className="mt-2 text-sm text-neutral-200">{shopLaCailleCopy.ashtiHint}</p>
+            <p className="text-2xl font-bold text-emerald-200">{shopLaCailleCopy.achteLabel}</p>
+            <p className="mt-2 text-sm text-neutral-200">{shopLaCailleCopy.achteHint}</p>
           </Link>
           <Link
             href="/shop-la-caille/vann"

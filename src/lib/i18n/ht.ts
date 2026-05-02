@@ -49,16 +49,16 @@ export const htCopy = {
 };
 
 export const shopLaCailleCopy = {
-  navCta: "Shop La Caille",
-  title: "Shop La Caille",
+  navCta: "Shop Lakay : Marketplace",
+  title: "Shop Lakay : Marketplace",
   subtitle:
-    "Achte ak vann nan yon espas dedye a kominote a. Peze Ashti pou achte oswa Vann pou mete atik ou.",
-  ashtiLabel: "Ashti",
-  ashtiHint: "Achete — wè atik ki disponib yo",
+    "Achte ak vann nan yon espas dedye a kominote a. Peze Achte pou achte oswa Vann pou mete atik ou.",
+  achteLabel: "Achte",
+  achteHint: "Wè atik ki disponib yo",
   vannLabel: "Vann",
   vannHint: "Mete pwodwi ou an vant",
-  emptyAshti: "Pa gen atik aktif kounye a. Tounen pita oswa vin vann yon bagay!",
-  backShop: "Retounen Shop La Caille",
+  emptyAchte: "Pa gen atik aktif kounye a. Tounen pita oswa vin vann yon bagay!",
+  backShop: "Retounen Shop Lakay : Marketplace",
   postingFeeBanner:
     "Frè pibliyasyon: 99¢ . Lè yon moun achte, achtè a ap peye pri atik la, transpò a, epi 7% sou pri atik la kòm frè platfòm (transpò pa antre nan 7% a).",
   sellTitle: "Mete atik ou",

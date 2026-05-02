@@ -9,7 +9,7 @@ function formatUsd(cents: number) {
   return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(cents / 100);
 }
 
-export default async function ShopAshtiPage() {
+export default async function ShopAchtePage() {
   const rows = await listActiveListings(48);
   const listings = rows.map(fromListingRow);
 
@@ -21,13 +21,13 @@ export default async function ShopAshtiPage() {
             <Link href="/shop-la-caille" className="text-sm text-cyan-300 hover:text-cyan-200">
               ← {shopLaCailleCopy.backShop}
             </Link>
-            <h1 className="mt-2 text-3xl font-bold text-white">{shopLaCailleCopy.ashtiLabel}</h1>
+            <h1 className="mt-2 text-3xl font-bold text-white">{shopLaCailleCopy.achteLabel}</h1>
           </div>
         </div>
 
         {listings.length === 0 ? (
           <p className="rounded-xl border border-white/10 bg-white/[0.03] p-8 text-neutral-300">
-            {shopLaCailleCopy.emptyAshti}
+            {shopLaCailleCopy.emptyAchte}
           </p>
         ) : (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">

@@ -25,7 +25,7 @@ export default async function ShopListingDetailPage({ params }: PageProps) {
     <div className="min-h-screen bg-neutral-950 px-4 py-10 text-neutral-100 sm:px-6">
       <div className="mx-auto max-w-4xl">
         <Link href="/shop-la-caille/ashti" className="text-sm text-cyan-300 hover:text-cyan-200">
-          ← {shopLaCailleCopy.ashtiLabel}
+          ← {shopLaCailleCopy.achteLabel}
         </Link>
 
         <div className="mt-6 grid gap-8 lg:grid-cols-2">
