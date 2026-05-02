@@ -305,6 +305,41 @@ export async function createPendingOrder(input: {
   };
 }
 
+export async function createPendingCatalogOrder(input: {
+  catalogItemId: string;
+  buyerEmail: string;
+  itemSubtotalCents: number;
+  shippingCents: number;
+}) {
+  const platform = platformFeeCents(input.itemSubtotalCents);
+  const buyerTotal = input.itemSubtotalCents + input.shippingCents + platform;
+  const now = new Date().toISOString();
+  const { data, error } = await supabaseAdmin
+    .from("marketplace_orders")
+    .insert({
+      listing_id: null,
+      catalog_item_id: input.catalogItemId,
+      buyer_email: input.buyerEmail.trim().toLowerCase(),
+      quantity: 1,
+      item_subtotal_cents: input.itemSubtotalCents,
+      shipping_cents: input.shippingCents,
+      buyer_total_cents: buyerTotal,
+      platform_fee_cents: platform,
+      currency: "usd",
+      status: "pending_payment",
+      created_at: now,
+      updated_at: now,
+    })
+    .select("id")
+    .single();
+  if (error) throw error;
+  return {
+    orderId: data.id as string,
+    buyerTotalCents: buyerTotal,
+    platformFeeCents: platform,
+  };
+}
+
 export async function attachOrderCheckoutSession(orderId: string, sessionId: string) {
   const { error } = await supabaseAdmin
     .from("marketplace_orders")
@@ -375,7 +410,7 @@ export async function markMarketplaceOrderPaid(input: {
   const { data: order, error: oerr } = await supabaseAdmin
     .from("marketplace_orders")
     .select(
-      "id,listing_id,status,stripe_checkout_session_id,item_subtotal_cents,shipping_cents",
+      "id,listing_id,catalog_item_id,status,stripe_checkout_session_id,item_subtotal_cents,shipping_cents",
     )
     .eq("id", input.orderId)
     .maybeSingle();
@@ -395,7 +430,7 @@ export async function markMarketplaceOrderPaid(input: {
     throw new Error("Checkout session mismatch");
   }
 
-  const listingId = order.listing_id as string;
+  const listingId = order.listing_id as string | null;
   const itemSubtotalCents = order.item_subtotal_cents as number;
   const shippingCents = order.shipping_cents as number;
   const now = new Date().toISOString();
@@ -411,19 +446,21 @@ export async function markMarketplaceOrderPaid(input: {
     .eq("status", "pending_payment");
   if (u1) throw u1;
 
-  const { error: u2 } = await supabaseAdmin
-    .from("marketplace_listings")
-    .update({ status: "sold_out", updated_at: now })
-    .eq("id", listingId)
-    .eq("status", "active");
-  if (u2) throw u2;
+  if (listingId) {
+    const { error: u2 } = await supabaseAdmin
+      .from("marketplace_listings")
+      .update({ status: "sold_out", updated_at: now })
+      .eq("id", listingId)
+      .eq("status", "active");
+    if (u2) throw u2;
 
-  await recordSellerCreditForCompletedSale({
-    orderId: input.orderId,
-    listingId,
-    itemSubtotalCents,
-    shippingCents,
-  });
+    await recordSellerCreditForCompletedSale({
+      orderId: input.orderId,
+      listingId,
+      itemSubtotalCents,
+      shippingCents,
+    });
+  }
 
   return { orderId: input.orderId, status: "paid" as const };
 }
@@ -481,7 +518,7 @@ function marketplaceBrowseErrorMessage(error: unknown): string {
     message.toLowerCase().includes("marketplace_listings") ||
     message.toLowerCase().includes("marketplace_sellers")
   ) {
-    return "Baz donne a pa gen tab katalòg oswa kont vann yo ankò. Verifye ke migrasyon 0008_marketplace ak 0009_marketplace_sellers aplike sou Supabase.";
+    return "Baz donne a pa gen tab katalòg oswa kont vann yo ankò. Verifye ke migrasyon 0008_marketplace, 0009_marketplace_sellers, ak 0010_marketplace_catalog aplike sou Supabase.";
   }
   return "Pa ka chaje atik yo kounye a. Eseye ankò pita.";
 }

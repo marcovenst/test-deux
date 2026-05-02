@@ -210,7 +210,8 @@ export type MarketplaceOrderStatus = "pending_payment" | "paid" | "cancelled";
 
 export type MarketplaceOrderRow = {
   id: string;
-  listing_id: string;
+  listing_id: string | null;
+  catalog_item_id: string | null;
   buyer_email: string;
   quantity: number;
   item_subtotal_cents: number;
@@ -221,6 +222,25 @@ export type MarketplaceOrderRow = {
   status: MarketplaceOrderStatus;
   stripe_checkout_session_id: string | null;
   stripe_payment_intent_id: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type MarketplaceCatalogPurchaseMode = "on_platform" | "external_affiliate";
+
+export type MarketplaceCatalogItemRow = {
+  id: string;
+  title: string;
+  description: string;
+  price_cents: number;
+  shipping_cents: number;
+  currency: string;
+  image_urls: string[];
+  purchase_mode: MarketplaceCatalogPurchaseMode;
+  external_url: string | null;
+  affiliate_note: string | null;
+  active: boolean;
+  sort_order: number;
   created_at: string;
   updated_at: string;
 };

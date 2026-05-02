@@ -60,6 +60,12 @@ export const shopLaCailleCopy = {
   emptyAchte: "Pa gen atik aktif kounye a. Tounen pita oswa vin vann yon bagay!",
   achteLoadErrorTitle: "Erè lè nap chaje katalòg la",
   listingImagePlaceholder: "San foto",
+  badgeCommunityListing: "Kominoté",
+  badgeCatalogOnPlatform: "Katalòg platfòm — achte isit",
+  badgeCatalogAffiliate: "Patnè / afilye — lyen ekstèn",
+  catalogVisitPartnerCta: "Achete kote patnè a (lyen afilye)",
+  catalogAffiliateStripeNote:
+    "Pou ofr sa a, ou achte sou sit patnè a. Komisyon afilye an jeneral peye pa rezo patnè a (pa egzanp Amazon), pa dirèkteman atravè kont Stripe nou an.",
   vannPhotosDragHint:
     "Glise-lage foto atik la isit, oswa klike pou chwazi. JPEG, PNG, WebP oswa GIF — 1 a 8 foto, chak jiska 5 Mo.",
   backShop: "Retounen Shop Lakay : Marketplace",

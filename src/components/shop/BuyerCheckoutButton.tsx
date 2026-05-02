@@ -9,14 +9,12 @@ function formatUsd(cents: number) {
   return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(cents / 100);
 }
 
-type Props = {
-  listingId: string;
-  itemCents: number;
-  shippingCents: number;
-  title: string;
-};
+type Props =
+  | { listingId: string; itemCents: number; shippingCents: number; title: string }
+  | { catalogItemId: string; itemCents: number; shippingCents: number; title: string };
 
-export function BuyerCheckoutButton({ listingId, itemCents, shippingCents, title }: Props) {
+export function BuyerCheckoutButton(props: Props) {
+  const { itemCents, shippingCents, title } = props;
   const [email, setEmail] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -31,10 +29,14 @@ export function BuyerCheckoutButton({ listingId, itemCents, shippingCents, title
     setBusy(true);
     setError(null);
     try {
+      const body =
+        "listingId" in props
+          ? { listingId: props.listingId, buyerEmail: email }
+          : { catalogItemId: props.catalogItemId, buyerEmail: email };
       const res = await fetch("/api/shop/orders/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ listingId, buyerEmail: email }),
+        body: JSON.stringify(body),
       });
       const data = (await res.json()) as { ok?: boolean; checkoutUrl?: string; error?: string };
       if (!res.ok || !data.ok || !data.checkoutUrl) {
