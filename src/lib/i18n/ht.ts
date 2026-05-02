@@ -58,6 +58,10 @@ export const shopLaCailleCopy = {
   vannLabel: "Vann",
   vannHint: "Mete pwodwi ou an vant",
   emptyAchte: "Pa gen atik aktif kounye a. Tounen pita oswa vin vann yon bagay!",
+  achteLoadErrorTitle: "Erè lè nap chaje katalòg la",
+  listingImagePlaceholder: "San foto",
+  vannPhotosDragHint:
+    "Glise-lage foto atik la isit, oswa klike pou chwazi. JPEG, PNG, WebP oswa GIF — 1 a 8 foto, chak jiska 5 Mo.",
   backShop: "Retounen Shop Lakay : Marketplace",
   postingFeeBanner:
     "Frè pibliyasyon: 99¢ . Lè yon moun achte, achtè a ap peye pri atik la, transpò a, epi 7% sou pri atik la kòm frè platfòm (transpò pa antre nan 7% a).",

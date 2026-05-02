@@ -8,6 +8,15 @@ const BUCKET = "shop-listings";
 const MAX_BYTES = 5 * 1024 * 1024;
 const ALLOWED = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
 
+function mimeFromFileName(name: string): string | null {
+  const ext = name.split(".").pop()?.toLowerCase() ?? "";
+  if (ext === "jpg" || ext === "jpeg") return "image/jpeg";
+  if (ext === "png") return "image/png";
+  if (ext === "webp") return "image/webp";
+  if (ext === "gif") return "image/gif";
+  return null;
+}
+
 export async function POST(request: Request) {
   const form = await request.formData().catch(() => null);
   if (!form) {
@@ -19,7 +28,15 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, error: "Missing file" }, { status: 400 });
   }
 
-  if (!ALLOWED.has(file.type)) {
+  let contentType = file.type.trim() || "";
+  if (!contentType || !ALLOWED.has(contentType)) {
+    const inferred = mimeFromFileName(file.name);
+    if (inferred && ALLOWED.has(inferred)) {
+      contentType = inferred;
+    }
+  }
+
+  if (!ALLOWED.has(contentType)) {
     return NextResponse.json({ ok: false, error: "Only JPEG, PNG, WebP, or GIF images" }, { status: 400 });
   }
 
@@ -32,7 +49,7 @@ export async function POST(request: Request) {
   const path = `uploads/${randomUUID()}-${safeName}`;
 
   const { data, error } = await supabaseAdmin.storage.from(BUCKET).upload(path, buf, {
-    contentType: file.type,
+    contentType,
     upsert: false,
   });
 

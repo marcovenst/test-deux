@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 
 import { BuyerCheckoutButton } from "@/components/shop/BuyerCheckoutButton";
 import { shopLaCailleCopy } from "@/lib/i18n/ht";
-import { fromListingRow, getActiveListingById } from "@/lib/shop/marketplace";
+import { fetchActiveListingForDisplay } from "@/lib/shop/marketplace";
 
 export const dynamic = "force-dynamic";
 
@@ -15,11 +15,27 @@ type PageProps = { params: Promise<{ id: string }> };
 
 export default async function ShopListingDetailPage({ params }: PageProps) {
   const { id } = await params;
-  const row = await getActiveListingById(id);
-  if (!row) {
+  const { listing: l, error } = await fetchActiveListingForDisplay(id);
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-neutral-950 px-4 py-10 text-neutral-100 sm:px-6">
+        <div className="mx-auto max-w-4xl">
+          <Link href="/shop-la-caille/ashti" className="text-sm text-cyan-300 hover:text-cyan-200">
+            ← {shopLaCailleCopy.achteLabel}
+          </Link>
+          <div className="mt-6 rounded-xl border border-rose-500/40 bg-rose-500/10 p-6 text-rose-100">
+            <p className="font-semibold">{shopLaCailleCopy.achteLoadErrorTitle}</p>
+            <p className="mt-2 text-sm whitespace-pre-wrap text-rose-200/90">{error}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!l) {
     notFound();
   }
-  const l = fromListingRow(row);
 
   return (
     <div className="min-h-screen bg-neutral-950 px-4 py-10 text-neutral-100 sm:px-6">
@@ -30,12 +46,18 @@ export default async function ShopListingDetailPage({ params }: PageProps) {
 
         <div className="mt-6 grid gap-8 lg:grid-cols-2">
           <div className="space-y-2">
-            {l.imageUrls.map((url) => (
-              <div key={url} className="overflow-hidden rounded-xl border border-white/10">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={url} alt="" className="w-full object-cover" />
+            {l.imageUrls.length === 0 ? (
+              <div className="flex min-h-[200px] items-center justify-center rounded-xl border border-white/10 bg-white/[0.03] text-neutral-500">
+                {shopLaCailleCopy.listingImagePlaceholder}
               </div>
-            ))}
+            ) : (
+              l.imageUrls.map((url) => (
+                <div key={url} className="overflow-hidden rounded-xl border border-white/10">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={url} alt="" className="w-full object-cover" />
+                </div>
+              ))
+            )}
           </div>
           <div>
             <h1 className="text-2xl font-bold text-white">{l.title}</h1>

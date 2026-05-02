@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { shopLaCailleCopy } from "@/lib/i18n/ht";
 import { MAX_LISTING_IMAGES } from "@/lib/shop/marketplace";
@@ -12,6 +12,7 @@ function dollarsToCents(s: string): number | null {
 }
 
 export function SellerListingForm() {
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [sellerName, setSellerName] = useState("");
   const [sellerEmail, setSellerEmail] = useState("");
   const [sellerPhone, setSellerPhone] = useState("");
@@ -20,8 +21,14 @@ export function SellerListingForm() {
   const [price, setPrice] = useState("");
   const [shipping, setShipping] = useState("0");
   const [imageUrls, setImageUrls] = useState<string[]>([]);
+  const imageUrlsRef = useRef(imageUrls);
+  useEffect(() => {
+    imageUrlsRef.current = imageUrls;
+  }, [imageUrls]);
+
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [dragOver, setDragOver] = useState(false);
 
   const uploadFile = useCallback(async (file: File) => {
     const form = new FormData();
@@ -34,20 +41,39 @@ export function SellerListingForm() {
     return data.url;
   }, []);
 
-  async function onFilesSelected(files: FileList | null) {
-    if (!files?.length) return;
-    setError(null);
-    const next: string[] = [...imageUrls];
-    for (let i = 0; i < files.length && next.length < MAX_LISTING_IMAGES; i += 1) {
-      try {
-        const url = await uploadFile(files[i]);
-        next.push(url);
-      } catch (e) {
-        setError(e instanceof Error ? e.message : shopLaCailleCopy.uploadFailed);
-        break;
+  const addFiles = useCallback(
+    async (files: FileList | File[]) => {
+      const list = Array.from(files).filter((f) => f.size > 0);
+      if (!list.length) return;
+      setError(null);
+      const next: string[] = [...imageUrlsRef.current];
+      for (const file of list) {
+        if (next.length >= MAX_LISTING_IMAGES) break;
+        try {
+          const url = await uploadFile(file);
+          next.push(url);
+        } catch (e) {
+          setError(e instanceof Error ? e.message : shopLaCailleCopy.uploadFailed);
+          break;
+        }
       }
-    }
-    setImageUrls(next.slice(0, MAX_LISTING_IMAGES));
+      const capped = next.slice(0, MAX_LISTING_IMAGES);
+      setImageUrls(capped);
+      imageUrlsRef.current = capped;
+    },
+    [uploadFile],
+  );
+
+  async function onFilesSelected(files: FileList | null) {
+    await addFiles(files ?? []);
+  }
+
+  function removeImage(url: string) {
+    setImageUrls((prev) => {
+      const u = prev.filter((x) => x !== url);
+      imageUrlsRef.current = u;
+      return u;
+    });
   }
 
   async function submit() {
@@ -160,19 +186,68 @@ export function SellerListingForm() {
       </div>
 
       <div>
-        <p className="text-sm text-neutral-400">{shopLaCailleCopy.imagesLabel}</p>
+        <p className="text-sm font-medium text-neutral-200">{shopLaCailleCopy.imagesLabel}</p>
+        <p className="mt-1 text-xs text-neutral-500">{shopLaCailleCopy.vannPhotosDragHint}</p>
         <input
+          ref={fileInputRef}
           type="file"
-          accept="image/jpeg,image/png,image/webp,image/gif"
+          accept="image/jpeg,image/jpg,image/png,image/webp,image/gif,image/*"
           multiple
-          className="mt-2 text-sm text-neutral-300"
-          onChange={(e) => void onFilesSelected(e.target.files)}
+          className="sr-only"
+          aria-label={shopLaCailleCopy.imagesLabel}
+          onChange={(e) => {
+            void onFilesSelected(e.target.files);
+            e.target.value = "";
+          }}
         />
-        <div className="mt-3 flex flex-wrap gap-2">
+        <button
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
+          onDragOver={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setDragOver(true);
+          }}
+          onDragLeave={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setDragOver(false);
+          }}
+          onDrop={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setDragOver(false);
+            const files = e.dataTransfer.files;
+            if (files?.length) void addFiles(files);
+          }}
+          className={`mt-3 flex w-full flex-col items-center justify-center rounded-xl border-2 border-dashed px-4 py-10 text-center text-sm transition sm:min-h-[160px] ${
+            dragOver
+              ? "border-cyan-400/60 bg-cyan-500/10 text-cyan-100"
+              : "border-white/20 bg-white/[0.02] text-neutral-400 hover:border-amber-400/40 hover:bg-amber-500/5"
+          }`}
+        >
+          <span className="text-base font-semibold text-neutral-200">+ Ajoute foto atik la</span>
+          <span className="mt-2 max-w-sm text-xs text-neutral-500">
+            Glise-lage oswa klike • {imageUrls.length}/{MAX_LISTING_IMAGES} foto
+          </span>
+        </button>
+
+        <div className="mt-4 flex flex-wrap gap-3">
           {imageUrls.map((url) => (
-            <div key={url} className="relative h-24 w-24 overflow-hidden rounded-lg border border-white/10">
+            <div
+              key={url}
+              className="relative h-28 w-28 overflow-hidden rounded-lg border border-white/10"
+            >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={url} alt="" className="h-full w-full object-cover" />
+              <button
+                type="button"
+                onClick={() => removeImage(url)}
+                className="absolute right-1 top-1 rounded bg-black/70 px-1.5 py-0.5 text-xs text-white hover:bg-black/90"
+                aria-label="Retire foto a"
+              >
+                ×
+              </button>
             </div>
           ))}
         </div>

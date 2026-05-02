@@ -273,6 +273,28 @@ export async function markMarketplaceOrderPaid(input: {
   return { orderId: input.orderId, status: "paid" as const };
 }
 
+/** Coerce Supabase/Postgres image_urls into a clean HTTPS URL list (handles null, JSON, or odd shapes). */
+export function normalizeListingImageUrls(raw: unknown): string[] {
+  if (raw == null) return [];
+  if (Array.isArray(raw)) {
+    return raw.filter((u): u is string => typeof u === "string" && u.trim().length > 0).map((u) => u.trim());
+  }
+  if (typeof raw === "string") {
+    const s = raw.trim();
+    if (!s) return [];
+    try {
+      const parsed = JSON.parse(s) as unknown;
+      if (Array.isArray(parsed)) {
+        return parsed.filter((u): u is string => typeof u === "string" && u.trim().length > 0).map((u) => u.trim());
+      }
+    } catch {
+      /* single URL string */
+    }
+    return [s];
+  }
+  return [];
+}
+
 export function fromListingRow(row: MarketplaceListingRow) {
   return {
     id: row.id,
@@ -284,7 +306,7 @@ export function fromListingRow(row: MarketplaceListingRow) {
     priceCents: row.price_cents,
     shippingCents: row.shipping_cents,
     currency: row.currency,
-    imageUrls: row.image_urls,
+    imageUrls: normalizeListingImageUrls(row.image_urls),
     status: row.status as ListingStatus,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -292,3 +314,43 @@ export function fromListingRow(row: MarketplaceListingRow) {
 }
 
 export type PublicListing = ReturnType<typeof fromListingRow>;
+
+function marketplaceBrowseErrorMessage(error: unknown): string {
+  const message = error instanceof Error ? error.message : String(error);
+  const code =
+    error && typeof error === "object" && "code" in error
+      ? String((error as { code: unknown }).code)
+      : "";
+  if (code === "PGRST205" || message.toLowerCase().includes("marketplace_listings")) {
+    return "Baz donne a pa gen tab katalòg la ankò. Verifye ke migrasyon 0008_marketplace aplike sou Supabase.";
+  }
+  return "Pa ka chaje atik yo kounye a. Eseye ankò pita.";
+}
+
+/** Safe for SSR: never throws; returns user-facing error when DB is missing or query fails. */
+export async function fetchActiveListingsForDisplay(limit = 48): Promise<{
+  listings: PublicListing[];
+  error: string | null;
+}> {
+  try {
+    const rows = await listActiveListings(limit);
+    return { listings: rows.map(fromListingRow), error: null };
+  } catch (e) {
+    console.error("fetchActiveListingsForDisplay", e);
+    return { listings: [], error: marketplaceBrowseErrorMessage(e) };
+  }
+}
+
+export async function fetchActiveListingForDisplay(id: string): Promise<{
+  listing: PublicListing | null;
+  error: string | null;
+}> {
+  try {
+    const row = await getActiveListingById(id);
+    if (!row) return { listing: null, error: null };
+    return { listing: fromListingRow(row), error: null };
+  } catch (e) {
+    console.error("fetchActiveListingForDisplay", e);
+    return { listing: null, error: marketplaceBrowseErrorMessage(e) };
+  }
+}
