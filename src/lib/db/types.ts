@@ -180,3 +180,47 @@ export type ClusterPlayMetricRow = {
   updated_at: string;
 };
 
+export type MarketplaceListingStatus =
+  | "draft"
+  | "pending_posting_payment"
+  | "active"
+  | "paused"
+  | "sold_out";
+
+export type MarketplaceListingRow = {
+  id: string;
+  seller_name: string;
+  seller_email: string;
+  seller_phone: string | null;
+  title: string;
+  description: string;
+  price_cents: number;
+  shipping_cents: number;
+  currency: string;
+  image_urls: string[];
+  status: MarketplaceListingStatus;
+  stripe_posting_checkout_session_id: string | null;
+  stripe_posting_payment_intent_id: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type MarketplaceOrderStatus = "pending_payment" | "paid" | "cancelled";
+
+export type MarketplaceOrderRow = {
+  id: string;
+  listing_id: string;
+  buyer_email: string;
+  quantity: number;
+  item_subtotal_cents: number;
+  shipping_cents: number;
+  buyer_total_cents: number;
+  platform_fee_cents: number;
+  currency: string;
+  status: MarketplaceOrderStatus;
+  stripe_checkout_session_id: string | null;
+  stripe_payment_intent_id: string | null;
+  created_at: string;
+  updated_at: string;
+};
+

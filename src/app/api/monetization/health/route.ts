@@ -17,6 +17,7 @@ export async function GET() {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL;
   const stripeSecret = process.env.STRIPE_SECRET_KEY;
   const stripeWebhook = process.env.STRIPE_WEBHOOK_SECRET;
+  const stripeShopWebhook = process.env.STRIPE_SHOP_WEBHOOK_SECRET;
   const stripeBillingWebhook = process.env.STRIPE_BILLING_WEBHOOK_SECRET ?? stripeWebhook;
   const stripeSubscriptionPrice = process.env.STRIPE_SUBSCRIPTION_PRICE_ID;
   const adsEnabled = parseBool(process.env.NEXT_PUBLIC_ADS_ENABLED);
@@ -51,6 +52,15 @@ export async function GET() {
       message: isConfigured(stripeWebhook)
         ? "configured"
         : "STRIPE_WEBHOOK_SECRET missing; paid orders will not auto-activate",
+    },
+    {
+      name: "stripe-shop-webhook-secret",
+      ok: isConfigured(stripeShopWebhook) || isConfigured(stripeWebhook),
+      message: isConfigured(stripeShopWebhook)
+        ? "STRIPE_SHOP_WEBHOOK_SECRET set (dedicated /api/shop/webhook)"
+        : isConfigured(stripeWebhook)
+          ? "using STRIPE_WEBHOOK_SECRET for shop (merged handler on /api/ads/self-serve/webhook)"
+          : "no shop webhook secret; marketplace posting/sales need STRIPE_WEBHOOK_SECRET or STRIPE_SHOP_WEBHOOK_SECRET",
     },
     {
       name: "stripe-billing-webhook-secret",
@@ -174,7 +184,12 @@ export async function GET() {
   const directAdReady =
     adsEnabled && adProvider === "direct" && isConfigured(directAdImage) && isConfigured(directAdTarget);
 
-  const monetizationReady = selfServeReady || subscriptionsReady || adsenseReady || directAdReady;
+  const monetizationReady =
+    selfServeReady ||
+    subscriptionsReady ||
+    adsenseReady ||
+    directAdReady ||
+    shopMarketplaceReady;
 
   return NextResponse.json(
     {
@@ -185,6 +200,7 @@ export async function GET() {
         subscriptionsReady,
         adsenseReady,
         directAdReady,
+        shopMarketplaceReady,
         stalePendingOrders,
       },
       timestamp: new Date().toISOString(),

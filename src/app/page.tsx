@@ -10,7 +10,7 @@ import { TrendViewPing } from "@/components/trends/TrendViewPing";
 import { VideoSpotlight } from "@/components/trends/VideoSpotlight";
 import { communityResourceLinks, dailyHighlights } from "@/lib/content/editorial";
 import { immigrationHubTopics, sportsHubTopics } from "@/lib/content/influencers";
-import { htCopy } from "@/lib/i18n/ht";
+import { htCopy, shopLaCailleCopy } from "@/lib/i18n/ht";
 import { buildHomeSidebarSlices } from "@/lib/trends/homeSidebar";
 import { normalizeTrendCategory } from "@/lib/trends/categories";
 import { getInfluencerTopics, getTrendFeed } from "@/lib/trends/query";
@@ -86,6 +86,12 @@ export default async function Home({ searchParams }: HomePageProps) {
               className="rounded-full border border-white/20 px-4 py-2 text-sm font-semibold text-white"
             >
               {htCopy.archiveCta}
+            </Link>
+            <Link
+              href="/shop-la-caille"
+              className="rounded-full border border-amber-400/40 bg-amber-500/10 px-4 py-2 text-sm font-semibold text-amber-100"
+            >
+              {shopLaCailleCopy.navCta}
             </Link>
             <SubscribeDrawer />
             <Link

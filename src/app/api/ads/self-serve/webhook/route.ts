@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import Stripe from "stripe";
 
 import { markOrderPaid } from "@/lib/ads/selfServe";
+import { tryProcessMarketplaceCheckoutSession } from "@/lib/shop/stripeWebhook";
 
 export async function POST(request: Request) {
   const stripeKey = process.env.STRIPE_SECRET_KEY;
@@ -31,19 +32,38 @@ export async function POST(request: Request) {
 
   if (event.type === "checkout.session.completed") {
     const session = event.data.object as Stripe.Checkout.Session;
-    const orderId = session.metadata?.adOrderId;
-    if (!orderId) {
-      console.error("Stripe checkout.session.completed missing adOrderId metadata", {
-        eventId: event.id,
-        sessionId: session.id,
-      });
+
+    try {
+      const shop = await tryProcessMarketplaceCheckoutSession(session);
+      if (shop.handled) {
+        return NextResponse.json({
+          ok: true,
+          processed: true,
+          shopKind: shop.kind,
+          shopResult: shop.result,
+          eventType: event.type,
+        });
+      }
+    } catch (error) {
+      console.error("Marketplace checkout handler failed", error);
       return NextResponse.json(
         {
           ok: false,
-          error: "Missing adOrderId metadata in checkout session",
+          error: error instanceof Error ? error.message : "Marketplace handler failed",
         },
-        { status: 400 },
+        { status: 500 },
       );
+    }
+
+    const orderId = session.metadata?.adOrderId;
+    if (!orderId) {
+      return NextResponse.json({
+        ok: true,
+        ignored: true,
+        reason: "not_self_serve_ad_checkout",
+        eventType: event.type,
+        sessionId: session.id,
+      });
     }
 
     try {

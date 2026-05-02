@@ -48,5 +48,37 @@ export const htCopy = {
   footerContactEmail: "hello@zenrezoa.com",
 };
 
+export const shopLaCailleCopy = {
+  navCta: "Shop La Caille",
+  title: "Shop La Caille",
+  subtitle:
+    "Achte ak vann nan yon espas dedye a kominote a. Peze Ashti pou achte oswa Vann pou mete atik ou.",
+  ashtiLabel: "Ashti",
+  ashtiHint: "Achete — wè atik ki disponib yo",
+  vannLabel: "Vann",
+  vannHint: "Mete pwodwi ou an vant",
+  emptyAshti: "Pa gen atik aktif kounye a. Tounen pita oswa vin vann yon bagay!",
+  backShop: "Retounen Shop La Caille",
+  postingFeeBanner:
+    "Frè pibliyasyon: 99¢ . Lè yon moun achte, achtè a ap peye pri atik la, transpò a, epi 7% sou pri atik la kòm frè platfòm (transpò pa antre nan 7% a).",
+  sellTitle: "Mete atik ou",
+  sellerName: "Non konplè",
+  sellerEmail: "Imèl",
+  sellerPhone: "Telefòn (opsyonel)",
+  productTitle: "Tit atik la",
+  description: "Deskripsyon",
+  priceUsd: "Pri (USD)",
+  shippingUsd: "Frè transpò (USD)",
+  imagesLabel: "Foto yo (1–8 imaj)",
+  submit: "Kontinye peye 99¢",
+  checkoutLoading: "Chaje…",
+  buyTitle: "Achte",
+  buyerEmail: "Imèl ou pou acha a",
+  payButton: "Peye sou Stripe",
+  orderSuccess: "Mèsi! Peman reyisi. Vann t ap kontakte w.",
+  orderCancel: "Peman anile.",
+  uploadFailed: "Upload echwe. Eseye ankò.",
+};
+
 export const categoryLabelsHt: Record<string, string> = categoryLabelsFromConfigHt;
 
