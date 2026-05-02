@@ -3,6 +3,8 @@ import Link from "next/link";
 import { shopLaCailleCopy } from "@/lib/i18n/ht";
 import { fromListingRow, listActiveListings } from "@/lib/shop/marketplace";
 
+export const dynamic = "force-dynamic";
+
 function formatUsd(cents: number) {
   return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(cents / 100);
 }

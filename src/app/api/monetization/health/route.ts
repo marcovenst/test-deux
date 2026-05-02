@@ -183,6 +183,10 @@ export async function GET() {
     isConfigured(googleSlotSidebar);
   const directAdReady =
     adsEnabled && adProvider === "direct" && isConfigured(directAdImage) && isConfigured(directAdTarget);
+  const shopMarketplaceReady =
+    isConfigured(appUrl) &&
+    isConfigured(stripeSecret) &&
+    (isConfigured(stripeWebhook) || isConfigured(stripeShopWebhook));
 
   const monetizationReady =
     selfServeReady ||
