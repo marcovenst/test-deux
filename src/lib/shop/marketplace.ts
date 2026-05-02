@@ -1,7 +1,14 @@
-import { supabaseAdmin } from "@/lib/db/client";
-import type { MarketplaceListingRow } from "@/lib/db/types";
+import { randomBytes } from "node:crypto";
 
-export const POSTING_FEE_CENTS = 99;
+import { supabaseAdmin } from "@/lib/db/client";
+import type {
+  MarketplaceListingRow,
+  MarketplacePayoutMethod,
+  MarketplaceSellerRow,
+} from "@/lib/db/types";
+
+export const POSTING_FEE_CENTS = 99; // legacy — posting fee checkout no longer used for new listings
+export const MIN_PAYOUT_CENTS = 1000; // $10 minimum cash-out request
 export const PLATFORM_FEE_RATE = 0.07;
 export const MAX_LISTING_IMAGES = 8;
 export const MAX_TITLE_LENGTH = 120;
@@ -73,6 +80,92 @@ export function assertValidListingInput(input: CreateMarketplaceListingInput) {
       throw new Error("Images must use HTTPS URLs");
     }
   }
+}
+
+export async function getOrCreateSeller(input: {
+  email: string;
+  displayName: string;
+  phone?: string | null;
+}): Promise<{ id: string; accessToken: string }> {
+  const email = input.email.trim().toLowerCase();
+  const displayName = input.displayName.trim();
+  const phone = input.phone?.trim() || null;
+
+  const { data: existing, error: findErr } = await supabaseAdmin
+    .from("marketplace_sellers")
+    .select("id, access_token")
+    .eq("email", email)
+    .maybeSingle();
+  if (findErr) throw findErr;
+
+  const now = new Date().toISOString();
+
+  if (existing) {
+    const { error: upErr } = await supabaseAdmin
+      .from("marketplace_sellers")
+      .update({
+        display_name: displayName,
+        phone,
+        updated_at: now,
+      })
+      .eq("id", existing.id);
+    if (upErr) throw upErr;
+    return { id: existing.id as string, accessToken: existing.access_token as string };
+  }
+
+  const accessToken = randomBytes(24).toString("hex");
+  const { data: created, error: insErr } = await supabaseAdmin
+    .from("marketplace_sellers")
+    .insert({
+      email,
+      display_name: displayName,
+      phone,
+      access_token: accessToken,
+      created_at: now,
+      updated_at: now,
+    })
+    .select("id, access_token")
+    .single();
+  if (insErr) throw insErr;
+  return { id: created.id as string, accessToken: created.access_token as string };
+}
+
+/** Publish listing immediately (no upfront 99¢); links seller account for earnings / cash-out. */
+export async function createActiveListingWithSeller(input: CreateMarketplaceListingInput): Promise<{
+  listingId: string;
+  sellerAccessToken: string;
+}> {
+  assertValidListingInput(input);
+  const seller = await getOrCreateSeller({
+    email: input.sellerEmail,
+    displayName: input.sellerName,
+    phone: input.sellerPhone ?? null,
+  });
+  const now = new Date().toISOString();
+  const { data, error } = await supabaseAdmin
+    .from("marketplace_listings")
+    .insert({
+      seller_id: seller.id,
+      seller_name: input.sellerName.trim(),
+      seller_email: input.sellerEmail.trim().toLowerCase(),
+      seller_phone: input.sellerPhone?.trim() || null,
+      title: input.title.trim(),
+      description: input.description.trim(),
+      price_cents: input.priceCents,
+      shipping_cents: input.shippingCents,
+      currency: "usd",
+      image_urls: input.imageUrls,
+      status: "active",
+      updated_at: now,
+      created_at: now,
+    })
+    .select("id")
+    .single();
+  if (error) throw error;
+  return {
+    listingId: data.id as string,
+    sellerAccessToken: seller.accessToken,
+  };
 }
 
 export async function createPendingPostingListing(input: CreateMarketplaceListingInput) {
@@ -223,6 +316,56 @@ export async function attachOrderCheckoutSession(orderId: string, sessionId: str
   if (error) throw error;
 }
 
+async function recordSellerCreditForCompletedSale(input: {
+  orderId: string;
+  listingId: string;
+  itemSubtotalCents: number;
+  shippingCents: number;
+}) {
+  const { data: existing } = await supabaseAdmin
+    .from("marketplace_seller_ledger")
+    .select("id")
+    .eq("order_id", input.orderId)
+    .eq("entry_type", "sale_credit")
+    .maybeSingle();
+  if (existing) return;
+
+  const { data: listing, error: lerr } = await supabaseAdmin
+    .from("marketplace_listings")
+    .select("id,seller_id,seller_email,seller_name,seller_phone")
+    .eq("id", input.listingId)
+    .maybeSingle();
+  if (lerr) throw lerr;
+  if (!listing) throw new Error("Listing missing after sale");
+
+  let sellerId = listing.seller_id as string | null;
+  if (!sellerId) {
+    const seller = await getOrCreateSeller({
+      email: listing.seller_email as string,
+      displayName: ((listing.seller_name as string) || "Seller").trim(),
+      phone: (listing.seller_phone as string | null) ?? null,
+    });
+    sellerId = seller.id;
+    await supabaseAdmin
+      .from("marketplace_listings")
+      .update({ seller_id: sellerId, updated_at: new Date().toISOString() })
+      .eq("id", input.listingId);
+  }
+
+  const credit = input.itemSubtotalCents + input.shippingCents;
+  if (credit <= 0) return;
+
+  const { error: insErr } = await supabaseAdmin.from("marketplace_seller_ledger").insert({
+    seller_id: sellerId,
+    entry_type: "sale_credit",
+    amount_cents: credit,
+    order_id: input.orderId,
+    memo: "Lajan vann (pri atik + transpò). Frè platfòm 7% peye pa achtè a.",
+    created_at: new Date().toISOString(),
+  });
+  if (insErr) throw insErr;
+}
+
 export async function markMarketplaceOrderPaid(input: {
   orderId: string;
   paymentIntentId?: string;
@@ -230,7 +373,9 @@ export async function markMarketplaceOrderPaid(input: {
 }) {
   const { data: order, error: oerr } = await supabaseAdmin
     .from("marketplace_orders")
-    .select("id,listing_id,status,stripe_checkout_session_id")
+    .select(
+      "id,listing_id,status,stripe_checkout_session_id,item_subtotal_cents,shipping_cents",
+    )
     .eq("id", input.orderId)
     .maybeSingle();
   if (oerr) throw oerr;
@@ -250,6 +395,8 @@ export async function markMarketplaceOrderPaid(input: {
   }
 
   const listingId = order.listing_id as string;
+  const itemSubtotalCents = order.item_subtotal_cents as number;
+  const shippingCents = order.shipping_cents as number;
   const now = new Date().toISOString();
 
   const { error: u1 } = await supabaseAdmin
@@ -269,6 +416,13 @@ export async function markMarketplaceOrderPaid(input: {
     .eq("id", listingId)
     .eq("status", "active");
   if (u2) throw u2;
+
+  await recordSellerCreditForCompletedSale({
+    orderId: input.orderId,
+    listingId,
+    itemSubtotalCents,
+    shippingCents,
+  });
 
   return { orderId: input.orderId, status: "paid" as const };
 }
@@ -321,8 +475,12 @@ function marketplaceBrowseErrorMessage(error: unknown): string {
     error && typeof error === "object" && "code" in error
       ? String((error as { code: unknown }).code)
       : "";
-  if (code === "PGRST205" || message.toLowerCase().includes("marketplace_listings")) {
-    return "Baz donne a pa gen tab katalòg la ankò. Verifye ke migrasyon 0008_marketplace aplike sou Supabase.";
+  if (
+    code === "PGRST205" ||
+    message.toLowerCase().includes("marketplace_listings") ||
+    message.toLowerCase().includes("marketplace_sellers")
+  ) {
+    return "Baz donne a pa gen tab katalòg oswa kont vann yo ankò. Verifye ke migrasyon 0008_marketplace ak 0009_marketplace_sellers aplike sou Supabase.";
   }
   return "Pa ka chaje atik yo kounye a. Eseye ankò pita.";
 }
@@ -353,4 +511,186 @@ export async function fetchActiveListingForDisplay(id: string): Promise<{
     console.error("fetchActiveListingForDisplay", e);
     return { listing: null, error: marketplaceBrowseErrorMessage(e) };
   }
+}
+
+export async function getSellerByAccessToken(token: string): Promise<MarketplaceSellerRow | null> {
+  const t = token.trim();
+  if (!t || t.length < 24) return null;
+  const { data, error } = await supabaseAdmin
+    .from("marketplace_sellers")
+    .select("*")
+    .eq("access_token", t)
+    .maybeSingle();
+  if (error) throw error;
+  return data as MarketplaceSellerRow | null;
+}
+
+export async function getSellerBalanceSnapshot(sellerId: string): Promise<{
+  ledgerBalanceCents: number;
+  pendingPayoutReserveCents: number;
+  availableToCashOutCents: number;
+}> {
+  const { data: ledgerRows, error: lErr } = await supabaseAdmin
+    .from("marketplace_seller_ledger")
+    .select("amount_cents")
+    .eq("seller_id", sellerId);
+  if (lErr) throw lErr;
+  const ledgerBalanceCents = (ledgerRows ?? []).reduce((s, r) => s + (r.amount_cents as number), 0);
+
+  const { data: pendingRows, error: pErr } = await supabaseAdmin
+    .from("marketplace_payout_requests")
+    .select("amount_cents")
+    .eq("seller_id", sellerId)
+    .in("status", ["pending", "approved"]);
+  if (pErr) throw pErr;
+  const pendingPayoutReserveCents = (pendingRows ?? []).reduce(
+    (s, r) => s + (r.amount_cents as number),
+    0,
+  );
+
+  return {
+    ledgerBalanceCents,
+    pendingPayoutReserveCents,
+    availableToCashOutCents: Math.max(0, ledgerBalanceCents - pendingPayoutReserveCents),
+  };
+}
+
+export type SellerDashboardLedgerRow = {
+  id: string;
+  entry_type: string;
+  amount_cents: number;
+  memo: string | null;
+  created_at: string;
+  order_id: string | null;
+};
+
+export type SellerDashboardPayoutRow = {
+  id: string;
+  amount_cents: number;
+  method: string;
+  status: string;
+  created_at: string;
+};
+
+export async function getSellerDashboardData(accessToken: string): Promise<{
+  seller: { email: string; displayName: string };
+  ledgerBalanceCents: number;
+  pendingPayoutReserveCents: number;
+  availableToCashOutCents: number;
+  ledger: SellerDashboardLedgerRow[];
+  payouts: SellerDashboardPayoutRow[];
+} | null> {
+  const seller = await getSellerByAccessToken(accessToken);
+  if (!seller) return null;
+
+  const snapshot = await getSellerBalanceSnapshot(seller.id);
+
+  const { data: ledger, error: lErr } = await supabaseAdmin
+    .from("marketplace_seller_ledger")
+    .select("id,entry_type,amount_cents,memo,created_at,order_id")
+    .eq("seller_id", seller.id)
+    .order("created_at", { ascending: false })
+    .limit(40);
+  if (lErr) throw lErr;
+
+  const { data: payouts, error: pErr } = await supabaseAdmin
+    .from("marketplace_payout_requests")
+    .select("id,amount_cents,method,status,created_at")
+    .eq("seller_id", seller.id)
+    .order("created_at", { ascending: false })
+    .limit(20);
+  if (pErr) throw pErr;
+
+  return {
+    seller: { email: seller.email, displayName: seller.display_name },
+    ...snapshot,
+    ledger: (ledger ?? []) as SellerDashboardLedgerRow[],
+    payouts: (payouts ?? []) as SellerDashboardPayoutRow[],
+  };
+}
+
+export async function createPayoutRequestFromSellerToken(input: {
+  accessToken: string;
+  amountCents: number;
+  method: MarketplacePayoutMethod;
+  recipient: Record<string, unknown>;
+}): Promise<{ payoutRequestId: string }> {
+  if (input.amountCents < MIN_PAYOUT_CENTS) {
+    throw new Error(`Minimum cash out is $${(MIN_PAYOUT_CENTS / 100).toFixed(2)}`);
+  }
+  const seller = await getSellerByAccessToken(input.accessToken);
+  if (!seller) throw new Error("Invalid seller session");
+
+  const snap = await getSellerBalanceSnapshot(seller.id);
+  if (input.amountCents > snap.availableToCashOutCents) {
+    throw new Error("Amount exceeds available balance");
+  }
+
+  const now = new Date().toISOString();
+  const { data, error } = await supabaseAdmin
+    .from("marketplace_payout_requests")
+    .insert({
+      seller_id: seller.id,
+      amount_cents: input.amountCents,
+      method: input.method,
+      status: "pending",
+      recipient: input.recipient,
+      created_at: now,
+      updated_at: now,
+    })
+    .select("id")
+    .single();
+  if (error) throw error;
+  return { payoutRequestId: data.id as string };
+}
+
+export async function adminMarkPayoutPaid(payoutRequestId: string): Promise<{
+  ok: true;
+  already: boolean;
+}> {
+  const { data: row, error: ferr } = await supabaseAdmin
+    .from("marketplace_payout_requests")
+    .select("*")
+    .eq("id", payoutRequestId)
+    .maybeSingle();
+  if (ferr) throw ferr;
+  if (!row) throw new Error("Payout not found");
+  if (row.status === "paid") {
+    return { ok: true, already: true };
+  }
+  if (row.status !== "pending" && row.status !== "approved") {
+    throw new Error(`Cannot complete payout in status ${row.status}`);
+  }
+
+  const sellerId = row.seller_id as string;
+  const amount = row.amount_cents as number;
+  const method = row.method as string;
+  const now = new Date().toISOString();
+
+  const { data: dup } = await supabaseAdmin
+    .from("marketplace_seller_ledger")
+    .select("id")
+    .eq("payout_request_id", payoutRequestId)
+    .eq("entry_type", "payout_debit")
+    .maybeSingle();
+
+  if (!dup) {
+    const { error: insErr } = await supabaseAdmin.from("marketplace_seller_ledger").insert({
+      seller_id: sellerId,
+      entry_type: "payout_debit",
+      amount_cents: -amount,
+      payout_request_id: payoutRequestId,
+      memo: `Cash out (${method})`,
+      created_at: now,
+    });
+    if (insErr) throw insErr;
+  }
+
+  const { error: uErr } = await supabaseAdmin
+    .from("marketplace_payout_requests")
+    .update({ status: "paid", updated_at: now })
+    .eq("id", payoutRequestId);
+  if (uErr) throw uErr;
+
+  return { ok: true, already: Boolean(dup) };
 }

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   buyerTotalCents,
+  MIN_PAYOUT_CENTS,
   normalizeListingImageUrls,
   platformFeeCents,
   POSTING_FEE_CENTS,
@@ -9,8 +10,12 @@ import {
 } from "@/lib/shop/marketplace";
 
 describe("marketplace fees", () => {
-  it("posting fee is 99 cents", () => {
+  it("posting fee constant kept for legacy (no longer charged at publish)", () => {
     expect(POSTING_FEE_CENTS).toBe(99);
+  });
+
+  it("minimum cash-out is $10", () => {
+    expect(MIN_PAYOUT_CENTS).toBe(1000);
   });
 
   it("platform fee is 7% of item subtotal rounded", () => {

@@ -192,6 +192,7 @@ export type MarketplaceListingRow = {
   seller_name: string;
   seller_email: string;
   seller_phone: string | null;
+  seller_id: string | null;
   title: string;
   description: string;
   price_cents: number;
@@ -220,6 +221,44 @@ export type MarketplaceOrderRow = {
   status: MarketplaceOrderStatus;
   stripe_checkout_session_id: string | null;
   stripe_payment_intent_id: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type MarketplaceSellerRow = {
+  id: string;
+  email: string;
+  display_name: string;
+  phone: string | null;
+  access_token: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type MarketplaceLedgerEntryType = "sale_credit" | "payout_debit" | "adjustment";
+
+export type MarketplaceSellerLedgerRow = {
+  id: string;
+  seller_id: string;
+  entry_type: MarketplaceLedgerEntryType;
+  amount_cents: number;
+  order_id: string | null;
+  payout_request_id: string | null;
+  memo: string | null;
+  created_at: string;
+};
+
+export type MarketplacePayoutMethod = "ach" | "zelle" | "debit_card";
+
+export type MarketplacePayoutStatus = "pending" | "approved" | "paid" | "rejected" | "cancelled";
+
+export type MarketplacePayoutRequestRow = {
+  id: string;
+  seller_id: string;
+  amount_cents: number;
+  method: MarketplacePayoutMethod;
+  status: MarketplacePayoutStatus;
+  recipient: Record<string, unknown>;
   created_at: string;
   updated_at: string;
 };

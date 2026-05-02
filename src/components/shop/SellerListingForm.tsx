@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { shopLaCailleCopy } from "@/lib/i18n/ht";
@@ -12,6 +13,7 @@ function dollarsToCents(s: string): number | null {
 }
 
 export function SellerListingForm() {
+  const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [sellerName, setSellerName] = useState("");
   const [sellerEmail, setSellerEmail] = useState("");
@@ -86,7 +88,7 @@ export function SellerListingForm() {
     }
     setBusy(true);
     try {
-      const res = await fetch("/api/shop/listings/posting-checkout", {
+      const res = await fetch("/api/shop/listings/publish", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -100,11 +102,15 @@ export function SellerListingForm() {
           imageUrls,
         }),
       });
-      const data = (await res.json()) as { ok?: boolean; checkoutUrl?: string; error?: string };
-      if (!res.ok || !data.ok || !data.checkoutUrl) {
+      const data = (await res.json()) as {
+        ok?: boolean;
+        dashboardUrl?: string;
+        error?: string;
+      };
+      if (!res.ok || !data.ok || !data.dashboardUrl) {
         throw new Error(data.error ?? "Echèk");
       }
-      window.location.href = data.checkoutUrl;
+      router.push(`${data.dashboardUrl}?published=1`);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Echèk");
       setBusy(false);
