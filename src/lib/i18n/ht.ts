@@ -50,6 +50,9 @@ export const htCopy = {
 
 export const shopLaCailleCopy = {
   navCta: "Shop Lakay : Marketplace",
+  /** Stacked label on small phones (same meaning as navCta) */
+  navCtaMobilePrimary: "Shop Lakay",
+  navCtaMobileSecondary: "Marketplace",
   title: "Shop Lakay : Marketplace",
   subtitle:
     "Achte ak vann nan yon espas dedye a kominote a. Peze Achte pou achte oswa Vann pou mete atik ou.",

@@ -64,11 +64,11 @@ export default async function Home({ searchParams }: HomePageProps) {
   return (
     <div className="min-h-screen bg-neutral-950 text-neutral-100">
       <header className="sticky top-0 z-30 border-b border-white/10 bg-neutral-950/95 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-6">
-          <div>
+        <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-3 sm:px-6 sm:py-4">
+          <div className="min-w-0 sm:max-w-[min(100%,28rem)]">
             <p className="text-2xl font-extrabold tracking-tight text-red-400">{htCopy.brandName}</p>
             <p className="text-xs text-neutral-400">{htCopy.tagLine}</p>
-            <div className="mt-2 flex items-center gap-2">
+            <div className="mt-2 flex flex-wrap items-center gap-2">
               <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.04] px-2.5 py-1 text-[11px] text-neutral-200">
                 <span className="h-2 w-2 rounded-full bg-[#1D4ED8]" />
                 <span className="h-2 w-2 rounded-full bg-white" />
@@ -77,30 +77,41 @@ export default async function Home({ searchParams }: HomePageProps) {
               <SelfServeAdLauncher buttonLabel="Mete anons" subtle />
             </div>
           </div>
-          <div className="flex items-center gap-2 sm:gap-3">
-            <span className="rounded-full border border-emerald-400/30 bg-emerald-400/10 px-3 py-1 text-xs text-emerald-200">
+          <nav
+            className="flex w-full flex-wrap items-center justify-center gap-x-2 gap-y-2 sm:w-auto sm:max-w-none sm:flex-nowrap sm:justify-end sm:gap-3"
+            aria-label="Navigasyon"
+          >
+            <span className="inline-flex min-h-9 shrink-0 items-center justify-center rounded-full border border-emerald-400/30 bg-emerald-400/10 px-3 py-1.5 text-xs font-medium text-emerald-200">
               {htCopy.liveLabel}
             </span>
             <Link
               href="/news"
-              className="rounded-full border border-white/20 px-4 py-2 text-sm font-semibold text-white"
+              className="inline-flex min-h-11 touch-manipulation items-center justify-center rounded-full border border-white/20 px-4 text-sm font-semibold text-white active:bg-white/10"
             >
               {htCopy.archiveCta}
             </Link>
             <Link
               href="/shop-la-caille"
-              className="rounded-full border border-amber-400/40 bg-amber-500/10 px-4 py-2 text-sm font-semibold text-amber-100"
+              className="order-first inline-flex min-h-[3.25rem] w-full max-w-[20rem] touch-manipulation flex-col items-center justify-center gap-0.5 self-center rounded-2xl border border-amber-400/55 bg-gradient-to-b from-amber-500/[0.22] to-amber-700/[0.08] px-4 py-2.5 text-center shadow-lg shadow-amber-950/40 ring-1 ring-inset ring-amber-200/15 transition active:scale-[0.98] sm:order-none sm:min-h-0 sm:w-auto sm:max-w-none sm:self-auto sm:flex-row sm:gap-1.5 sm:rounded-full sm:px-4 sm:py-2.5 sm:shadow-md sm:shadow-black/25 sm:ring-0"
             >
-              {shopLaCailleCopy.navCta}
+              <span className="hidden text-sm font-semibold text-amber-50 sm:inline">{shopLaCailleCopy.navCta}</span>
+              <span className="flex flex-col items-center leading-none sm:hidden">
+                <span className="text-[0.8125rem] font-bold tracking-tight text-amber-50">
+                  {shopLaCailleCopy.navCtaMobilePrimary}
+                </span>
+                <span className="mt-1 text-[0.625rem] font-semibold uppercase tracking-[0.2em] text-amber-200/95">
+                  {shopLaCailleCopy.navCtaMobileSecondary}
+                </span>
+              </span>
             </Link>
             <SubscribeDrawer />
             <Link
               href="/search"
-              className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-neutral-900"
+              className="inline-flex min-h-11 touch-manipulation items-center justify-center rounded-full bg-white px-4 text-sm font-semibold text-neutral-900 active:bg-neutral-200"
             >
               {htCopy.searchCta}
             </Link>
-          </div>
+          </nav>
         </div>
       </header>
 
