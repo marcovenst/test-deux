@@ -74,10 +74,17 @@ export function createXApifyAdapter(
       }
       const items = (await datasetRes.json()) as ApifyItem[];
 
-      return items.map((item) => ({
+      return items
+        .filter((item): item is ApifyItem & { url: string } => Boolean(item.url?.trim()))
+        .map((item) => {
+        const text = item.text?.trim() ?? "";
+        const fallbackTitle = item.author?.userName
+          ? `@${item.author.userName} sou X`
+          : "Post sou X";
+        return {
         externalId: item.id ?? null,
-        title: item.text ? item.text.slice(0, 160) : null,
-        content: item.text ?? null,
+        title: text ? text.slice(0, 160) : fallbackTitle,
+        content: text || fallbackTitle,
         sourceUrl: item.url ?? null,
         canonicalUrl: item.url ?? null,
         publishedAt: item.createdAt ?? null,
@@ -91,8 +98,10 @@ export function createXApifyAdapter(
         },
         metadata: {
           author: item.author?.userName,
+          network: "x" as const,
         },
-      }));
+      };
+      });
     },
   };
 }

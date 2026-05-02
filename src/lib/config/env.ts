@@ -11,6 +11,8 @@ const envSchema = z.object({
   APIFY_FACEBOOK_ACTOR_ID: z.string().min(1).optional(),
   APIFY_INSTAGRAM_ACTOR_ID: z.string().min(1).optional(),
   APIFY_TIKTOK_ACTOR_ID: z.string().min(1).optional(),
+  /** When set, used for TikTok/Instagram/Facebook Apify runs if the network-specific actor id is unset. */
+  APIFY_ALT_SOCIAL_ACTOR_ID: z.string().min(1).optional(),
   REDDIT_CLIENT_ID: z.string().min(1).optional(),
   REDDIT_CLIENT_SECRET: z.string().min(1).optional(),
   REDDIT_USER_AGENT: z.string().min(1).default("ayiti-buzz-board/1.0"),

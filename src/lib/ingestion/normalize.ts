@@ -3,7 +3,20 @@ import crypto from "node:crypto";
 import type { RawPostRow } from "@/lib/db/types";
 import type { IngestionSource, NormalizedPost, RawIngestionRecord } from "@/lib/ingestion/types";
 
-const MIN_CONTENT_LENGTH = 20;
+function minContentLengthForRecord(record: RawIngestionRecord): number {
+  const platform = (record.platform ?? "").toLowerCase();
+  if (platform === "twitter" || platform === "youtube" || platform === "reddit") {
+    return 4;
+  }
+  const net = record.metadata?.network;
+  if (typeof net === "string") {
+    const n = net.toLowerCase();
+    if (n === "tiktok" || n === "instagram" || n === "facebook" || n === "x") {
+      return 4;
+    }
+  }
+  return 20;
+}
 
 function hashValue(value: string): string {
   return crypto.createHash("sha256").update(value).digest("hex");
@@ -63,7 +76,8 @@ export function normalizeRecord(
   }
 
   const preparedContent = content || title;
-  if (preparedContent.length < MIN_CONTENT_LENGTH) {
+  const minLen = minContentLengthForRecord(record);
+  if (preparedContent.length < minLen) {
     return null;
   }
 

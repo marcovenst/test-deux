@@ -1,8 +1,9 @@
 import { supabaseAdmin } from "@/lib/db/client";
 import { haitianInfluencers } from "@/lib/content/influencers";
 import { normalizeRecord, normalizedPostToRawPostRow } from "@/lib/ingestion/normalize";
-import { getEnv } from "@/lib/config/env";
+import { getEnv, isConfigured } from "@/lib/config/env";
 import { createApifySocialAdapter } from "@/lib/ingestion/sources/apifySocial";
+import { createRedditAdapter } from "@/lib/ingestion/sources/reddit";
 import { createRssAdapter } from "@/lib/ingestion/sources/rss";
 import { createScrapeAdapter } from "@/lib/ingestion/sources/scrape";
 import { createXApifyAdapter } from "@/lib/ingestion/sources/xApify";
@@ -85,6 +86,39 @@ const CATEGORY_QUERY_HINTS: Record<string, string[]> = {
   viral: ["Haiti viral videos", "Ayiti trending now", "Haitian internet buzz"],
   general: ["Haiti news", "Ayiti news", "Haitian latest updates"],
 };
+
+function uniqTrimmed(items: string[]) {
+  return Array.from(new Set(items.map((s) => s.trim()).filter((s) => s.length > 0)));
+}
+
+const SOCIAL_SEARCH_EXPANSION = uniqTrimmed([
+  "Haiti",
+  "Ayiti",
+  "Ayisyen",
+  "Haitian",
+  "Kreyol",
+  "kreyòl",
+  "diaspora ayisyen",
+  "Haitian diaspora",
+  "Pòtoprens",
+  "Port-au-Prince",
+  "Gonaives",
+  "Okap",
+  "Cap-Haïtien",
+  "TPS Haiti",
+  "USCIS Haiti",
+  "Haiti TikTok",
+  "tiktok Haiti",
+  "Haiti viral",
+  "Grenadye",
+  "foutbòl ayiti",
+  "konpa",
+  "mizik ayisyen",
+  "nouvèl ayiti",
+  "Haitian Times",
+  "radio Caraibes Haiti",
+  ...Object.values(CATEGORY_QUERY_HINTS).flat(),
+]);
 
 async function getEngagementBoostQueries(limit = 4) {
   const { data: clusters } = await supabaseAdmin
@@ -290,10 +324,41 @@ export async function runIngestionPipeline() {
     30,
   );
 
+  const instagramActor =
+    isConfigured(env.APIFY_INSTAGRAM_ACTOR_ID) && env.APIFY_INSTAGRAM_ACTOR_ID
+      ? env.APIFY_INSTAGRAM_ACTOR_ID
+      : isConfigured(env.APIFY_ALT_SOCIAL_ACTOR_ID) && env.APIFY_ALT_SOCIAL_ACTOR_ID
+        ? env.APIFY_ALT_SOCIAL_ACTOR_ID
+        : undefined;
+  const tiktokActor =
+    isConfigured(env.APIFY_TIKTOK_ACTOR_ID) && env.APIFY_TIKTOK_ACTOR_ID
+      ? env.APIFY_TIKTOK_ACTOR_ID
+      : isConfigured(env.APIFY_ALT_SOCIAL_ACTOR_ID) && env.APIFY_ALT_SOCIAL_ACTOR_ID
+        ? env.APIFY_ALT_SOCIAL_ACTOR_ID
+        : undefined;
+  const facebookActor =
+    isConfigured(env.APIFY_FACEBOOK_ACTOR_ID) && env.APIFY_FACEBOOK_ACTOR_ID
+      ? env.APIFY_FACEBOOK_ACTOR_ID
+      : isConfigured(env.APIFY_ALT_SOCIAL_ACTOR_ID) && env.APIFY_ALT_SOCIAL_ACTOR_ID
+        ? env.APIFY_ALT_SOCIAL_ACTOR_ID
+        : undefined;
+
+  const socialSearchWide = SOCIAL_SEARCH_EXPANSION.slice(0, 26);
+  const socialSearchMore = uniqTrimmed([
+    ...influencerSocialQueries,
+    ...SOCIAL_SEARCH_EXPANSION.slice(8, 40),
+  ]).slice(0, 22);
+
   const adapters: SourceAdapter[] = [
     createRssAdapter(DEFAULT_RSS_FEEDS),
     createScrapeAdapter(DEFAULT_SCRAPE_SOURCES),
     createScrapeAdapter(INFLUENCER_SOCIAL_SCRAPES),
+    createRedditAdapter("Haiti OR Ayiti OR Haitian OR Kreyol OR diaspora", {
+      sourceName: "reddit-haiti-core",
+    }),
+    createRedditAdapter("Haitian diaspora OR Ayisyen OR Haiti politics OR TPS Haiti", {
+      sourceName: "reddit-haiti-diaspora-politics",
+    }),
     createYoutubeAdapter("Haiti OR Ayiti diaspora news"),
     createYoutubeAdapter("USCIS Haitian TPS update OR Haitian immigration lawyer"),
     ...engagementBoostQueries.map((query, index) =>
@@ -308,7 +373,13 @@ export async function runIngestionPipeline() {
         maxResults: 15,
       }),
     ),
-    createXApifyAdapter(["Haiti", "Ayiti", "Haitian", "Kreyol"]),
+    createXApifyAdapter(["Haiti", "Ayiti", "Haitian", "Kreyol"], {
+      maxItems: 120,
+    }),
+    createXApifyAdapter(["#Haiti", "#Ayiti", "#Haitian", "Haiti news", "Ayiti news"], {
+      sourceName: "x-apify-hashtags",
+      maxItems: 120,
+    }),
     createXApifyAdapter(["USCIS Haiti", "Haitian TPS", "Haitian immigration lawyer", "parole Haiti"], {
       sourceName: "x-apify-immigration",
       maxItems: 150,
@@ -326,51 +397,51 @@ export async function runIngestionPipeline() {
     createApifySocialAdapter({
       sourceName: "instagram-apify",
       network: "instagram",
-      actorId: env.APIFY_INSTAGRAM_ACTOR_ID,
-      searchTerms: ["Haiti", "Ayiti", "Haitian", "Kreyol", "diaspora ayisyen"],
-      maxItems: 120,
+      actorId: instagramActor,
+      searchTerms: socialSearchWide,
+      maxItems: 150,
     }),
     createApifySocialAdapter({
       sourceName: "instagram-apify-influencers",
       network: "instagram",
-      actorId: env.APIFY_INSTAGRAM_ACTOR_ID,
-      searchTerms: influencerSocialQueries,
-      maxItems: 120,
+      actorId: instagramActor,
+      searchTerms: socialSearchMore,
+      maxItems: 140,
     }),
     createApifySocialAdapter({
       sourceName: "tiktok-apify",
       network: "tiktok",
-      actorId: env.APIFY_TIKTOK_ACTOR_ID,
-      searchTerms: ["Haiti", "Ayiti", "Haitian", "Kreyol", "viral ayiti"],
-      maxItems: 120,
+      actorId: tiktokActor,
+      searchTerms: socialSearchWide,
+      maxItems: 150,
     }),
     createApifySocialAdapter({
       sourceName: "tiktok-apify-influencers",
       network: "tiktok",
-      actorId: env.APIFY_TIKTOK_ACTOR_ID,
-      searchTerms: influencerSocialQueries,
-      maxItems: 120,
+      actorId: tiktokActor,
+      searchTerms: socialSearchMore,
+      maxItems: 140,
     }),
     createApifySocialAdapter({
       sourceName: "facebook-apify",
       network: "facebook",
-      actorId: env.APIFY_FACEBOOK_ACTOR_ID,
-      searchTerms: ["Haiti", "Ayiti", "diaspora ayisyen"],
-      maxItems: 100,
+      actorId: facebookActor,
+      searchTerms: socialSearchWide.slice(0, 18),
+      maxItems: 120,
       inputCandidates: [
-        { facebookUrls, resultsLimit: 100, includeVideoTranscript: false },
-        { startUrls: facebookUrls.map((url) => ({ url })), maxItems: 100 },
+        { facebookUrls, resultsLimit: 120, includeVideoTranscript: false },
+        { startUrls: facebookUrls.map((url) => ({ url })), maxItems: 120 },
       ],
     }),
     createApifySocialAdapter({
       sourceName: "facebook-apify-influencers",
       network: "facebook",
-      actorId: env.APIFY_FACEBOOK_ACTOR_ID,
-      searchTerms: influencerSocialQueries,
-      maxItems: 100,
+      actorId: facebookActor,
+      searchTerms: socialSearchMore.slice(0, 14),
+      maxItems: 120,
       inputCandidates: [
-        { facebookUrls: influencerFacebookUrls, resultsLimit: 100, includeVideoTranscript: false },
-        { startUrls: influencerFacebookUrls.map((url) => ({ url })), maxItems: 100 },
+        { facebookUrls: influencerFacebookUrls, resultsLimit: 120, includeVideoTranscript: false },
+        { startUrls: influencerFacebookUrls.map((url) => ({ url })), maxItems: 120 },
       ],
     }),
   ];
