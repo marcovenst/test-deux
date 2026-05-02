@@ -8,7 +8,8 @@ import type {
 } from "@/lib/db/types";
 
 export const POSTING_FEE_CENTS = 99; // legacy — posting fee checkout no longer used for new listings
-export const MIN_PAYOUT_CENTS = 1000; // $10 minimum cash-out request
+/** Minimum Cashout amount (USD). Fulfillment is Zelle, ACH, or debit_card per `marketplace_payout_requests.method`. */
+export const MIN_PAYOUT_CENTS = 2000; // $20 minimum cash-out request
 export const PLATFORM_FEE_RATE = 0.07;
 export const MAX_LISTING_IMAGES = 8;
 export const MAX_TITLE_LENGTH = 120;

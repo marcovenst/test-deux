@@ -64,7 +64,7 @@ export const shopLaCailleCopy = {
     "Glise-lage foto atik la isit, oswa klike pou chwazi. JPEG, PNG, WebP oswa GIF — 1 a 8 foto, chak jiska 5 Mo.",
   backShop: "Retounen Shop Lakay : Marketplace",
   postingFeeBanner:
-    "Kont vann: ou pa bezwen peye pou mete atik anvan. Lè yon moun achte, lajan net ou (pri atik + transpò) antre nan kont ou. Achtè a peye frè platfòm 7% anplis. Ou ka mande kachout lè balans ou pare (min. $10); ekip la achte via Zelle, ACH oswa kat dapre demann ou.",
+    "Kreye yon kont. Lè yon moun achte, lajan nèt ou (pri atik + transpò) antre nan kont ou. Achtè a peye frè platfòm 7% anplis. Ou ka mande Cashout lè balans ou pare (min. $20); ekip la peye w via Zelle, ACH oswa kat dapre demann ou.",
   sellTitle: "Mete atik ou",
   sellerName: "Non konplè",
   sellerEmail: "Imèl",
@@ -85,7 +85,7 @@ export const shopLaCailleCopy = {
   uploadFailed: "Upload echwe. Eseye ankò.",
   sellerDashboardTitle: "Kont vann",
   sellerDashboardExplain:
-    "Sa a se balans liv ou: kredi nan lavant, mwens demann kachout ki an tan. Lajan an rete nan kont ou jiskaske ekip la finalize transfè a (Zelle, depo dirèk, oswa kat).",
+    "Balans ou montre lajan ki rete apre lavant yo, epi sa ki bloke nan demann Cashout ki an tan. Lè ou mande Cashout, ekip la peye ou (voye lajan ba ou) atravè Zelle, ACH (depo bank) oswa peman sou kat debi, selon opsyon ou chwazi nan demann an.",
   sellerBalanceLabel: "Balans total",
   sellerReservedLabel: "An tann kachout",
   sellerAvailableLabel: "Disponib pou kachout",
@@ -97,12 +97,12 @@ export const shopLaCailleCopy = {
   sellerPayoutsEmpty: "Pa gen demann.",
   sellerPayoutTitle: "Mande kachout",
   sellerPayoutDisclaimer:
-    "Enfòmasyon ou bay la ede ekip la fè transfè a manyèlman. Peye otomatik (tankou Lyft/Uber) mande Stripe Connect — nou kapab ajoute sa nan yon faz kap vini an.",
+    "Chwazi kijan ou vle ekip la peye w: Zelle, depo ACH nan bank ou, oswa peman sou kat debi. Ranpli enfòmasyon an ak anpil atansyon; transfè a fèt manyèlman apre verifikasyon. (Peye otomatik konplè mande Stripe Connect — nou ka ajoute sa pita.)",
   sellerPayoutAmount: "Montan (USD)",
   sellerPayoutMethod: "Mòd peman",
   sellerPayoutZelle: "Zelle",
   sellerPayoutAch: "Depo dirèk (ACH / bank)",
-  sellerPayoutDebit: "Kat debi",
+  sellerPayoutDebit: "Peman kat debi (debit card)",
   sellerPayoutZelleField: "Imèl oswa telefòn Zelle",
   sellerPayoutAchName: "Non sou kont la",
   sellerPayoutAchBank: "Non bank",

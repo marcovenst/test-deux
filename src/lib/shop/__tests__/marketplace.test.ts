@@ -14,8 +14,8 @@ describe("marketplace fees", () => {
     expect(POSTING_FEE_CENTS).toBe(99);
   });
 
-  it("minimum cash-out is $10", () => {
-    expect(MIN_PAYOUT_CENTS).toBe(1000);
+  it("minimum cash-out is $20", () => {
+    expect(MIN_PAYOUT_CENTS).toBe(2000);
   });
 
   it("platform fee is 7% of item subtotal rounded", () => {
