@@ -2,6 +2,8 @@ import Link from "next/link";
 
 import { getArchivedClustersPage, searchArchivedClusters } from "@/lib/trends/archive";
 
+export const dynamic = "force-dynamic";
+
 type SearchPageProps = {
   searchParams: Promise<{ q?: string }>;
 };

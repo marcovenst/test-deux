@@ -6,6 +6,8 @@ import { supabaseAdmin } from "@/lib/db/client";
 import { socialSourceUrlRank } from "@/lib/media/pickFeaturedSource";
 import { extractPostMedia } from "@/lib/media/postMedia";
 
+export const dynamic = "force-dynamic";
+
 type ClusterPageProps = {
   params: Promise<{ id: string }>;
 };

@@ -15,6 +15,9 @@ import { buildHomeSidebarSlices } from "@/lib/trends/homeSidebar";
 import { normalizeTrendCategory } from "@/lib/trends/categories";
 import { getInfluencerTopics, getTrendFeed } from "@/lib/trends/query";
 
+/** Always read latest clusters from Supabase; avoid a frozen build-time HTML shell on `/`. */
+export const dynamic = "force-dynamic";
+
 const HOME_CATEGORY_TAGS: { label: string; category: string }[] = [
   { label: "imigrasyon", category: "immigration" },
   { label: "mizik", category: "music" },
