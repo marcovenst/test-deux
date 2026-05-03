@@ -110,6 +110,14 @@ export async function getGoogleSearchInterest(
   }
 }
 
+/** Default `5h` so the home feed tracks what is hottest in roughly the last five hours. */
+export function normalizePopularityWindow(input: string | null | undefined): PopularityWindow {
+  if (input === "1h" || input === "5h" || input === "24h") {
+    return input;
+  }
+  return "5h";
+}
+
 export function computeSocialPopularityScore(input: {
   engagementTotals: {
     likes: number;

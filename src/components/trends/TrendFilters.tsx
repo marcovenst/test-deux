@@ -1,20 +1,20 @@
 import Link from "next/link";
 import { categoryLabelsHt } from "@/lib/i18n/ht";
 import { TREND_CATEGORIES } from "@/lib/trends/categories";
+import { normalizePopularityWindow } from "@/lib/trends/popularity";
 
 const CATEGORIES = TREND_CATEGORIES;
 
 export function TrendFilters({
   selectedCategory,
   selectedTimeframe,
-  popularityWindow = "24h",
+  popularityWindow = "5h",
 }: {
   selectedCategory: string;
   selectedTimeframe: "daily" | "weekly";
   popularityWindow?: string;
 }) {
-  const windowParam =
-    popularityWindow === "1h" || popularityWindow === "5h" ? popularityWindow : "24h";
+  const windowParam = normalizePopularityWindow(popularityWindow);
   const qs = (cat: string, tf: string) =>
     `/?timeframe=${tf}&category=${cat}&popularityWindow=${windowParam}`;
 

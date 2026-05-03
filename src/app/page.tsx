@@ -13,6 +13,7 @@ import { immigrationHubTopics, sportsHubTopics } from "@/lib/content/influencers
 import { htCopy, shopLaCailleCopy } from "@/lib/i18n/ht";
 import { buildHomeSidebarSlices } from "@/lib/trends/homeSidebar";
 import { normalizeTrendCategory } from "@/lib/trends/categories";
+import { normalizePopularityWindow } from "@/lib/trends/popularity";
 import { getInfluencerTopics, getLatestScoresComputedAt, getTrendFeed } from "@/lib/trends/query";
 
 /** Always read latest clusters from Supabase; avoid a frozen build-time HTML shell on `/`. */
@@ -43,10 +44,7 @@ export default async function Home({ searchParams }: HomePageProps) {
   const params = await searchParams;
   const timeframe = params.timeframe === "weekly" ? "weekly" : "daily";
   const category = normalizeTrendCategory(params.category);
-  const popularityWindow =
-    params.popularityWindow === "1h" || params.popularityWindow === "5h"
-      ? params.popularityWindow
-      : "24h";
+  const popularityWindow = normalizePopularityWindow(params.popularityWindow);
   const trends = await getTrendFeed(timeframe, category, popularityWindow);
   const [hubFeed, immigrationFeed, sportsFeed] = await Promise.all([
     getTrendFeed(timeframe, "all", popularityWindow),

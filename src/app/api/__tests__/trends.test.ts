@@ -26,6 +26,7 @@ describe("GET /api/trends", () => {
 
     expect(response.status).toBe(200);
     expect(json.timeframe).toBe("weekly");
+    expect(json.popularityWindow).toBe("5h");
     expect(json.count).toBe(1);
     expect(json.data[0].clusterId).toBe("cluster-1");
   });

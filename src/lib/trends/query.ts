@@ -223,7 +223,7 @@ export async function getLatestScoresComputedAt(
 export async function getTrendFeed(
   timeframe: "daily" | "weekly",
   category?: string,
-  popularityWindow: PopularityWindow = "24h",
+  popularityWindow: PopularityWindow = "5h",
 ) {
   unstable_noStore();
   try {
