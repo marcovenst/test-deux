@@ -7,11 +7,9 @@ type ScheduleEntry = {
   cron: string;
 };
 
+/** One full pipeline every 30 minutes (ingest → cluster → score → summarize). */
 const SCHEDULES: ScheduleEntry[] = [
-  { destinationPath: "/api/jobs/ingest", cron: "*/15 * * * *" },
-  { destinationPath: "/api/jobs/cluster", cron: "*/15 * * * *" },
-  { destinationPath: "/api/jobs/score", cron: "*/20 * * * *" },
-  { destinationPath: "/api/jobs/summarize", cron: "*/30 * * * *" },
+  { destinationPath: "/api/jobs/pipeline", cron: "*/30 * * * *" },
   { destinationPath: "/api/jobs/newsletter", cron: "0 13 * * *" },
 ];
 

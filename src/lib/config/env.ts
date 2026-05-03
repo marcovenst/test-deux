@@ -20,6 +20,8 @@ const envSchema = z.object({
   ANTHROPIC_API_KEY: z.string().min(1).optional(),
   ANTHROPIC_MODEL: z.string().min(1).optional(),
   UPSTASH_QSTASH_TOKEN: z.string().min(1).optional(),
+  /** When set, Vercel Cron may call GET /api/jobs/pipeline with Authorization: Bearer <this>. */
+  CRON_SECRET: z.string().min(1).optional(),
   INGESTION_SHARED_SECRET: z.string().min(1),
   ADMIN_DASHBOARD_TOKEN: z.string().min(1).optional(),
   RESEND_API_KEY: z.string().min(1).optional(),
