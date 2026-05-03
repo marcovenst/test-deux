@@ -1,3 +1,5 @@
+import { unstable_noStore } from "next/cache";
+
 import { supabaseAdmin } from "@/lib/db/client";
 import { fallbackCreoleTrends, haitianInfluencers } from "@/lib/content/influencers";
 import { extractPostMedia } from "@/lib/media/postMedia";
@@ -203,11 +205,27 @@ export function getInfluencerTopics(): InfluencerTopic[] {
   return [...communityVoiceTopics, ...influencerTopics];
 }
 
+export async function getLatestScoresComputedAt(
+  timeframe: "daily" | "weekly",
+): Promise<string | null> {
+  unstable_noStore();
+  const { data } = await supabaseAdmin
+    .from("trend_scores")
+    .select("computed_at")
+    .eq("timeframe", timeframe)
+    .order("computed_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const raw = data?.computed_at;
+  return typeof raw === "string" ? raw : null;
+}
+
 export async function getTrendFeed(
   timeframe: "daily" | "weekly",
   category?: string,
   popularityWindow: PopularityWindow = "24h",
 ) {
+  unstable_noStore();
   try {
     const { data: scores, error: scoresError } = await supabaseAdmin
       .from("trend_scores")

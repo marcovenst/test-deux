@@ -1,7 +1,11 @@
+import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 
 import { getEnv, isConfigured } from "@/lib/config/env";
 import { runFullPipeline } from "@/lib/jobs/pipeline";
+
+/** Ingest + cluster + score + summarize can exceed the default 10s on Vercel Hobby. */
+export const maxDuration = 300;
 
 function bearer(request: Request): string | null {
   const auth = request.headers.get("authorization");
@@ -33,6 +37,14 @@ function isAuthorizedCronGet(request: Request): boolean {
 
 async function runAndRespond() {
   const result = await runFullPipeline();
+  try {
+    revalidatePath("/", "page");
+    revalidatePath("/news", "page");
+    revalidatePath("/search", "page");
+    revalidatePath("/cluster/[id]", "page");
+  } catch (error) {
+    console.warn("[jobs/pipeline] revalidatePath failed", error);
+  }
   return NextResponse.json({ ok: true, ...result });
 }
 

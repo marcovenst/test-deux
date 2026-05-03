@@ -13,7 +13,7 @@ import { immigrationHubTopics, sportsHubTopics } from "@/lib/content/influencers
 import { htCopy, shopLaCailleCopy } from "@/lib/i18n/ht";
 import { buildHomeSidebarSlices } from "@/lib/trends/homeSidebar";
 import { normalizeTrendCategory } from "@/lib/trends/categories";
-import { getInfluencerTopics, getTrendFeed } from "@/lib/trends/query";
+import { getInfluencerTopics, getLatestScoresComputedAt, getTrendFeed } from "@/lib/trends/query";
 
 /** Always read latest clusters from Supabase; avoid a frozen build-time HTML shell on `/`. */
 export const dynamic = "force-dynamic";
@@ -63,6 +63,15 @@ export default async function Home({ searchParams }: HomePageProps) {
   const headliner = trends[0];
   const moreTrends = trends.slice(1);
   const contactEmail = process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? htCopy.footerContactEmail;
+  const scoresUpdatedAt = await getLatestScoresComputedAt(timeframe);
+  const scoresUpdatedLabel =
+    scoresUpdatedAt != null
+      ? new Intl.DateTimeFormat("fr-HT", {
+          dateStyle: "short",
+          timeStyle: "short",
+          timeZone: "America/Port-au-Prince",
+        }).format(new Date(scoresUpdatedAt))
+      : null;
 
   return (
     <div className="min-h-screen bg-neutral-950 text-neutral-100">
@@ -71,6 +80,11 @@ export default async function Home({ searchParams }: HomePageProps) {
           <div className="min-w-0 sm:max-w-[min(100%,28rem)]">
             <p className="text-2xl font-extrabold tracking-tight text-red-400">{htCopy.brandName}</p>
             <p className="text-xs text-neutral-400">{htCopy.tagLine}</p>
+            {scoresUpdatedLabel ? (
+              <p className="mt-1 text-[11px] text-neutral-500">
+                Dènye skò tandans: {scoresUpdatedLabel} (Ayiti)
+              </p>
+            ) : null}
             <div className="mt-2 flex flex-wrap items-center gap-2">
               <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.04] px-2.5 py-1 text-[11px] text-neutral-200">
                 <span className="h-2 w-2 rounded-full bg-[#1D4ED8]" />
