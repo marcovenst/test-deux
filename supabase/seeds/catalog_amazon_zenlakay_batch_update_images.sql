@@ -1,5 +1,7 @@
--- Patch image_urls for existing rows (same amzn.to links as batch seed).
--- Run in Supabase if you already inserted catalog items with empty image_urls.
+/*
+  Patch image_urls for existing rows (same amzn.to links as batch seed).
+  Run in Supabase if you already inserted catalog items with empty image_urls.
+*/
 
 update public.marketplace_catalog_items
 set image_urls = array['https://m.media-amazon.com/images/I/81LSfUZqhdL._AC_PT0_BL0_SX216_SY110_FMwebp_QL25_.jpg']::text[], updated_at = now()
