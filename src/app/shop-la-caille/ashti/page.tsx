@@ -1,9 +1,29 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 
 import { shopLaCailleCopy } from "@/lib/i18n/ht";
 import { fetchAchteBrowseForDisplay } from "@/lib/shop/catalog";
+import { absoluteUrl, SEO_KEYWORDS, SITE_NAME } from "@/lib/seo/site";
 
 export const dynamic = "force-dynamic";
+
+const ACHTE_DESC =
+  "Browse Shop Lakay marketplace — atik kominoté ak katalòg pou achte. Haitian community storefront and catalog items.";
+
+export const metadata: Metadata = {
+  title: `${shopLaCailleCopy.achteLabel} — Shop Lakay`,
+  description: ACHTE_DESC,
+  keywords: [...SEO_KEYWORDS, "achite marketplace Ayiti", "Haitian buy online"],
+  alternates: { canonical: "/shop-la-caille/ashti" },
+  openGraph: {
+    type: "website",
+    siteName: SITE_NAME,
+    locale: "ht_HT",
+    url: absoluteUrl("/shop-la-caille/ashti"),
+    title: `${shopLaCailleCopy.achteLabel} — Shop Lakay | ${SITE_NAME}`,
+    description: ACHTE_DESC,
+  },
+};
 
 function formatUsd(cents: number) {
   return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(cents / 100);

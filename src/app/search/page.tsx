@@ -1,12 +1,59 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 
 import { getArchivedClustersPage, searchArchivedClusters } from "@/lib/trends/archive";
+import { absoluteUrl, SEO_KEYWORDS, SITE_NAME, truncateForMeta } from "@/lib/seo/site";
 
 export const dynamic = "force-dynamic";
 
 type SearchPageProps = {
   searchParams: Promise<{ q?: string }>;
 };
+
+export async function generateMetadata({ searchParams }: SearchPageProps): Promise<Metadata> {
+  const params = await searchParams;
+  const q = (params.q ?? "").trim();
+  const baseTitle = "Chèche tandans ak nouvèl Ayiti";
+  const baseDesc =
+    "Chèche nan achiv Zen Rezo A: mo kle, kategori, sijè. Search Haitian trending stories and news archives.";
+
+  if (!q) {
+    return {
+      title: baseTitle,
+      description: baseDesc,
+      keywords: [...SEO_KEYWORDS, "search Haiti news", "chèche nouvèl"],
+      alternates: { canonical: absoluteUrl("/search") },
+      openGraph: {
+        type: "website",
+        siteName: SITE_NAME,
+        url: absoluteUrl("/search"),
+        title: `${baseTitle} | ${SITE_NAME}`,
+        description: baseDesc,
+      },
+    };
+  }
+
+  const title = `Chèche: ${truncateForMeta(q, 52)}`;
+  const description = truncateForMeta(`Rezilta chèche pou «${q}» nan achiv Zen Rezo A — tandans Ayiti.`, 160);
+
+  return {
+    title,
+    description,
+    keywords: [q, ...SEO_KEYWORDS.slice(0, 6)],
+    alternates: { canonical: absoluteUrl(`/search?q=${encodeURIComponent(q)}`) },
+    openGraph: {
+      type: "website",
+      siteName: SITE_NAME,
+      url: absoluteUrl(`/search?q=${encodeURIComponent(q)}`),
+      title: `${title} | ${SITE_NAME}`,
+      description,
+    },
+    robots: {
+      index: true,
+      follow: true,
+    },
+  };
+}
 
 export default async function SearchPage({ searchParams }: SearchPageProps) {
   const params = await searchParams;

@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 
 import { AdSlot } from "@/components/ads/AdSlot";
@@ -15,9 +16,33 @@ import { buildHomeSidebarSlices } from "@/lib/trends/homeSidebar";
 import { normalizeTrendCategory } from "@/lib/trends/categories";
 import { normalizePopularityWindow } from "@/lib/trends/popularity";
 import { getInfluencerTopics, getLatestScoresComputedAt, getTrendFeed } from "@/lib/trends/query";
+import {
+  absoluteUrl,
+  DEFAULT_DESCRIPTION,
+  DEFAULT_TITLE,
+  SEO_KEYWORDS,
+  SITE_NAME,
+} from "@/lib/seo/site";
 
 /** Always read latest clusters from Supabase; avoid a frozen build-time HTML shell on `/`. */
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: {
+    absolute: DEFAULT_TITLE,
+  },
+  description: DEFAULT_DESCRIPTION,
+  keywords: SEO_KEYWORDS,
+  alternates: { canonical: "/" },
+  openGraph: {
+    type: "website",
+    siteName: SITE_NAME,
+    locale: "ht_HT",
+    url: absoluteUrl("/"),
+    title: DEFAULT_TITLE,
+    description: DEFAULT_DESCRIPTION,
+  },
+};
 
 const HOME_CATEGORY_TAGS: { label: string; category: string }[] = [
   { label: "imigrasyon", category: "immigration" },

@@ -24,6 +24,10 @@
 .DS_Store
 *.pem
 
+# Local subscriber exports (may contain PII)
+/data/subscribers.csv
+/data/subscribers.jsonl
+
 # debug
 npm-debug.log*
 yarn-debug.log*

@@ -1,6 +1,26 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 
 import { shopLaCailleCopy } from "@/lib/i18n/ht";
+import { absoluteUrl, SEO_KEYWORDS, SITE_NAME } from "@/lib/seo/site";
+
+const SHOP_DESC =
+  "Shop Lakay — achte ak vann nan marketplace Zen Rezo A pou kominote ayisyen an. Community marketplace for Haitian buyers and sellers.";
+
+export const metadata: Metadata = {
+  title: shopLaCailleCopy.title,
+  description: SHOP_DESC,
+  keywords: [...SEO_KEYWORDS, "Haitian marketplace", "Shop Lakay", "vann achte Ayiti"],
+  alternates: { canonical: "/shop-la-caille" },
+  openGraph: {
+    type: "website",
+    siteName: SITE_NAME,
+    locale: "ht_HT",
+    url: absoluteUrl("/shop-la-caille"),
+    title: `${shopLaCailleCopy.title} | ${SITE_NAME}`,
+    description: SHOP_DESC,
+  },
+};
 
 export default function ShopLaCailleHomePage() {
   return (

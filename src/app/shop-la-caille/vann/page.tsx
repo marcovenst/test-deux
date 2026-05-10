@@ -1,7 +1,27 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 
 import { SellerListingForm } from "@/components/shop/SellerListingForm";
 import { shopLaCailleCopy } from "@/lib/i18n/ht";
+import { absoluteUrl, SEO_KEYWORDS, SITE_NAME } from "@/lib/seo/site";
+
+const VANN_DESC =
+  "Mete atik ou an vant sou Shop Lakay marketplace Zen Rezo A. List products for sale in the Haitian community marketplace.";
+
+export const metadata: Metadata = {
+  title: shopLaCailleCopy.sellTitle,
+  description: VANN_DESC,
+  keywords: [...SEO_KEYWORDS, "vann sou entènèt Ayiti", "sell Haiti marketplace"],
+  alternates: { canonical: "/shop-la-caille/vann" },
+  openGraph: {
+    type: "website",
+    siteName: SITE_NAME,
+    locale: "ht_HT",
+    url: absoluteUrl("/shop-la-caille/vann"),
+    title: `${shopLaCailleCopy.sellTitle} | ${SITE_NAME}`,
+    description: VANN_DESC,
+  },
+};
 
 type PageProps = {
   searchParams: Promise<{ checkout?: string }>;

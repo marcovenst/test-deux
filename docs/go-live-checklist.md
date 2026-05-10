@@ -16,7 +16,7 @@ Set these in your hosting provider (Vercel/Netlify/Render/etc.):
 
 ### Required
 
-- [ ] `NEXT_PUBLIC_APP_URL` (your production domain, e.g. `https://yourdomain.com`)
+- [ ] `NEXT_PUBLIC_APP_URL` (production: `https://zenlakay.com`)
 - [ ] `SUPABASE_URL`
 - [ ] `SUPABASE_SERVICE_ROLE_KEY`
 - [ ] `INGESTION_SHARED_SECRET` (random long secret)
@@ -35,6 +35,7 @@ If using Google AdSense:
 - [ ] `NEXT_PUBLIC_GOOGLE_ADSENSE_SLOT_FEED_TOP`
 - [ ] `NEXT_PUBLIC_GOOGLE_ADSENSE_SLOT_FEED_MID`
 - [ ] `NEXT_PUBLIC_GOOGLE_ADSENSE_SLOT_SIDEBAR`
+- [ ] Production: `https://zenlakay.com/ads.txt` returns your authorized publisher line (auto or `ADS_TXT_CONTENT`)
 
 If using direct sponsored mode:
 
@@ -78,7 +79,7 @@ If using direct sponsored mode:
 - [ ] Confirm `STRIPE_SECRET_KEY` is a live key in production.
 - [ ] Note: checkout currently uses inline Stripe `price_data` from code plans (`$5/1d`, `$20/5d`, `$50/30d`), so Dashboard products are optional.
 - [ ] Add webhook endpoint:
-  - [ ] `POST https://<your-domain>/api/ads/self-serve/webhook`
+  - [ ] `POST https://zenlakay.com/api/ads/self-serve/webhook`
 - [ ] Subscribe webhook to `checkout.session.completed`
 - [ ] Copy endpoint signing secret into `STRIPE_WEBHOOK_SECRET`
 - [ ] Run one live checkout test and confirm ad activation.
@@ -90,7 +91,7 @@ If using direct sponsored mode:
 - [ ] Set `STRIPE_SUBSCRIPTION_PRICE_ID` to your recurring Stripe Price ID.
 - [ ] Set `STRIPE_BILLING_WEBHOOK_SECRET` (or rely on `STRIPE_WEBHOOK_SECRET` fallback).
 - [ ] Add billing webhook endpoint:
-  - [ ] `POST https://<your-domain>/api/billing/webhook`
+  - [ ] `POST https://zenlakay.com/api/billing/webhook`
 - [ ] Subscribe webhook to:
   - [ ] `checkout.session.completed`
   - [ ] `customer.subscription.updated`
@@ -105,14 +106,14 @@ If using direct sponsored mode:
 - [ ] Trigger one pipeline run manually:
 
 ```bash
-curl -X POST "https://<your-domain>/api/jobs/pipeline" \
+curl -X POST "https://zenlakay.com/api/jobs/pipeline" \
   -H "Authorization: Bearer <INGESTION_SHARED_SECRET>"
 ```
 
 - [ ] Register schedules:
 
 ```bash
-curl -X POST "https://<your-domain>/api/jobs/schedule" \
+curl -X POST "https://zenlakay.com/api/jobs/schedule" \
   -H "Authorization: Bearer <INGESTION_SHARED_SECRET>"
 ```
 

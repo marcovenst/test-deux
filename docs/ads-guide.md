@@ -34,6 +34,14 @@ Set:
 - `NEXT_PUBLIC_AD_PROVIDER="google"`
 - `NEXT_PUBLIC_GOOGLE_ADSENSE_CLIENT_ID="ca-pub-..."`
 
+### ads.txt (domain authorization)
+
+After your site is live on a **production** URL, open:
+
+- `https://zenlakay.com/ads.txt`
+
+By default the app generates the standard Google line from `NEXT_PUBLIC_GOOGLE_ADSENSE_CLIENT_ID` (must look like `ca-pub-1234567890123456`). For multiple publishers or MCM rows, set **`ADS_TXT_CONTENT`** in the server environment to the full file body (newline-separated).
+
 Ad slots are already placed in:
 
 - Main feed top
@@ -88,8 +96,9 @@ Webhook behavior:
 
 - The webhook validates `stripe-signature` with `STRIPE_WEBHOOK_SECRET`.
 - It handles `checkout.session.completed`.
-- `metadata.adOrderId` is required; missing metadata returns `400`.
+- For self-serve ads, `metadata.adOrderId` must be present or the order is not activated.
 - Duplicate deliveries are idempotent and do not shift an already-active ad window.
+- Checkout sessions that are not marketplace orders and omit `metadata.adOrderId` are acknowledged with `200` and `ignored: true` (so other Checkout products can share the same webhook without error retries).
 
 Operational checks:
 
@@ -113,4 +122,5 @@ Operational checks:
 - `src/app/api/ads/self-serve/webhook/route.ts`
 - `src/app/api/ads/self-serve/active/route.ts`
 - `src/lib/ads/selfServe.ts`
+- `src/app/ads.txt/route.ts`
 

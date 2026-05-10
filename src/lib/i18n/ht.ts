@@ -45,7 +45,7 @@ export const htCopy = {
     "Tout sijè yo rete sou sit la menm lè yo pa sou premye paj la ankò. Vizite achiv la pou jwenn ansyen nouvèl yo.",
   footerRights: "© 2026 Zen Rezo A. Tout dwa rezève.",
   footerContactLead: "Pou plis enfòmasyon:",
-  footerContactEmail: "hello@zenrezoa.com",
+  footerContactEmail: "hello@zenlakay.com",
 };
 
 export const shopLaCailleCopy = {

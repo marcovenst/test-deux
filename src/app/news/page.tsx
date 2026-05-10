@@ -1,8 +1,29 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 
 import { getArchivedClustersPage } from "@/lib/trends/archive";
+import { absoluteUrl, SEO_KEYWORDS, SITE_NAME } from "@/lib/seo/site";
 
 export const dynamic = "force-dynamic";
+
+const NEWS_TITLE = "Achiv nouvèl ak tandans Ayiti";
+const NEWS_DESCRIPTION =
+  "Achiv istwa Zen Rezo A: ansyen tandans, nouvèl, ak rapò sijè ki gen plis ke 30 jou. Browse Haitian news archives and older trending topics.";
+
+export const metadata: Metadata = {
+  title: NEWS_TITLE,
+  description: NEWS_DESCRIPTION,
+  keywords: [...SEO_KEYWORDS, "archive Haiti news", "achiv nouvèl"],
+  alternates: { canonical: "/news" },
+  openGraph: {
+    type: "website",
+    siteName: SITE_NAME,
+    locale: "ht_HT",
+    url: absoluteUrl("/news"),
+    title: `${NEWS_TITLE} | ${SITE_NAME}`,
+    description: NEWS_DESCRIPTION,
+  },
+};
 
 type NewsArchivePageProps = {
   searchParams: Promise<{ page?: string }>;

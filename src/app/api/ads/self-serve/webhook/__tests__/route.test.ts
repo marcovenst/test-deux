@@ -43,7 +43,7 @@ describe("POST /api/ads/self-serve/webhook", () => {
     process.env = originalEnv;
   });
 
-  it("returns 400 when checkout session metadata is missing adOrderId", async () => {
+  it("ignores checkout.session.completed when metadata has no adOrderId (not an ad order)", async () => {
     constructEventMock.mockReturnValue({
       id: "evt_1",
       type: "checkout.session.completed",
@@ -64,8 +64,10 @@ describe("POST /api/ads/self-serve/webhook", () => {
     );
 
     const payload = await response.json();
-    expect(response.status).toBe(400);
-    expect(payload.ok).toBe(false);
+    expect(response.status).toBe(200);
+    expect(payload.ok).toBe(true);
+    expect(payload.ignored).toBe(true);
+    expect(payload.reason).toBe("not_self_serve_ad_checkout");
     expect(markOrderPaidMock).not.toHaveBeenCalled();
   });
 

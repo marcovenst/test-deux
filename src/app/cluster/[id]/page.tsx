@@ -1,10 +1,15 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 
+import { ClusterArticleJsonLd } from "@/components/seo/ClusterArticleJsonLd";
 import { SummaryListenPanel } from "@/components/trends/SummaryListenPanel";
 import { TrendViewPing } from "@/components/trends/TrendViewPing";
+import { getClusterPageData } from "@/lib/clusters/getClusterPageData";
 import { supabaseAdmin } from "@/lib/db/client";
 import { socialSourceUrlRank } from "@/lib/media/pickFeaturedSource";
 import { extractPostMedia } from "@/lib/media/postMedia";
+import { absoluteUrl, SEO_KEYWORDS, SITE_NAME, truncateForMeta } from "@/lib/seo/site";
 
 export const dynamic = "force-dynamic";
 
@@ -12,28 +17,62 @@ type ClusterPageProps = {
   params: Promise<{ id: string }>;
 };
 
+export async function generateMetadata({ params }: ClusterPageProps): Promise<Metadata> {
+  const { id } = await params;
+  const data = await getClusterPageData(id);
+
+  if (!data) {
+    return {
+      title: "Sijè pa jwenn",
+      robots: { index: false, follow: true },
+    };
+  }
+
+  const { cluster, summary } = data;
+  const title = summary?.cluster_title ?? cluster.title;
+  const rawDesc =
+    summary?.summary?.trim() ||
+    summary?.trend_reason?.trim() ||
+    `Tandans ${cluster.trend_category ?? "Ayiti"} — ${truncateForMeta(cluster.title, 120)}`;
+  const description = truncateForMeta(rawDesc, 160);
+  const url = absoluteUrl(`/cluster/${id}`);
+  const category = cluster.trend_category ?? "general";
+
+  return {
+    title,
+    description,
+    keywords: [category, "Haiti", "Ayiti", ...SEO_KEYWORDS.slice(0, 8)],
+    alternates: { canonical: url },
+    openGraph: {
+      type: "article",
+      siteName: SITE_NAME,
+      locale: "ht_HT",
+      title,
+      description,
+      url,
+      publishedTime: cluster.first_seen_at,
+      modifiedTime: cluster.last_seen_at,
+      section: category,
+      images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: title }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: ["/twitter-image"],
+    },
+  };
+}
+
 export default async function ClusterPage({ params }: ClusterPageProps) {
   const { id } = await params;
 
-  const { data: cluster } = await supabaseAdmin
-    .from("clusters")
-    .select("id,title,trend_category,last_seen_at")
-    .eq("id", id)
-    .single();
-
-  if (!cluster) {
-    return (
-      <main className="min-h-screen bg-slate-950 px-6 py-12 text-slate-100">
-        <p>Nou pa jwenn sijè sa a.</p>
-      </main>
-    );
+  const data = await getClusterPageData(id);
+  if (!data) {
+    notFound();
   }
 
-  const { data: summary } = await supabaseAdmin
-    .from("cluster_summaries")
-    .select("cluster_title,summary,key_points,trend_reason,sentiment,tags")
-    .eq("cluster_id", id)
-    .maybeSingle();
+  const { cluster, summary } = data;
 
   const { data: posts } = await supabaseAdmin
     .from("cluster_items")
@@ -71,8 +110,23 @@ export default async function ClusterPage({ params }: ClusterPageProps) {
     .filter((value): value is string => Boolean(value))
     .join(" ");
 
+  const headline = String(summary?.cluster_title ?? cluster.title);
+  const jsonDescription =
+    summary?.summary?.trim() ||
+    (fallbackSummary ? `Rezime rapid: ${truncateForMeta(fallbackSummary, 280)}` : cluster.title);
+
+  const dateIso = (value: string) => new Date(value).toISOString();
+
   return (
     <main className="min-h-screen bg-slate-950 px-6 py-12 text-slate-100">
+      <ClusterArticleJsonLd
+        clusterId={cluster.id}
+        headline={headline}
+        description={jsonDescription}
+        category={cluster.trend_category ?? "general"}
+        datePublished={dateIso(cluster.first_seen_at)}
+        dateModified={dateIso(cluster.last_seen_at)}
+      />
       <div className="mx-auto max-w-5xl space-y-6">
         <Link href="/" className="text-sm text-cyan-200 hover:text-cyan-100">
           Retounen sou paj prensipal la
@@ -219,4 +273,3 @@ export default async function ClusterPage({ params }: ClusterPageProps) {
     </main>
   );
 }
-

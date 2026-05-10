@@ -31,7 +31,7 @@ function matchesInterest(
 
 async function sendEmail(to: string, subject: string, message: string) {
   const apiKey = process.env.RESEND_API_KEY;
-  const from = process.env.RESEND_FROM_EMAIL ?? "alerts@zenrezoa.com";
+  const from = process.env.RESEND_FROM_EMAIL ?? "alerts@zenlakay.com";
   if (!apiKey) {
     return { ok: false, error: "RESEND_API_KEY missing" };
   }

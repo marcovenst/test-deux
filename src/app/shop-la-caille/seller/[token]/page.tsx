@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -6,6 +7,13 @@ import { shopLaCailleCopy } from "@/lib/i18n/ht";
 import { getSellerDashboardData, MIN_PAYOUT_CENTS } from "@/lib/shop/marketplace";
 
 export const dynamic = "force-dynamic";
+
+export async function generateMetadata(): Promise<Metadata> {
+  return {
+    title: "Dashboard vandè",
+    robots: { index: false, follow: false, googleBot: { index: false, follow: false } },
+  };
+}
 
 function usd(cents: number) {
   return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(cents / 100);

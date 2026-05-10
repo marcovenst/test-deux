@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -5,6 +6,7 @@ import { BuyerCheckoutButton } from "@/components/shop/BuyerCheckoutButton";
 import { fetchCatalogDetailForDisplay } from "@/lib/shop/catalog";
 import { shopLaCailleCopy } from "@/lib/i18n/ht";
 import { fetchActiveListingForDisplay } from "@/lib/shop/marketplace";
+import { absoluteUrl, SITE_NAME, truncateForMeta } from "@/lib/seo/site";
 
 export const dynamic = "force-dynamic";
 
@@ -13,6 +15,63 @@ function formatUsd(cents: number) {
 }
 
 type PageProps = { params: Promise<{ id: string }> };
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { id } = await params;
+  const { listing, error: listingErr } = await fetchActiveListingForDisplay(id);
+
+  const build = (
+    title: string,
+    rawDescription: string,
+    imageUrl: string | undefined,
+  ): Metadata => {
+    const description = truncateForMeta(rawDescription, 160);
+    const url = absoluteUrl(`/shop-la-caille/ashti/${id}`);
+    const ogImages = imageUrl
+      ? [{ url: imageUrl, alt: title }]
+      : [{ url: "/opengraph-image", width: 1200, height: 630, alt: title }];
+    return {
+      title,
+      description,
+      alternates: { canonical: url },
+      openGraph: {
+        type: "website",
+        siteName: SITE_NAME,
+        locale: "ht_HT",
+        url,
+        title: `${title} | Shop Lakay`,
+        description,
+        images: ogImages,
+      },
+    };
+  };
+
+  if (listing) {
+    return build(
+      listing.title,
+      listing.description?.trim() || `${listing.title} — Shop Lakay, Zen Rezo A`,
+      listing.imageUrls[0],
+    );
+  }
+
+  if (listingErr) {
+    return { title: shopLaCailleCopy.achteLoadErrorTitle };
+  }
+
+  const { item: catalog, error: catErr } = await fetchCatalogDetailForDisplay(id);
+  if (catErr) {
+    return { title: shopLaCailleCopy.achteLoadErrorTitle };
+  }
+  if (!catalog) {
+    return { title: "Atik pa jwenn", robots: { index: false } };
+  }
+
+  return build(
+    catalog.title,
+    catalog.description?.trim() || `${catalog.title} — Shop Lakay, Zen Rezo A`,
+    catalog.imageUrls[0],
+  );
+}
 
 export default async function ShopListingDetailPage({ params }: PageProps) {
   const { id } = await params;
@@ -52,7 +111,7 @@ export default async function ShopListingDetailPage({ params }: PageProps) {
                 l.imageUrls.map((url) => (
                   <div key={url} className="overflow-hidden rounded-xl border border-white/10">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={url} alt="" className="w-full object-cover" />
+                    <img src={url} alt={l.title} className="w-full object-cover" />
                   </div>
                 ))
               )}
@@ -127,7 +186,7 @@ export default async function ShopListingDetailPage({ params }: PageProps) {
               c.imageUrls.map((url) => (
                 <div key={url} className="overflow-hidden rounded-xl border border-white/10">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={url} alt="" className="w-full object-cover" />
+                  <img src={url} alt={c.title} className="w-full object-cover" />
                 </div>
               ))
             )}
