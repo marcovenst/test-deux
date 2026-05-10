@@ -15,7 +15,7 @@ import { htCopy, shopLaCailleCopy } from "@/lib/i18n/ht";
 import { buildHomeSidebarSlices } from "@/lib/trends/homeSidebar";
 import { normalizeTrendCategory } from "@/lib/trends/categories";
 import { normalizePopularityWindow } from "@/lib/trends/popularity";
-import { getInfluencerTopics, getLatestScoresComputedAt, getTrendFeed } from "@/lib/trends/query";
+import { getLatestScoresComputedAt, getTrendFeed } from "@/lib/trends/query";
 import {
   absoluteUrl,
   DEFAULT_DESCRIPTION,
@@ -76,13 +76,18 @@ export default async function Home({ searchParams }: HomePageProps) {
     getTrendFeed(timeframe, "immigration", popularityWindow),
     getTrendFeed(timeframe, "sports", popularityWindow),
   ]);
-  const { immigrationLive, sportsLive, influencerLive, dailyPick } = buildHomeSidebarSlices({
+  const { immigrationLive, sportsLive, dailyPick } = buildHomeSidebarSlices({
     trends,
     hubFeed,
     immigrationFeed,
     sportsFeed,
   });
-  const influencerTopicsFallback = getInfluencerTopics().slice(0, 8);
+  const weeklyProgramSources = [
+    "Eventbrite",
+    "Ticketmaster",
+    "Konpa Events",
+    "Randevou-a",
+  ] as const;
   const headliner = trends[0];
   const moreTrends = trends.slice(1);
   const contactEmail = process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? htCopy.footerContactEmail;
@@ -346,43 +351,22 @@ export default async function Home({ searchParams }: HomePageProps) {
             </div>
           </section>
 
-          <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-            <h2 className="text-lg font-bold text-white">{htCopy.influencerTitle}</h2>
-            <p className="mt-1 text-xs text-neutral-400">
-              {htCopy.influencerSubtitle}
+          <section className="rounded-2xl border border-violet-400/25 bg-violet-500/10 p-4">
+            <h2 className="text-lg font-bold text-white">{htCopy.weeklyProgramTitle}</h2>
+            <p className="mt-2 text-sm leading-relaxed text-neutral-200">{htCopy.weeklyProgramSubtitle}</p>
+            <p className="mt-4 text-xs font-semibold uppercase tracking-wide text-violet-200/90">
+              {htCopy.weeklyProgramSourcesIntro}
             </p>
-            <div className="mt-4 space-y-3">
-              {influencerLive.length > 0
-                ? influencerLive.map((t) => {
-                    const names = t.influencers?.slice(0, 2).join(" · ");
-                    const top = t.topSources[0];
-                    const via = names || top?.sourceName || "Sosyal";
-                    return (
-                      <Link
-                        key={t.clusterId}
-                        href={`/cluster/${t.clusterId}`}
-                        className="block rounded-lg border border-white/10 bg-black/20 p-3 transition hover:border-red-300/40 hover:bg-black/30"
-                      >
-                        <p className="text-sm font-semibold text-red-200">{via}</p>
-                        <p className="mt-1 text-sm font-medium text-white">{t.title}</p>
-                        <p className="mt-1 line-clamp-2 text-xs text-neutral-300">{t.summary}</p>
-                      </Link>
-                    );
-                  })
-                : influencerTopicsFallback.map((item, idx) => (
-                    <Link
-                      key={`${item.influencer}-${idx}`}
-                      href={`/search?q=${encodeURIComponent(`${item.influencer} ${item.topic}`)}`}
-                      className="block rounded-lg border border-white/10 bg-black/20 p-3 transition hover:border-red-300/40"
-                    >
-                      <p className="text-sm font-semibold text-red-200">{item.influencer}</p>
-                      <p className="mt-1 text-xs text-neutral-300">{item.topic}</p>
-                      <p className="mt-1 text-[11px] text-neutral-500">
-                        {item.platform} • {item.focus}
-                      </p>
-                    </Link>
-                  ))}
-            </div>
+            <ul className="mt-2 flex flex-wrap gap-2">
+              {weeklyProgramSources.map((name) => (
+                <li
+                  key={name}
+                  className="rounded-full border border-violet-400/30 bg-black/25 px-3 py-1 text-xs text-violet-100"
+                >
+                  {name}
+                </li>
+              ))}
+            </ul>
           </section>
 
           <section className="rounded-2xl border border-emerald-400/30 bg-emerald-500/10 p-4">

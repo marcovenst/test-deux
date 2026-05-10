@@ -99,9 +99,9 @@ If optional credentials are missing, ingestion still runs, but those sources are
 
 **Automatic site updates:** Trend content on `/`, `/news`, `/search`, and cluster pages comes from Supabase after the ingestion pipeline runs. In production, wire that up in one of these ways:
 
-1. **Vercel Cron (simplest):** After deploy, `vercel.json` schedules `GET /api/jobs/pipeline` **once per day** (10:00 UTC by default), which matches [Vercel Hobby’s “one invocation per day” limit](https://vercel.com/docs/cron-jobs/usage-and-pricing). Set **`CRON_SECRET`** in the Vercel project; Vercel sends `Authorization: Bearer <CRON_SECRET>` on cron requests. On **Pro**, you can change the expression in `vercel.json` (for example back to `*/30 * * * *` for refreshes every 30 minutes).
+1. **Vercel Cron (one run per day on Hobby):** `vercel.json` schedules `GET /api/jobs/pipeline` at **10:00 UTC**, which matches [Vercel Hobby’s once-per-day cron limit](https://vercel.com/docs/cron-jobs/usage-and-pricing). Set **`CRON_SECRET`**; Vercel sends `Authorization: Bearer <CRON_SECRET>` on cron requests. For **at least two full refreshes per day** on Hobby, add **Upstash QStash** below (evening run). On **Vercel Pro**, you can instead set `vercel.json` to `0 10,22 * * *` for morning + evening without QStash.
 
-2. **Upstash QStash (more frequent runs on any plan):** Creates schedules that call `POST /api/jobs/pipeline` with your ingestion secret (for example every 30 minutes), independent of Vercel’s cron limits:
+2. **Upstash QStash (second daily run on Hobby, or replace Vercel cron):** `src/lib/jobs/scheduler.ts` registers an extra `POST /api/jobs/pipeline` at **22:00 UTC** plus the newsletter schedule. After setting `UPSTASH_QSTASH_TOKEN`, run:
 
 ```bash
 curl -X POST "$NEXT_PUBLIC_APP_URL/api/jobs/schedule" \

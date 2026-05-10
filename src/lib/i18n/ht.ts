@@ -21,9 +21,10 @@ export const htCopy = {
   trendScoreLabel: "Nivo tandans",
   noData:
     "Pa gen done ap viv ankò. Lanse pipeline ingestion la pou chaje done yo epi wè tandans yo.",
-  influencerTitle: "Sa enfliyansè yo ap pale",
-  influencerSubtitle:
-    "Blogè, animatè medya, atis, espòtif, politisyen, ak lòt pèsonalite ayisyen sou X, Facebook, TikTok, YouTube.",
+  weeklyProgramTitle: "Pwogram semèn nan",
+  weeklyProgramSubtitle:
+    "Evenman semèn nan: nap montre sa k ap fèt nan kominote a — konsè, fèt, dans, achiv — lè nou rantre done soti nan Eventbrite, Ticketmaster, Konpa Events, Randevou-a, ak lòt sous kalandriye. Entegrasyon an ap vini.",
+  weeklyProgramSourcesIntro: "Sous ak sit nap konnekte:",
   sportsHubTitle: "Work Hub Espò",
   sportsHubSubtitle:
     "Fokus sou ekip nasyonal Ayiti a, foutbòl, ak gwo nouvèl espò kominote a.",

@@ -19,33 +19,6 @@ export function dedupeTrendsByClusterId(items: TrendFeedItem[]): TrendFeedItem[]
   return [...m.values()].sort((a, b) => (b.popularityScore ?? 0) - (a.popularityScore ?? 0));
 }
 
-function hasUsefulSourceLink(t: TrendFeedItem): boolean {
-  return t.topSources.some((s) => {
-    const u = (s.sourceUrl ?? "").trim();
-    return u.startsWith("http");
-  });
-}
-
-function hasCreatorSocialSignal(t: TrendFeedItem): boolean {
-  if (t.influencers?.length) return true;
-  const socialPlatforms = new Set(["youtube", "tiktok", "x", "facebook", "instagram"]);
-  return t.topSources.some((s) => {
-    const p = (s.platform ?? "").toLowerCase();
-    if (socialPlatforms.has(p)) return true;
-    const u = (s.sourceUrl ?? "").toLowerCase();
-    return (
-      u.includes("tiktok.com") ||
-      u.includes("youtube.com") ||
-      u.includes("youtu.be") ||
-      u.includes("facebook.com") ||
-      u.includes("fb.watch") ||
-      u.includes("instagram.com") ||
-      u.includes("x.com") ||
-      u.includes("twitter.com")
-    );
-  });
-}
-
 function pickByMatcher(
   dedicated: TrendFeedItem[],
   pool: TrendFeedItem[],
@@ -88,21 +61,7 @@ export function buildHomeSidebarSlices(input: {
   );
   const sportsLive = pickByMatcher(input.sportsFeed, pool, matchesSportsTopic, 4);
 
-  let influencerLive = pool.filter(hasCreatorSocialSignal).slice(0, 8);
-  if (influencerLive.length < 4) {
-    const seen = new Set(influencerLive.map((x) => x.clusterId));
-    const extra = pool.filter((t) => !seen.has(t.clusterId) && hasUsefulSourceLink(t));
-    influencerLive = [...influencerLive, ...extra].slice(0, 8);
-  }
-  if (influencerLive.length < 4) {
-    const seen = new Set(influencerLive.map((x) => x.clusterId));
-    influencerLive = [...influencerLive, ...pool.filter((t) => !seen.has(t.clusterId))].slice(
-      0,
-      8,
-    );
-  }
-
   const dailyPick = pool.slice(0, 3);
 
-  return { immigrationLive, sportsLive, influencerLive, dailyPick, pool };
+  return { immigrationLive, sportsLive, dailyPick, pool };
 }

@@ -6,6 +6,7 @@
 import { supabaseAdmin } from "@/lib/db/client";
 import type { MarketplaceCatalogItemRow } from "@/lib/db/types";
 
+import { amazonCatalogImageUrl } from "@/lib/shop/amazonImage";
 import {
   fetchActiveListingsForDisplay,
   normalizeListingImageUrls,
@@ -35,7 +36,7 @@ export function fromCatalogRow(row: MarketplaceCatalogItemRow): PublicCatalogIte
     priceCents: row.price_cents,
     shippingCents: row.shipping_cents,
     currency: row.currency,
-    imageUrls: normalizeListingImageUrls(row.image_urls),
+    imageUrls: normalizeListingImageUrls(row.image_urls).map(amazonCatalogImageUrl),
     purchaseMode: row.purchase_mode,
     externalUrl: row.external_url,
     affiliateNote: row.affiliate_note,

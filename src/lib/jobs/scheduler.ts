@@ -7,9 +7,13 @@ type ScheduleEntry = {
   cron: string;
 };
 
-/** One full pipeline every 30 minutes (ingest → cluster → score → summarize). */
+/**
+ * Evening pipeline on Hobby: Vercel cron can only run once/day, so this adds a second
+ * `POST /api/jobs/pipeline` at 22:00 UTC. Morning run comes from `vercel.json` (10:00 UTC).
+ * On Vercel Pro you may use `0 10,22 * * *` in vercel.json instead and skip this schedule.
+ */
 const SCHEDULES: ScheduleEntry[] = [
-  { destinationPath: "/api/jobs/pipeline", cron: "*/30 * * * *" },
+  { destinationPath: "/api/jobs/pipeline", cron: "0 22 * * *" },
   { destinationPath: "/api/jobs/newsletter", cron: "0 13 * * *" },
 ];
 
