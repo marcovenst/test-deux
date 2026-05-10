@@ -35,6 +35,7 @@ If using Google AdSense:
 - [ ] `NEXT_PUBLIC_GOOGLE_ADSENSE_SLOT_FEED_TOP`
 - [ ] `NEXT_PUBLIC_GOOGLE_ADSENSE_SLOT_FEED_MID`
 - [ ] `NEXT_PUBLIC_GOOGLE_ADSENSE_SLOT_SIDEBAR`
+- [ ] Production: `https://zenlakay.com/privacy` loads (required policy page; linked in footer)
 - [ ] Production: `https://zenlakay.com/ads.txt` returns your authorized publisher line (auto or `ADS_TXT_CONTENT`)
 
 If using direct sponsored mode:

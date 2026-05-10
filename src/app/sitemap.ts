@@ -11,9 +11,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 1,
     },
     {
-      url: `${baseUrl}/news`,
-      changeFrequency: "hourly",
-      priority: 0.9,
+      url: `${baseUrl}/privacy`,
+      changeFrequency: "yearly",
+      priority: 0.4,
     },
     {
       url: `${baseUrl}/shop-la-caille`,

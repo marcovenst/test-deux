@@ -498,6 +498,11 @@ export default async function Home({ searchParams }: HomePageProps) {
                 {contactEmail}
               </a>
             </p>
+            <p>
+              <Link href="/privacy" className="text-cyan-200 underline-offset-2 hover:text-cyan-100 hover:underline">
+                {htCopy.footerPrivacy}
+              </Link>
+            </p>
           </div>
           <SelfServeAdLauncher buttonLabel="Mete anons ou" />
         </div>

@@ -50,6 +50,7 @@ export const htCopy = {
   footerRights: "© 2026 Zen Rezo A. Tout dwa rezève.",
   footerContactLead: "Pou plis enfòmasyon:",
   footerContactEmail: "hello@zenlakay.com",
+  footerPrivacy: "Konfidansyalite / Privacy",
 };
 
 /** Labels for the weekly program sidebar (data sources roadmap). */

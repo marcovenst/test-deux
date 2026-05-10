@@ -3,6 +3,20 @@
 You can run ads on Zen Rezo A with either Google AdSense or direct sponsored ads.
 You can also sell sponsored placements with Stripe-powered self-serve checkout.
 
+## 0) AdSense checklist (first-time setup)
+
+1. **Apply** in [Google AdSense](https://www.google.com/adsense/) and add your **production** site URL (e.g. `https://zenlakay.com`).
+2. **Privacy policy:** this app serves **`/privacy`** (linked in the homepage footer). AdSense requires a discoverable policy that mentions advertising/cookies — keep that page updated.
+3. After approval, **Account → Account information** — copy your **Publisher ID** (`ca-pub-…`).
+4. **Ads → By ad unit → Display ads** — create **three** units and copy each **Ad unit** ID (numeric). Map them to:
+   - `NEXT_PUBLIC_GOOGLE_ADSENSE_SLOT_FEED_TOP`
+   - `NEXT_PUBLIC_GOOGLE_ADSENSE_SLOT_FEED_MID`
+   - `NEXT_PUBLIC_GOOGLE_ADSENSE_SLOT_SIDEBAR`  
+   (Slots are rendered on the home page: top of feed, mid feed, sidebar.)
+5. Set **`NEXT_PUBLIC_GOOGLE_ADSENSE_CLIENT_ID`**, **`NEXT_PUBLIC_AD_PROVIDER=google`**, **`NEXT_PUBLIC_ADS_ENABLED=true`** (Vercel / `.env.local`), then redeploy.
+6. Confirm **`https://your-domain/ads.txt`** returns a valid line (auto-generated from the client id unless you set `ADS_TXT_CONTENT`).
+7. Optional: **`GET /api/monetization/health`** — `adsenseReady` should be true when all vars are set.
+
 ## 1) Enable ads
 
 Edit `.env.local`:

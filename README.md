@@ -38,7 +38,7 @@ pnpm dev
 ## Monetization & ads
 
 1. Copy `.env.example` → `.env.local` and fill **Stripe** keys plus display ad vars (see comments in `.env.example`).
-2. **Google AdSense:** apply in [Google AdSense](https://www.google.com/adsense/), add your **production** site, create **ad units** for the three placements, then set `NEXT_PUBLIC_GOOGLE_ADSENSE_CLIENT_ID` and the three `NEXT_PUBLIC_GOOGLE_ADSENSE_SLOT_*` values. Turn on `NEXT_PUBLIC_ADS_ENABLED="true"`.
+2. **Google AdSense:** apply in [Google AdSense](https://www.google.com/adsense/), add your **production** site, ensure **`/privacy`** is live (footer link), create **ad units** for the three placements, then set `NEXT_PUBLIC_GOOGLE_ADSENSE_CLIENT_ID` and the three `NEXT_PUBLIC_GOOGLE_ADSENSE_SLOT_*` values. Turn on `NEXT_PUBLIC_ADS_ENABLED="true"`.
 3. **ads.txt:** deploy, then verify `https://zenlakay.com/ads.txt` (auto-built from your client id, or set `ADS_TXT_CONTENT` for custom rows).
 4. **Self-serve checkout:** apply migration `0003_self_serve_ads.sql`, add Stripe webhook `POST /api/ads/self-serve/webhook` for `checkout.session.completed`.
 5. **Subscriptions (optional):** see `docs/monetization-phase2-subscriptions.md`; webhook `POST /api/billing/webhook`, `STRIPE_SUBSCRIPTION_PRICE_ID`, etc.
