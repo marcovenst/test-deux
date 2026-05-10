@@ -245,6 +245,29 @@ export type MarketplaceCatalogItemRow = {
   updated_at: string;
 };
 
+export type CommunityEventSource =
+  | "eventbrite"
+  | "ticketmaster"
+  | "konpa_events"
+  | "randevou_a"
+  | "other";
+
+export type CommunityEventRow = {
+  id: string;
+  title: string;
+  description: string;
+  location_label: string | null;
+  starts_at: string;
+  ends_at: string | null;
+  external_url: string;
+  source: CommunityEventSource;
+  image_url: string | null;
+  active: boolean;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+};
+
 export type MarketplaceSellerRow = {
   id: string;
   email: string;

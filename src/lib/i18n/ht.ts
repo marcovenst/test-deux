@@ -23,8 +23,11 @@ export const htCopy = {
     "Pa gen done ap viv ankò. Lanse pipeline ingestion la pou chaje done yo epi wè tandans yo.",
   weeklyProgramTitle: "Pwogram semèn nan",
   weeklyProgramSubtitle:
-    "Evenman semèn nan: nap montre sa k ap fèt nan kominote a — konsè, fèt, dans, achiv — lè nou rantre done soti nan Eventbrite, Ticketmaster, Konpa Events, Randevou-a, ak lòt sous kalandriye. Entegrasyon an ap vini.",
-  weeklyProgramSourcesIntro: "Sous ak sit nap konnekte:",
+    "Evenman k ap vini nan kominote a — verifye dat ak tikè sou sit òganizatè a anvan w sòti.",
+  weeklyProgramSourcesIntro: "Sous nap agrège:",
+  weeklyProgramEmpty:
+    "Pa gen evenman nan kalandriye a kounye a. Aplike migrasyon 0011_community_events.sql, epi ajoute evenman nan Supabase oswa kouri supabase/seeds/community_events_sample.sql.",
+  weeklyProgramExternalCta: "Detay · tikè",
   sportsHubTitle: "Work Hub Espò",
   sportsHubSubtitle:
     "Fokus sou ekip nasyonal Ayiti a, foutbòl, ak gwo nouvèl espò kominote a.",
@@ -48,6 +51,14 @@ export const htCopy = {
   footerContactLead: "Pou plis enfòmasyon:",
   footerContactEmail: "hello@zenlakay.com",
 };
+
+/** Labels for the weekly program sidebar (data sources roadmap). */
+export const weeklyProgramSourcePills = [
+  "Eventbrite",
+  "Ticketmaster",
+  "Konpa Events",
+  "Randevou-a",
+] as const;
 
 export const shopLaCailleCopy = {
   navCta: "Shop Lakay : Marketplace",

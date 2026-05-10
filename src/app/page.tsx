@@ -11,7 +11,12 @@ import { TrendViewPing } from "@/components/trends/TrendViewPing";
 import { VideoSpotlight } from "@/components/trends/VideoSpotlight";
 import { communityResourceLinks, dailyHighlights } from "@/lib/content/editorial";
 import { immigrationHubTopics, sportsHubTopics } from "@/lib/content/influencers";
-import { htCopy, shopLaCailleCopy } from "@/lib/i18n/ht";
+import { htCopy, shopLaCailleCopy, weeklyProgramSourcePills } from "@/lib/i18n/ht";
+import {
+  formatCommunityEventStartsAt,
+  listUpcomingCommunityEvents,
+  sourceDisplayLabel,
+} from "@/lib/events/weeklyProgram";
 import { buildHomeSidebarSlices } from "@/lib/trends/homeSidebar";
 import { normalizeTrendCategory } from "@/lib/trends/categories";
 import { normalizePopularityWindow } from "@/lib/trends/popularity";
@@ -82,12 +87,7 @@ export default async function Home({ searchParams }: HomePageProps) {
     immigrationFeed,
     sportsFeed,
   });
-  const weeklyProgramSources = [
-    "Eventbrite",
-    "Ticketmaster",
-    "Konpa Events",
-    "Randevou-a",
-  ] as const;
+  const { events: weeklyEvents, error: weeklyEventsError } = await listUpcomingCommunityEvents(10);
   const headliner = trends[0];
   const moreTrends = trends.slice(1);
   const contactEmail = process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? htCopy.footerContactEmail;
@@ -353,12 +353,57 @@ export default async function Home({ searchParams }: HomePageProps) {
 
           <section className="rounded-2xl border border-violet-400/25 bg-violet-500/10 p-4">
             <h2 className="text-lg font-bold text-white">{htCopy.weeklyProgramTitle}</h2>
-            <p className="mt-2 text-sm leading-relaxed text-neutral-200">{htCopy.weeklyProgramSubtitle}</p>
+            <p className="mt-1 text-xs leading-relaxed text-neutral-300">{htCopy.weeklyProgramSubtitle}</p>
+            {weeklyEventsError ? (
+              <p className="mt-2 rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-100">
+                {weeklyEventsError}
+              </p>
+            ) : null}
+            {!weeklyEventsError && weeklyEvents.length === 0 ? (
+              <p className="mt-3 text-sm text-neutral-400">{htCopy.weeklyProgramEmpty}</p>
+            ) : null}
+            <div className="mt-4 space-y-3">
+              {weeklyEvents.map((ev) => (
+                <a
+                  key={ev.id}
+                  href={ev.externalUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block rounded-lg border border-white/10 bg-black/25 p-3 transition hover:border-violet-300/50 hover:bg-black/35"
+                >
+                  <div className="flex gap-3">
+                    {ev.imageUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={ev.imageUrl}
+                        alt=""
+                        className="h-16 w-20 shrink-0 rounded-md object-cover"
+                      />
+                    ) : null}
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[11px] font-medium uppercase tracking-wide text-violet-200/90">
+                        {sourceDisplayLabel(ev.source)} · {formatCommunityEventStartsAt(ev.startsAt)}
+                      </p>
+                      <p className="mt-1 text-sm font-semibold text-white">{ev.title}</p>
+                      {ev.locationLabel ? (
+                        <p className="mt-0.5 text-xs text-neutral-400">{ev.locationLabel}</p>
+                      ) : null}
+                      {ev.description ? (
+                        <p className="mt-1 line-clamp-2 text-xs text-neutral-300">{ev.description}</p>
+                      ) : null}
+                      <p className="mt-2 text-[11px] font-semibold text-violet-200">
+                        {htCopy.weeklyProgramExternalCta} ↗
+                      </p>
+                    </div>
+                  </div>
+                </a>
+              ))}
+            </div>
             <p className="mt-4 text-xs font-semibold uppercase tracking-wide text-violet-200/90">
               {htCopy.weeklyProgramSourcesIntro}
             </p>
             <ul className="mt-2 flex flex-wrap gap-2">
-              {weeklyProgramSources.map((name) => (
+              {weeklyProgramSourcePills.map((name) => (
                 <li
                   key={name}
                   className="rounded-full border border-violet-400/30 bg-black/25 px-3 py-1 text-xs text-violet-100"
