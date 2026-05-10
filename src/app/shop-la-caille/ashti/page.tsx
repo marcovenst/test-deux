@@ -109,7 +109,7 @@ export default async function ShopAchtePage() {
                       /* eslint-disable-next-line @next/next/no-img-element */
                       <img
                         src={c.imageUrls[0]}
-                        alt=""
+                        alt={c.title}
                         className="h-full w-full object-cover transition group-hover:opacity-95"
                       />
                     ) : (
