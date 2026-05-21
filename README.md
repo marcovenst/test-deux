@@ -99,14 +99,18 @@ If optional credentials are missing, ingestion still runs, but those sources are
 
 **Automatic site updates:** Trend content on `/`, `/news`, `/search`, and cluster pages comes from Supabase after the ingestion pipeline runs. In production, wire that up in one of these ways:
 
-1. **Vercel Cron (one run per day on Hobby):** `vercel.json` schedules `GET /api/jobs/pipeline` at **10:00 UTC**, which matches [Vercel Hobby’s once-per-day cron limit](https://vercel.com/docs/cron-jobs/usage-and-pricing). Set **`CRON_SECRET`**; Vercel sends `Authorization: Bearer <CRON_SECRET>` on cron requests. For **at least two full refreshes per day** on Hobby, add **Upstash QStash** below (evening run). On **Vercel Pro**, you can instead set `vercel.json` to `0 10,22 * * *` for morning + evening without QStash.
+1. **Vercel Cron (one run per day on Hobby):** `vercel.json` schedules `GET /api/jobs/pipeline` at **10:00 UTC**, which matches [Vercel Hobby’s once-per-day cron limit](https://vercel.com/docs/cron-jobs/usage-and-pricing). Set **`CRON_SECRET`**; Vercel sends `Authorization: Bearer <CRON_SECRET>` on cron requests.
 
-2. **Upstash QStash (second daily run on Hobby, or replace Vercel cron):** `src/lib/jobs/scheduler.ts` registers an extra `POST /api/jobs/pipeline` at **22:00 UTC** plus the newsletter schedule. After setting `UPSTASH_QSTASH_TOKEN`, run:
+2. **Upstash QStash (extra daily runs on Hobby):** `src/lib/jobs/scheduler.ts` registers `POST /api/jobs/pipeline` at **14:00, 18:00, and 22:00 UTC** plus the newsletter. That gives **four ingestion windows per day** together with the Vercel morning cron—important so TikTok / Instagram / X pulls refresh often without waiting 24h. After setting `UPSTASH_QSTASH_TOKEN`, run **once**:
 
 ```bash
 curl -X POST "$NEXT_PUBLIC_APP_URL/api/jobs/schedule" \
   -H "Authorization: Bearer $INGESTION_SHARED_SECRET"
 ```
+
+If you previously registered schedules, open the [Upstash QStash console](https://console.upstash.com/) and remove duplicate pipeline schedules before running this again (each call creates new schedule IDs).
+
+3. **Vercel Pro:** you can fold multiple daily crons into `vercel.json` (e.g. `0 10,14,18,22 * * *`) and trim QStash if you prefer fewer moving parts.
 
 To run the pipeline yourself (manual or from another scheduler):
 

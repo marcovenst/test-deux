@@ -18,12 +18,14 @@ describe("trend scoring helpers", () => {
       engagement: 35,
       recencyAverage: 0.4,
       platformCount: 1,
+      socialChannelCount: 0,
     });
     const strong = calculateTrendComponents({
       mentionCount: 15,
       engagement: 420,
       recencyAverage: 0.9,
       platformCount: 4,
+      socialChannelCount: 2,
     });
 
     expect(strong.trendScore).toBeGreaterThan(weak.trendScore);

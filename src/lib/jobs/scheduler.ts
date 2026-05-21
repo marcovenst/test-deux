@@ -8,11 +8,13 @@ type ScheduleEntry = {
 };
 
 /**
- * Evening pipeline on Hobby: Vercel cron can only run once/day, so this adds a second
- * `POST /api/jobs/pipeline` at 22:00 UTC. Morning run comes from `vercel.json` (10:00 UTC).
- * On Vercel Pro you may use `0 10,22 * * *` in vercel.json instead and skip this schedule.
+ * Evening + mid-day pipelines on Hobby: Vercel cron is once/day (`vercel.json`), so QStash
+ * triggers extra POSTs. After changing this list, call `POST /api/jobs/schedule` once so
+ * Upstash registers the new crons (see README).
  */
 const SCHEDULES: ScheduleEntry[] = [
+  { destinationPath: "/api/jobs/pipeline", cron: "0 14 * * *" },
+  { destinationPath: "/api/jobs/pipeline", cron: "0 18 * * *" },
   { destinationPath: "/api/jobs/pipeline", cron: "0 22 * * *" },
   { destinationPath: "/api/jobs/newsletter", cron: "0 13 * * *" },
 ];

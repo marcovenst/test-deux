@@ -10,6 +10,7 @@ import {
   type PopularityWindow,
 } from "@/lib/trends/popularity";
 import { clusterMetaMatchesCategory, feedItemMatchesCategory } from "@/lib/trends/topicMatch";
+import { socialAuthoringUrlPattern } from "@/lib/trends/rawPostChannel";
 
 export type TrendFeedItem = {
   clusterId: string;
@@ -54,6 +55,25 @@ export type InfluencerTopic = {
 };
 
 const FOCUSED_SOCIAL_PLATFORMS = new Set(["tiktok", "x", "facebook", "youtube", "instagram"]);
+
+function hourlyStableMix<T extends { clusterId: string }>(items: T[], rotateTopN: number): T[] {
+  if (items.length <= rotateTopN) {
+    return [...items].sort((a, b) => mixHash(a.clusterId) - mixHash(b.clusterId));
+  }
+  const head = items.slice(0, rotateTopN);
+  const tail = items.slice(rotateTopN);
+  const sortedHead = [...head].sort((a, b) => mixHash(a.clusterId) - mixHash(b.clusterId));
+  return [...sortedHead, ...tail];
+}
+
+function mixHash(clusterId: string): number {
+  const salt = Math.floor(Date.now() / (1000 * 60 * 60));
+  let h = salt >>> 0;
+  for (let i = 0; i < clusterId.length; i++) {
+    h = (Math.imul(h, 31) + clusterId.charCodeAt(i)) >>> 0;
+  }
+  return h;
+}
 
 function buildCreoleFallbackSummary(input: {
   clusterTitle: string;
@@ -528,6 +548,10 @@ export async function getTrendFeed(
           mentionCount: focusedItems.length > 0 ? focusedItems.length : relevantItems.length,
           platformCount: [...platformSet].filter((p) => FOCUSED_SOCIAL_PLATFORMS.has(p)).length || platformSet.size,
         });
+        const authoringSocialSurface = sources.some((s) =>
+          socialAuthoringUrlPattern().test(s.sourceUrl ?? ""),
+        );
+        const boostedSocialScore = authoringSocialSurface ? socialScore * 1.22 : socialScore;
         const reactionStats = reactionsByCluster.get(cluster.id as string) ?? {
           saRaz: 0,
           saKomik: 0,
@@ -554,10 +578,10 @@ export async function getTrendFeed(
         );
         const popularityScore = Number(
           (
-            (latestByCluster.get(cluster.id as string)?.score ?? 0) * 0.24 +
-            googleSearchScore * 0.24 +
-            socialScore * 0.2 +
-            reactionScore * 0.14 +
+            (latestByCluster.get(cluster.id as string)?.score ?? 0) * 0.18 +
+            googleSearchScore * 0.22 +
+            boostedSocialScore * 0.3 +
+            reactionScore * 0.12 +
             interactionScore * 0.18
           ).toFixed(2),
         );
@@ -630,7 +654,8 @@ export async function getTrendFeed(
     if (items.length === 0) {
       return getFallbackFeed();
     }
-    return items;
+
+    return hourlyStableMix(items, 12);
   } catch {
     return getFallbackFeed();
   }

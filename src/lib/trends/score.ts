@@ -1,9 +1,14 @@
+import { rawPostChannelKey } from "@/lib/trends/rawPostChannel";
+
 type Timeframe = "daily" | "weekly";
 
 const TIMEFRAME_HOURS: Record<Timeframe, number> = {
   daily: 24,
   weekly: 24 * 7,
 };
+
+/** Shorter half-life than before so “top” stories turn over faster as new posts land. */
+const RECENCY_HALF_LIFE_HOURS = 5;
 
 export function normalizedEngagement(engagement: {
   likes?: number;
@@ -21,7 +26,7 @@ export function normalizedEngagement(engagement: {
 
 export function recencyBoost(publishedAt: string): number {
   const hoursAgo = (Date.now() - new Date(publishedAt).getTime()) / (1000 * 60 * 60);
-  return Math.max(0.2, 1 / (1 + hoursAgo / 8));
+  return Math.max(0.15, 1 / (1 + hoursAgo / RECENCY_HALF_LIFE_HOURS));
 }
 
 export function calculateTrendComponents(input: {
@@ -29,12 +34,15 @@ export function calculateTrendComponents(input: {
   engagement: ReturnType<typeof normalizedEngagement>;
   recencyAverage: number;
   platformCount: number;
+  socialChannelCount: number;
 }) {
   const frequencyScore = Math.log2(1 + input.mentionCount) * 20;
   const engagementScore = Math.log10(1 + input.engagement) * 24;
   const recencyScore = input.recencyAverage * 20;
-  const overlapBonus = Math.max(0, input.platformCount - 1) * 8;
-  const trendScore = frequencyScore + engagementScore + recencyScore + overlapBonus;
+  const overlapBonus = Math.max(0, input.platformCount - 1) * 10;
+  const socialDiversityBonus = Math.min(18, input.socialChannelCount * 5);
+  const trendScore =
+    frequencyScore + engagementScore + recencyScore + overlapBonus + socialDiversityBonus;
 
   return {
     trendScore: Number(trendScore.toFixed(2)),
@@ -52,7 +60,7 @@ export async function computeTrendScores(timeframe: Timeframe) {
   const { data: rows, error } = await supabaseAdmin
     .from("cluster_items")
     .select(
-      "cluster_id,raw_posts!inner(platform,published_at,engagement),clusters!inner(id,trend_category)",
+      "cluster_id,raw_posts!inner(platform,published_at,engagement,raw_metadata,source_url),clusters!inner(id,trend_category)",
     )
     .gte("raw_posts.published_at", since);
 
@@ -67,6 +75,7 @@ export async function computeTrendScores(timeframe: Timeframe) {
       engagement: number;
       recency: number;
       platforms: Set<string>;
+      socialChannels: Set<string>;
     }
   >();
 
@@ -78,11 +87,18 @@ export async function computeTrendScores(timeframe: Timeframe) {
       engagement: 0,
       recency: 0,
       platforms: new Set<string>(),
+      socialChannels: new Set<string>(),
     };
     stats.frequency += 1;
     stats.engagement += normalizedEngagement(post.engagement ?? {});
     stats.recency += recencyBoost(post.published_at);
     stats.platforms.add(post.platform);
+    const channel = rawPostChannelKey({
+      platform: post.platform as string,
+      raw_metadata: post.raw_metadata,
+      source_url: post.source_url as string | null | undefined,
+    });
+    stats.socialChannels.add(channel);
     byCluster.set(clusterId, stats);
   }
 
@@ -98,11 +114,15 @@ export async function computeTrendScores(timeframe: Timeframe) {
   }> = [];
 
   for (const [clusterId, stats] of byCluster.entries()) {
+    const socialRelevant = new Set(["x", "instagram", "tiktok", "facebook"]);
+    const socialChannelCount = [...stats.socialChannels].filter((c) => socialRelevant.has(c)).length;
+
     const components = calculateTrendComponents({
       mentionCount: stats.frequency,
       engagement: stats.engagement,
       recencyAverage: stats.recency / Math.max(1, stats.frequency),
       platformCount: stats.platforms.size,
+      socialChannelCount,
     });
 
     output.push({
