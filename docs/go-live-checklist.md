@@ -52,7 +52,11 @@ If using direct sponsored mode:
 - [ ] `REDDIT_CLIENT_SECRET`
 - [ ] `REDDIT_USER_AGENT` (optional, defaults in code)
 - [ ] `APIFY_TOKEN`
-- [ ] `APIFY_ACTOR_ID`
+- [ ] `APIFY_ACTOR_ID` (X/Twitter, e.g. `apidojo/twitter-scraper-lite`)
+- [ ] `APIFY_INSTAGRAM_ACTOR_ID` (e.g. `apify/instagram-scraper`)
+- [ ] `APIFY_TIKTOK_ACTOR_ID` (e.g. `clockworks/tiktok-scraper`)
+- [ ] `APIFY_FACEBOOK_ACTOR_ID` (e.g. `apify/facebook-posts-scraper`)
+- [ ] `APIFY_ALT_SOCIAL_ACTOR_ID` (optional shared actor for IG/TikTok/FB)
 - [ ] `ANTHROPIC_API_KEY` (AI summaries)
 
 ### Optional notifications

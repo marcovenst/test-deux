@@ -141,7 +141,8 @@ async function runApifyActor(
 
   let lastErrorMessage = "unknown apify input error";
   for (const runInput of candidateInputs) {
-    const runRes = await fetch(`https://api.apify.com/v2/acts/${actorId}/runs?token=${token}`, {
+    const actorPath = encodeURIComponent(actorId.trim());
+    const runRes = await fetch(`https://api.apify.com/v2/acts/${actorPath}/runs?token=${encodeURIComponent(token)}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -159,7 +160,9 @@ async function runApifyActor(
     if (!datasetId) {
       return [];
     }
-    const datasetRes = await fetch(`https://api.apify.com/v2/datasets/${datasetId}/items?token=${token}`);
+    const datasetRes = await fetch(
+      `https://api.apify.com/v2/datasets/${encodeURIComponent(datasetId)}/items?token=${encodeURIComponent(token)}`,
+    );
     if (!datasetRes.ok) {
       throw new Error(`Apify dataset fetch failed (${datasetRes.status})`);
     }

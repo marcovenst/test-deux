@@ -44,8 +44,9 @@ export function createXApifyAdapter(
         sort: "Latest",
       };
 
+      const actorPath = encodeURIComponent(apifyActorId.trim());
       const runRes = await fetch(
-        `https://api.apify.com/v2/acts/${apifyActorId}/runs?token=${apifyToken}`,
+        `https://api.apify.com/v2/acts/${actorPath}/runs?token=${encodeURIComponent(apifyToken)}`,
         {
           method: "POST",
           headers: {
@@ -67,7 +68,7 @@ export function createXApifyAdapter(
       }
 
       const datasetRes = await fetch(
-        `https://api.apify.com/v2/datasets/${datasetId}/items?token=${apifyToken}`,
+        `https://api.apify.com/v2/datasets/${encodeURIComponent(datasetId)}/items?token=${encodeURIComponent(apifyToken)}`,
       );
       if (!datasetRes.ok) {
         throw new Error(`Apify dataset fetch failed (${datasetRes.status})`);

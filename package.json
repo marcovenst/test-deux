@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "pipeline:run": "node scripts/trigger-pipeline.mjs",
     "dev": "next dev",
     "build": "next build --turbopack",
     "start": "next start",

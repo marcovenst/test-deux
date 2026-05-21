@@ -115,6 +115,14 @@ curl -X POST "$NEXT_PUBLIC_APP_URL/api/jobs/pipeline" \
   -H "Authorization: Bearer $INGESTION_SHARED_SECRET"
 ```
 
+Or from the repo (reads `.env.local` for `NEXT_PUBLIC_APP_URL`, `INGESTION_SHARED_SECRET` or `CRON_SECRET`):
+
+```bash
+pnpm pipeline:run
+```
+
+This can take several minutes (ingest + cluster + score + summarize). When it finishes with `ok: true`, the route revalidates `/`, `/news`, and `/search` so a normal browser refresh shows new clusters—including Apify social sources once `APIFY_TOKEN` and the actor IDs are set in Vercel.
+
 ### Subscriber notifications (optional)
 
 - Email: set `RESEND_API_KEY` and `RESEND_FROM_EMAIL`
