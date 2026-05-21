@@ -576,7 +576,7 @@ export async function getTrendFeed(
             reactionScore
           ).toFixed(2),
         );
-        const popularityScore = Number(
+        const popularityScoreRaw = Number(
           (
             (latestByCluster.get(cluster.id as string)?.score ?? 0) * 0.18 +
             googleSearchScore * 0.22 +
@@ -584,6 +584,12 @@ export async function getTrendFeed(
             reactionScore * 0.12 +
             interactionScore * 0.18
           ).toFixed(2),
+        );
+        const onlyYoutubeSurface =
+          sources.length > 0 &&
+          sources.every((s) => /youtube\.com|youtu\.be/i.test(s.sourceUrl ?? ""));
+        const popularityScore = Number(
+          (popularityScoreRaw * (onlyYoutubeSurface ? 0.82 : 1)).toFixed(2),
         );
 
         const isFallbackSummary =

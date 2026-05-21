@@ -429,8 +429,7 @@ export async function runIngestionPipeline() {
       searchTerms: socialSearchWide.slice(0, 18),
       maxItems: 120,
       inputCandidates: [
-        { facebookUrls, resultsLimit: 120, includeVideoTranscript: false },
-        { startUrls: facebookUrls.map((url) => ({ url })), maxItems: 120 },
+        { startUrls: facebookUrls.map((url) => ({ url })), resultsLimit: 120 },
       ],
     }),
     createApifySocialAdapter({
@@ -439,10 +438,7 @@ export async function runIngestionPipeline() {
       actorId: facebookActor,
       searchTerms: socialSearchMore.slice(0, 14),
       maxItems: 120,
-      inputCandidates: [
-        { facebookUrls: influencerFacebookUrls, resultsLimit: 120, includeVideoTranscript: false },
-        { startUrls: influencerFacebookUrls.map((url) => ({ url })), maxItems: 120 },
-      ],
+      inputCandidates: [{ startUrls: influencerFacebookUrls.map((url) => ({ url })), resultsLimit: 120 }],
     }),
   ];
 

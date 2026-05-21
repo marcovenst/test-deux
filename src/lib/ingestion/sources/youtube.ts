@@ -1,4 +1,5 @@
 import { getEnv, isConfigured } from "@/lib/config/env";
+import { shouldRejectLikelyArabicContent } from "@/lib/ingestion/scriptFilter";
 import type { SourceAdapter } from "@/lib/ingestion/types";
 
 type YoutubeSearchResponse = {
@@ -34,6 +35,10 @@ export function createYoutubeAdapter(
   options?: {
     sourceName?: string;
     maxResults?: number;
+    /** ISO 639-1; biases results away from unrelated languages. */
+    relevanceLanguage?: string;
+    /** ISO 3166-1 alpha-2; helps diaspora/US-focused Haiti coverage vs global noise. */
+    regionCode?: string;
   },
 ): SourceAdapter {
   return {
@@ -54,6 +59,8 @@ export function createYoutubeAdapter(
         q: query,
         order: "date",
         maxResults: String(options?.maxResults ?? 25),
+        relevanceLanguage: options?.relevanceLanguage ?? "en",
+        regionCode: options?.regionCode ?? "US",
       });
       const searchRes = await fetch(
         `https://www.googleapis.com/youtube/v3/search?${searchParams}`,
@@ -100,32 +107,39 @@ export function createYoutubeAdapter(
         }
       }
 
-      return (searchData.items ?? []).map((item) => {
+      return (searchData.items ?? []).flatMap((item) => {
         const videoId = item.id?.videoId ?? "";
+        const rawTitle = item.snippet?.title ?? "";
+        const rawDesc = item.snippet?.description ?? item.snippet?.title ?? "";
+        if (shouldRejectLikelyArabicContent(rawTitle, rawDesc)) {
+          return [];
+        }
         const stats = statsMap.get(videoId);
-        return {
-          externalId: videoId,
-          title: item.snippet?.title ?? null,
-          content: item.snippet?.description ?? item.snippet?.title ?? null,
-          sourceUrl: videoId ? `https://www.youtube.com/watch?v=${videoId}` : null,
-          canonicalUrl: videoId ? `https://www.youtube.com/watch?v=${videoId}` : null,
-          publishedAt: item.snippet?.publishedAt ?? null,
-          language: "ht",
-          platform: "youtube" as const,
-          engagement: {
-            views: stats?.views ?? 0,
-            likes: stats?.likes ?? 0,
-            comments: stats?.comments ?? 0,
+        return [
+          {
+            externalId: videoId,
+            title: rawTitle || null,
+            content: rawDesc || null,
+            sourceUrl: videoId ? `https://www.youtube.com/watch?v=${videoId}` : null,
+            canonicalUrl: videoId ? `https://www.youtube.com/watch?v=${videoId}` : null,
+            publishedAt: item.snippet?.publishedAt ?? null,
+            language: null,
+            platform: "youtube" as const,
+            engagement: {
+              views: stats?.views ?? 0,
+              likes: stats?.likes ?? 0,
+              comments: stats?.comments ?? 0,
+            },
+            metadata: {
+              channelTitle: item.snippet?.channelTitle,
+              videoId,
+              thumbnailUrl:
+                item.snippet?.thumbnails?.high?.url ??
+                item.snippet?.thumbnails?.medium?.url ??
+                item.snippet?.thumbnails?.default?.url,
+            },
           },
-          metadata: {
-            channelTitle: item.snippet?.channelTitle,
-            videoId,
-            thumbnailUrl:
-              item.snippet?.thumbnails?.high?.url ??
-              item.snippet?.thumbnails?.medium?.url ??
-              item.snippet?.thumbnails?.default?.url,
-          },
-        };
+        ];
       });
     },
   };

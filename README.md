@@ -93,6 +93,8 @@ Use **live** keys and a **live** webhook in production. After deploy, confirm `G
   - TikTok via Apify: `APIFY_TOKEN`, `APIFY_TIKTOK_ACTOR_ID`
   - Summaries: `ANTHROPIC_API_KEY`
 
+The ingestion pipeline sends JSON tuned for the official Store actors (e.g. `apify/instagram-scraper`, `clockworks/tiktok-scraper`, `apify/facebook-posts-scraper`, `apidojo/twitter-scraper-lite`—see `apifyActorInputs.ts`). If you swap actors, adjust that module or your env actor IDs.
+
 If optional credentials are missing, ingestion still runs, but those sources are skipped.
 
 ### Background jobs / schedules

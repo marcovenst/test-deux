@@ -2,6 +2,7 @@ import crypto from "node:crypto";
 
 import type { RawPostRow } from "@/lib/db/types";
 import type { IngestionSource, NormalizedPost, RawIngestionRecord } from "@/lib/ingestion/types";
+import { shouldRejectLikelyArabicContent } from "@/lib/ingestion/scriptFilter";
 
 function minContentLengthForRecord(record: RawIngestionRecord): number {
   const platform = (record.platform ?? "").toLowerCase();
@@ -78,6 +79,10 @@ export function normalizeRecord(
   const preparedContent = content || title;
   const minLen = minContentLengthForRecord(record);
   if (preparedContent.length < minLen) {
+    return null;
+  }
+
+  if (shouldRejectLikelyArabicContent(title, preparedContent)) {
     return null;
   }
 

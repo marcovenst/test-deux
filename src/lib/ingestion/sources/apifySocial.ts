@@ -1,7 +1,9 @@
 import { getEnv, isConfigured } from "@/lib/config/env";
+import {
+  buildApifySocialInputCandidates,
+  type SocialNetwork,
+} from "@/lib/ingestion/sources/apifyActorInputs";
 import type { RawIngestionRecord, SourceAdapter } from "@/lib/ingestion/types";
-
-type SocialNetwork = "x" | "instagram" | "tiktok" | "facebook";
 
 type ApifySocialOptions = {
   sourceName: string;
@@ -61,7 +63,16 @@ function getNestedAuthor(item: Record<string, unknown>): string | null {
 function mapItemToRecord(network: SocialNetwork, item: Record<string, unknown>): RawIngestionRecord | null {
   const text =
     pickString(item, ["text", "caption", "description", "fullText", "content", "title"]) ?? "";
-  const sourceUrl = pickString(item, ["url", "postUrl", "inputUrl", "canonicalUrl", "link", "videoUrl"]);
+  const sourceUrl = pickString(item, [
+    "url",
+    "postUrl",
+    "inputUrl",
+    "canonicalUrl",
+    "link",
+    "videoUrl",
+    "webVideoUrl",
+    "shareUrl",
+  ]);
   if (!sourceUrl) {
     return null;
   }
@@ -87,7 +98,6 @@ function mapItemToRecord(network: SocialNetwork, item: Record<string, unknown>):
     "video_downloadAddr",
   ]);
   const tiktokVideoId = pickString(item, ["aweme_id", "videoId", "id"]);
-  const tweetId = pickString(item, ["id", "tweetId", "postId"]);
 
   const metadata: Record<string, unknown> = {
     network,
@@ -99,9 +109,6 @@ function mapItemToRecord(network: SocialNetwork, item: Record<string, unknown>):
   if (apifyVideoUrl && /^https?:\/\//i.test(apifyVideoUrl)) metadata.videoUrl = apifyVideoUrl;
   if (network === "tiktok" && tiktokVideoId && /^\d+$/.test(tiktokVideoId)) {
     metadata.tiktokVideoId = tiktokVideoId;
-  }
-  if (network === "x" && tweetId && /^\d+$/.test(tweetId)) {
-    metadata.tweetId = tweetId;
   }
 
   return {
@@ -126,20 +133,20 @@ function mapItemToRecord(network: SocialNetwork, item: Record<string, unknown>):
 async function runApifyActor(
   actorId: string,
   token: string,
+  network: SocialNetwork,
   searchTerms: string[],
   maxItems: number,
   customCandidates?: Array<Record<string, unknown>>,
 ) {
-  const candidateInputs: Array<Record<string, unknown>> = [
-    ...(customCandidates ?? []),
-    { searchTerms, maxItems, sort: "Latest" },
-    { queries: searchTerms, maxItems, sort: "Latest" },
-    { search: searchTerms.join(" OR "), maxItems },
-    { query: searchTerms.join(" OR "), maxItems },
-    { hashtags: searchTerms, resultsLimit: maxItems },
-  ];
+  const candidateInputs = buildApifySocialInputCandidates(
+    network,
+    searchTerms,
+    maxItems,
+    customCandidates,
+  );
 
   let lastErrorMessage = "unknown apify input error";
+  let anyActorRunAccepted = false;
   for (const runInput of candidateInputs) {
     const actorPath = encodeURIComponent(actorId.trim());
     const runRes = await fetch(`https://api.apify.com/v2/acts/${actorPath}/runs?token=${encodeURIComponent(token)}`, {
@@ -153,22 +160,32 @@ async function runApifyActor(
       lastErrorMessage = `Apify run failed (${runRes.status})`;
       continue;
     }
+    anyActorRunAccepted = true;
     const runPayload = (await runRes.json()) as {
       data?: { defaultDatasetId?: string };
     };
     const datasetId = runPayload.data?.defaultDatasetId;
     if (!datasetId) {
-      return [];
+      lastErrorMessage = "Apify run returned no dataset id";
+      continue;
     }
     const datasetRes = await fetch(
       `https://api.apify.com/v2/datasets/${encodeURIComponent(datasetId)}/items?token=${encodeURIComponent(token)}`,
     );
     if (!datasetRes.ok) {
-      throw new Error(`Apify dataset fetch failed (${datasetRes.status})`);
+      lastErrorMessage = `Apify dataset fetch failed (${datasetRes.status})`;
+      continue;
     }
-    return (await datasetRes.json()) as Array<Record<string, unknown>>;
+    const items = (await datasetRes.json()) as Array<Record<string, unknown>>;
+    if (Array.isArray(items) && items.length > 0) {
+      return items;
+    }
+    lastErrorMessage = "Apify dataset empty for this input; trying next shape";
   }
-  throw new Error(lastErrorMessage);
+  if (!anyActorRunAccepted) {
+    throw new Error(lastErrorMessage);
+  }
+  return [];
 }
 
 export function createApifySocialAdapter(options: ApifySocialOptions): SourceAdapter {
@@ -190,6 +207,7 @@ export function createApifySocialAdapter(options: ApifySocialOptions): SourceAda
       const items = await runApifyActor(
         options.actorId,
         env.APIFY_TOKEN,
+        options.network,
         options.searchTerms,
         options.maxItems ?? 100,
         options.inputCandidates,

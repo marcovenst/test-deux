@@ -54,6 +54,21 @@ describe("normalizeRecord", () => {
     expect(noTitle).toBeNull();
     expect(noUrl).toBeNull();
   });
+
+  it("rejects headlines that are mostly Arabic script", () => {
+    expect(
+      normalizeRecord(
+        {
+          platform: "news",
+          title: "الأخبار من هايتي اليوم بالعربية",
+          content:
+            "هذا نص طويل باللغة العربية للتأكد من أن النسبة تتجاوز عتبة الرفض في التطبيع.",
+          sourceUrl: "https://example.com/ar-story",
+        },
+        { name: "rss-news", platform: "news" },
+      ),
+    ).toBeNull();
+  });
 });
 
 describe("fingerprint helpers", () => {

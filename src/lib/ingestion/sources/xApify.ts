@@ -38,42 +38,56 @@ export function createXApifyAdapter(
       }
       const apifyToken = env.APIFY_TOKEN;
       const apifyActorId = env.APIFY_ACTOR_ID;
-      const runInput = {
-        searchTerms,
-        maxItems: options?.maxItems ?? 100,
-        sort: "Latest",
-      };
-
+      const maxItems = options?.maxItems ?? 100;
       const actorPath = encodeURIComponent(apifyActorId.trim());
-      const runRes = await fetch(
-        `https://api.apify.com/v2/acts/${actorPath}/runs?token=${encodeURIComponent(apifyToken)}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
+
+      const runVariants = [
+        { searchTerms, maxItems, sort: "Latest" },
+        { searchTerms, maxItems, sort: "Latest + Top" },
+        { searchTerms, maxItems, sort: "Top" },
+      ];
+
+      let items: ApifyItem[] = [];
+
+      for (const runInput of runVariants) {
+        const runRes = await fetch(
+          `https://api.apify.com/v2/acts/${actorPath}/runs?token=${encodeURIComponent(apifyToken)}`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(runInput),
           },
-          body: JSON.stringify(runInput),
-        },
-      );
-      if (!runRes.ok) {
-        throw new Error(`Apify run failed (${runRes.status})`);
+        );
+        if (!runRes.ok) {
+          continue;
+        }
+
+        const runPayload = (await runRes.json()) as {
+          data?: { defaultDatasetId?: string };
+        };
+        const datasetId = runPayload.data?.defaultDatasetId;
+        if (!datasetId) {
+          continue;
+        }
+
+        const datasetRes = await fetch(
+          `https://api.apify.com/v2/datasets/${encodeURIComponent(datasetId)}/items?token=${encodeURIComponent(apifyToken)}`,
+        );
+        if (!datasetRes.ok) {
+          continue;
+        }
+        const batch = (await datasetRes.json()) as ApifyItem[];
+        if (Array.isArray(batch) && batch.length > 0) {
+          items = batch;
+          break;
+        }
       }
 
-      const runPayload = (await runRes.json()) as {
-        data?: { defaultDatasetId?: string };
-      };
-      const datasetId = runPayload.data?.defaultDatasetId;
-      if (!datasetId) {
+      if (items.length === 0) {
         return [];
       }
-
-      const datasetRes = await fetch(
-        `https://api.apify.com/v2/datasets/${encodeURIComponent(datasetId)}/items?token=${encodeURIComponent(apifyToken)}`,
-      );
-      if (!datasetRes.ok) {
-        throw new Error(`Apify dataset fetch failed (${datasetRes.status})`);
-      }
-      const items = (await datasetRes.json()) as ApifyItem[];
 
       return items
         .filter((item): item is ApifyItem & { url: string } => Boolean(item.url?.trim()))
