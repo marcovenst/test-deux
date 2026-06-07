@@ -9,6 +9,7 @@ import {
   getGoogleSearchInterest,
   type PopularityWindow,
 } from "@/lib/trends/popularity";
+import { shouldHideArabicTrendItem } from "@/lib/ingestion/scriptFilter";
 import { clusterMetaMatchesCategory, feedItemMatchesCategory } from "@/lib/trends/topicMatch";
 import { socialAuthoringUrlPattern } from "@/lib/trends/rawPostChannel";
 
@@ -656,6 +657,10 @@ export async function getTrendFeed(
       }
       items.sort((a, b) => (b.popularityScore ?? 0) - (a.popularityScore ?? 0));
     }
+
+    items = items.filter(
+      (t) => !shouldHideArabicTrendItem(t.title ?? "", t.summary ?? ""),
+    );
 
     if (items.length === 0) {
       return getFallbackFeed();
