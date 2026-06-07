@@ -13,10 +13,12 @@ export const htCopy = {
   haitiSignatureLabel: "Rasin Ayiti",
   haitiSignatureText: "Nouvèl ak vwa kominote ayisyen an, an premye.",
   heroBadge: "Nouvèl cho jounen an",
-  heroTitle:
-    "Aktyalite Lakay: Imigrasyon, Espò, Mizik, Dyaspora, Kilti, Politik, ak tout sa k ap fè bri nan kominote ayisyen an.",
-  heroSubtitle:
-    "Nou mete sijè ki cho yo devan, ak snippets klè pou w ka deside si w vle klike sou sous orijinal la.",
+  heroTitle: "Feed kominote a",
+  heroSubtitle: "Scroll — gade sa k ap fè bri sou X, Instagram, Facebook, ak Google.",
+  socialDigestLabelDaily: "🔥 Kisa k ap cho jodi a",
+  socialDigestLabelWeekly: "🔥 Kisa ki te cho semèn nan",
+  socialDigestHot: "ap monte",
+  socialHubsLabel: "Hub rapid",
   megaTrendLabel: "Mega tandans",
   dailyDigestBadge: "Rezime nouvèl",
   dailyDigestTitleDaily: "Gwo istwa jounen an",

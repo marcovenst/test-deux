@@ -116,7 +116,7 @@ export function InfiniteTrendGrid({
           Sijesyon yo optimize pou entèraksyon, men yo rete balanse pou w ka wè tout kalite sijè.
         </div>
       ) : null}
-      <section className="grid gap-4 md:grid-cols-2">
+      <section className="flex flex-col gap-3">
         {visibleItems.map((trend) => (
           <TrendCard key={trend.clusterId} trend={trend} />
         ))}

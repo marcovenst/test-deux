@@ -332,61 +332,14 @@ export function TrendCard({ trend }: { trend: TrendFeedItem }) {
   return (
     <article
       ref={articleRef}
-      className="group relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-3 shadow-sm transition hover:border-sky-200 hover:shadow-md sm:p-4"
+      className="group overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-zinc-200/80"
     >
-      <div className="pointer-events-none absolute -right-16 -top-16 h-32 w-32 rounded-full bg-sky-100/80 blur-2xl transition group-hover:bg-sky-200/60" />
-      <div className="pointer-events-none absolute -bottom-20 -left-16 h-36 w-36 rounded-full bg-rose-100/60 blur-2xl transition group-hover:bg-rose-200/50" />
-
-      <div className="mb-2 flex items-center justify-between gap-3 text-[10px] sm:text-[11px]">
-        <span className="rounded-full border border-sky-200 bg-sky-50 px-2 py-1 font-medium text-sky-800">
-          {trend.trendCategory}
-        </span>
-        <div className="flex items-center gap-2">
-          <span className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[10px] text-slate-600">
-            <span className="h-1.5 w-1.5 rounded-full bg-[#1D4ED8]" />
-            <span className="h-1.5 w-1.5 rounded-full bg-slate-300" />
-            <span className="h-1.5 w-1.5 rounded-full bg-[#DC2626]" />
-            Pulse
-          </span>
-          <span className="text-slate-500">
-            {htCopy.trendScoreLabel} {trend.trendScore.toFixed(1)}
-          </span>
-        </div>
+      <div className="flex items-center justify-between gap-2 px-3 pb-2 pt-3 text-[11px]">
+        <span className="font-semibold text-zinc-800">#{trend.trendCategory}</span>
+        <span className="text-zinc-500">👁 {viewCount.toLocaleString()}</span>
       </div>
 
-      <div className="mb-2 flex flex-wrap gap-1 text-[9px] text-slate-600 sm:gap-1.5 sm:text-[10px]">
-        <span className="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5">
-          Pop {(trend.popularityScore ?? trend.trendScore).toFixed(1)}
-        </span>
-        <span className="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5">
-          Google {(trend.googleSearchScore ?? 0).toFixed(1)}
-        </span>
-        <span className="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5">
-          Sosyal {(trend.socialScore ?? 0).toFixed(1)}
-        </span>
-        <span className="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5">
-          👁 {viewCount.toLocaleString()}
-        </span>
-      </div>
-
-      <Link
-        href={`/cluster/${trend.clusterId}`}
-        className="text-base font-semibold text-slate-900 transition hover:text-sky-700 sm:text-lg"
-      >
-        {trend.title}
-      </Link>
-      <p className="mt-1 text-[11px] leading-relaxed text-slate-600 sm:mt-1.5 sm:text-xs">
-        {trend.summary}
-      </p>
-
-      <div className="mt-4 h-2 rounded-full bg-slate-100">
-        <div
-          className="h-2 rounded-full bg-sky-500"
-          style={{ width: `${Math.min(100, trend.trendScore)}%` }}
-        />
-      </div>
-
-      <div className="mt-3 overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
+      <div className="overflow-hidden bg-zinc-50">
         {embedUrl ? (
           <div
             className={`relative bg-black ${mediaFrameClass}`}
@@ -502,8 +455,24 @@ export function TrendCard({ trend }: { trend: TrendFeedItem }) {
         )}
       </div>
 
+      <div className="space-y-2 px-3 py-3">
+        <Link
+          href={`/cluster/${trend.clusterId}`}
+          className="text-[15px] font-semibold leading-snug text-zinc-900 transition hover:text-sky-700"
+        >
+          {trend.title}
+        </Link>
+        <p className="line-clamp-3 text-sm leading-relaxed text-zinc-600">{trend.summary}</p>
+        <div className="flex flex-wrap gap-3 text-xs text-zinc-500">
+          <span>🔥 {(trend.socialScore ?? 0).toFixed(0)}</span>
+          <span>📈 {(trend.popularityScore ?? trend.trendScore).toFixed(0)}</span>
+        </div>
+      </div>
+
       {!videoSource ? (
-        <SummaryListenPanel clusterId={trend.clusterId} title={trend.title} summary={trend.summary} />
+        <div className="px-3 pb-3">
+          <SummaryListenPanel clusterId={trend.clusterId} title={trend.title} summary={trend.summary} />
+        </div>
       ) : null}
 
       {(videoSource?.embedUrl || videoSource?.videoUrl) && (
@@ -644,46 +613,16 @@ export function TrendCard({ trend }: { trend: TrendFeedItem }) {
         }
       `}</style>
 
-      <div className="mt-3 flex flex-wrap items-center gap-1.5 sm:mt-4 sm:gap-2">
-        <span
-          className={`rounded-full border px-2 py-0.5 text-[10px] sm:py-1 sm:text-[11px] ${sentimentBadge(
-            trend.sentiment,
-          )}`}
-        >
-          {sentimentLabel(trend.sentiment)}
-        </span>
-        {trend.tags.slice(0, 4).map((tag) => (
-          <span
-            key={tag}
-            className="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[10px] text-slate-600 sm:py-1 sm:text-[11px]"
-          >
-            #{tag}
-          </span>
-        ))}
-      </div>
-
-      <div className="mt-3 space-y-1.5 border-t border-slate-100 pt-2.5 sm:mt-4 sm:space-y-2 sm:pt-3">
-        <p className="text-[10px] uppercase tracking-[0.12em] text-slate-500 sm:text-[11px]">
-          Sous ({trend.sourceCount})
-        </p>
-        {trend.topSources.map((source) => (
+      <div className="border-t border-zinc-100 px-3 py-2">
+        {trend.topSources.slice(0, 1).map((source) => (
           <a
             key={source.sourceUrl}
             href={source.sourceUrl}
             target="_blank"
             rel="noreferrer"
-            className="block rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 transition hover:border-sky-200 hover:bg-white"
+            className="text-xs font-semibold text-sky-700 hover:text-sky-800"
           >
-            <div className="flex items-start justify-between gap-2">
-              <p className="text-[11px] font-medium text-slate-900 sm:text-xs">{source.sourceName}</p>
-              {source.platform ? (
-                <span className="rounded-full border border-slate-200 bg-white px-2 py-0.5 text-[10px] text-slate-500">
-                  {source.platform}
-                </span>
-              ) : null}
-            </div>
-            <p className="mt-1 line-clamp-2 text-xs text-slate-500">{source.snippet}</p>
-            <p className="mt-2 text-xs font-semibold text-sky-700">{htCopy.cardSourceCta} →</p>
+            {htCopy.cardSourceCta} · {source.sourceName} →
           </a>
         ))}
       </div>
