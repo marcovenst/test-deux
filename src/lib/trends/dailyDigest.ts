@@ -1,3 +1,4 @@
+import { buildDisplayViews } from "@/lib/trends/displayViews";
 import type { TrendFeedItem } from "@/lib/trends/query";
 
 export type DailyDigestBullet = {
@@ -6,22 +7,6 @@ export type DailyDigestBullet = {
   trendCategory: string;
   viewCount: number;
 };
-
-const DIGEST_VIEW_SEED_MIN = 120;
-const DIGEST_VIEW_SEED_RANGE = 780;
-
-function stableDigestSeed(clusterId: string): number {
-  let hash = 0;
-  for (let i = 0; i < clusterId.length; i += 1) {
-    hash = (hash * 31 + clusterId.charCodeAt(i)) % 2147483647;
-  }
-  return DIGEST_VIEW_SEED_MIN + (hash % DIGEST_VIEW_SEED_RANGE);
-}
-
-/** Seeded baseline plus real cluster views from `cluster_views`. */
-export function digestDisplayViews(clusterId: string, realViews: number): number {
-  return stableDigestSeed(clusterId) + Math.max(0, realViews);
-}
 
 export function isLiveDigestCluster(clusterId: string) {
   return clusterId.length > 0 && !clusterId.startsWith("fallback-");
@@ -62,7 +47,7 @@ export function buildDailyDigest(
       clusterId: trend.clusterId,
       title,
       trendCategory: trend.trendCategory,
-      viewCount: digestDisplayViews(trend.clusterId, trend.viewCount),
+      viewCount: buildDisplayViews(trend.viewCount),
     });
     if (bullets.length >= maxBullets) {
       break;

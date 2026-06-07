@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 
+import { composeDisplayViews, randomViewBaseline } from "@/lib/trends/displayViews";
 import type { TrendFeedItem } from "@/lib/trends/query";
 import { htCopy } from "@/lib/i18n/ht";
 import { pickFeaturedImageSource, pickFeaturedVideoSource } from "@/lib/media/pickFeaturedSource";
@@ -129,7 +130,10 @@ export function TrendCard({ trend }: { trend: TrendFeedItem }) {
 
   const [isMediaActive, setIsMediaActive] = useState(true);
   const [isMuted, setIsMuted] = useState(true);
-  const [viewCount, setViewCount] = useState(trend.viewCount);
+  const viewBaselineRef = useRef(randomViewBaseline());
+  const [viewCount, setViewCount] = useState(() =>
+    composeDisplayViews(viewBaselineRef.current, trend.viewCount),
+  );
   const [selectedReaction, setSelectedReaction] = useState<ReactionKey | null>(null);
   const [reactionTotals, setReactionTotals] = useState<ReactionTotals>(trend.reactions);
   const [isSubmittingReaction, setIsSubmittingReaction] = useState(false);
@@ -175,7 +179,7 @@ export function TrendCard({ trend }: { trend: TrendFeedItem }) {
             }
             const payload = (await response.json()) as { totalViews?: number };
             if (typeof payload.totalViews === "number") {
-              setViewCount(payload.totalViews);
+              setViewCount(composeDisplayViews(viewBaselineRef.current, payload.totalViews));
               return;
             }
             setViewCount((current) => current + 1);

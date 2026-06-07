@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { buildDailyDigest, digestDisplayViews, digestTitleKey } from "@/lib/trends/dailyDigest";
+import { buildDailyDigest, digestTitleKey } from "@/lib/trends/dailyDigest";
+import { VIEW_DISPLAY_MIN } from "@/lib/trends/displayViews";
 import type { TrendFeedItem } from "@/lib/trends/query";
 
 function trend(partial: Partial<TrendFeedItem> & { clusterId: string; title: string }): TrendFeedItem {
@@ -30,19 +31,6 @@ describe("digestTitleKey", () => {
   });
 });
 
-describe("digestDisplayViews", () => {
-  it("adds a stable seeded baseline to real views", () => {
-    const first = digestDisplayViews("cluster-a", 0);
-    const second = digestDisplayViews("cluster-a", 0);
-    const withReal = digestDisplayViews("cluster-a", 12);
-
-    expect(first).toBe(second);
-    expect(first).toBeGreaterThanOrEqual(120);
-    expect(first).toBeLessThan(900);
-    expect(withReal).toBe(first + 12);
-  });
-});
-
 describe("buildDailyDigest", () => {
   it("returns at most five unique headlines", () => {
     const bullets = buildDailyDigest(
@@ -68,11 +56,11 @@ describe("buildDailyDigest", () => {
     expect(bullets[0]?.clusterId).toBe("a1");
   });
 
-  it("includes display view counts from seeded baseline and real views", () => {
+  it("includes display view counts above the random baseline plus real views", () => {
     const bullets = buildDailyDigest(
       [trend({ clusterId: "live-1", title: "Premye istwa", viewCount: 4 })],
       5,
     );
-    expect(bullets[0]?.viewCount).toBe(digestDisplayViews("live-1", 4));
+    expect(bullets[0]?.viewCount).toBeGreaterThanOrEqual(VIEW_DISPLAY_MIN + 4);
   });
 });
