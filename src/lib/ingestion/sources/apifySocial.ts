@@ -3,6 +3,7 @@ import {
   buildApifySocialInputCandidates,
   type SocialNetwork,
 } from "@/lib/ingestion/sources/apifyActorInputs";
+import { runApifyActorForItems } from "@/lib/ingestion/sources/apifyRun";
 import type { RawIngestionRecord, SourceAdapter } from "@/lib/ingestion/types";
 
 type ApifySocialOptions = {
@@ -148,39 +149,17 @@ async function runApifyActor(
   let lastErrorMessage = "unknown apify input error";
   let anyActorRunAccepted = false;
   for (const runInput of candidateInputs) {
-    const actorPath = encodeURIComponent(actorId.trim());
-    const runRes = await fetch(`https://api.apify.com/v2/acts/${actorPath}/runs?token=${encodeURIComponent(token)}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(runInput),
-    });
-    if (!runRes.ok) {
-      lastErrorMessage = `Apify run failed (${runRes.status})`;
-      continue;
+    try {
+      const items = await runApifyActorForItems(actorId, token, runInput, { maxWaitMs: 90_000 });
+      anyActorRunAccepted = true;
+      if (items.length > 0) {
+        return items;
+      }
+      lastErrorMessage = "Apify dataset empty for this input; trying next shape";
+    } catch (error) {
+      lastErrorMessage =
+        error instanceof Error ? error.message : "Apify run failed for this input shape";
     }
-    anyActorRunAccepted = true;
-    const runPayload = (await runRes.json()) as {
-      data?: { defaultDatasetId?: string };
-    };
-    const datasetId = runPayload.data?.defaultDatasetId;
-    if (!datasetId) {
-      lastErrorMessage = "Apify run returned no dataset id";
-      continue;
-    }
-    const datasetRes = await fetch(
-      `https://api.apify.com/v2/datasets/${encodeURIComponent(datasetId)}/items?token=${encodeURIComponent(token)}`,
-    );
-    if (!datasetRes.ok) {
-      lastErrorMessage = `Apify dataset fetch failed (${datasetRes.status})`;
-      continue;
-    }
-    const items = (await datasetRes.json()) as Array<Record<string, unknown>>;
-    if (Array.isArray(items) && items.length > 0) {
-      return items;
-    }
-    lastErrorMessage = "Apify dataset empty for this input; trying next shape";
   }
   if (!anyActorRunAccepted) {
     throw new Error(lastErrorMessage);

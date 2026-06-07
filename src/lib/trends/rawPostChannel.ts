@@ -33,5 +33,5 @@ export function rawPostChannelKey(input: {
 }
 
 export function socialAuthoringUrlPattern(): RegExp {
-  return /tiktok\.com|instagram\.com|twitter\.com|x\.com/i;
+  return /tiktok\.com|instagram\.com|twitter\.com|x\.com|facebook\.com|fb\.watch/i;
 }

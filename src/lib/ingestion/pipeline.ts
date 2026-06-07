@@ -3,6 +3,7 @@ import { haitianInfluencers } from "@/lib/content/influencers";
 import { normalizeRecord, normalizedPostToRawPostRow } from "@/lib/ingestion/normalize";
 import { getEnv, isConfigured } from "@/lib/config/env";
 import { createApifySocialAdapter } from "@/lib/ingestion/sources/apifySocial";
+import { createGoogleNewsAdapter } from "@/lib/ingestion/sources/googleNews";
 import { createRedditAdapter } from "@/lib/ingestion/sources/reddit";
 import { createRssAdapter } from "@/lib/ingestion/sources/rss";
 import { createScrapeAdapter } from "@/lib/ingestion/sources/scrape";
@@ -351,6 +352,7 @@ export async function runIngestionPipeline() {
 
   const adapters: SourceAdapter[] = [
     createRssAdapter(DEFAULT_RSS_FEEDS),
+    createGoogleNewsAdapter(),
     createScrapeAdapter(DEFAULT_SCRAPE_SOURCES),
     createScrapeAdapter(INFLUENCER_SOCIAL_SCRAPES),
     createRedditAdapter("Haiti OR Ayiti OR Haitian OR Kreyol OR diaspora", {

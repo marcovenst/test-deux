@@ -11,7 +11,7 @@ import {
 } from "@/lib/trends/popularity";
 import { shouldHideArabicTrendItem } from "@/lib/ingestion/scriptFilter";
 import { clusterMetaMatchesCategory, feedItemMatchesCategory } from "@/lib/trends/topicMatch";
-import { socialAuthoringUrlPattern } from "@/lib/trends/rawPostChannel";
+import { rawPostChannelKey, socialAuthoringUrlPattern } from "@/lib/trends/rawPostChannel";
 
 export type TrendFeedItem = {
   clusterId: string;
@@ -117,7 +117,23 @@ function detectFocusedPlatform(input: {
   platform: string;
   sourceName?: string;
   sourceUrl?: string;
+  rawMetadata?: Record<string, unknown>;
 }) {
+  const channel = rawPostChannelKey({
+    platform: input.platform,
+    raw_metadata: input.rawMetadata,
+    source_url: input.sourceUrl ?? null,
+  });
+  if (
+    channel === "x" ||
+    channel === "youtube" ||
+    channel === "tiktok" ||
+    channel === "facebook" ||
+    channel === "instagram"
+  ) {
+    return channel;
+  }
+
   const platform = normalizePlatformName(input.platform);
   if (platform === "x" || platform === "youtube" || platform === "tiktok" || platform === "facebook" || platform === "instagram") {
     return platform;
@@ -482,6 +498,7 @@ export async function getTrendFeed(
             platform: rawPost.platform as string,
             sourceName: rawPost.source_name as string | undefined,
             sourceUrl: rawPost.source_url as string | undefined,
+            rawMetadata: (rawPost.raw_metadata as Record<string, unknown> | undefined) ?? {},
           });
           return FOCUSED_SOCIAL_PLATFORMS.has(detected);
         });
@@ -516,6 +533,7 @@ export async function getTrendFeed(
               platform: rawPost.platform as string,
               sourceName: rawPost.source_name as string | undefined,
               sourceUrl: rawPost.source_url as string | undefined,
+              rawMetadata: (rawPost.raw_metadata as Record<string, unknown> | undefined) ?? {},
             });
           }),
         );
@@ -536,7 +554,7 @@ export async function getTrendFeed(
         const googleScores = await Promise.all(
           keywords.map((keyword) => getGoogleSearchInterest(keyword, popularityWindow)),
         );
-        const googleSearchScore =
+        let googleSearchScore =
           googleScores.length > 0
             ? Number(
                 (googleScores.reduce((acc, value) => acc + value, 0) / googleScores.length).toFixed(
@@ -544,6 +562,14 @@ export async function getTrendFeed(
                 ),
               )
             : 0;
+        const hasGoogleNewsIngest = relevantItems.some((item) => {
+          const rawPost = Array.isArray(item.raw_posts) ? item.raw_posts[0] : item.raw_posts;
+          const meta = (rawPost.raw_metadata as Record<string, unknown> | undefined) ?? {};
+          return meta.provider === "google-news";
+        });
+        if (hasGoogleNewsIngest) {
+          googleSearchScore = Number(Math.min(100, googleSearchScore + 18).toFixed(2));
+        }
         const socialScore = computeSocialPopularityScore({
           engagementTotals,
           mentionCount: focusedItems.length > 0 ? focusedItems.length : relevantItems.length,

@@ -1,4 +1,5 @@
 import { getEnv, isConfigured } from "@/lib/config/env";
+import { runApifyActorForItems } from "@/lib/ingestion/sources/apifyRun";
 import type { SourceAdapter } from "@/lib/ingestion/types";
 
 type ApifyItem = {
@@ -39,7 +40,6 @@ export function createXApifyAdapter(
       const apifyToken = env.APIFY_TOKEN;
       const apifyActorId = env.APIFY_ACTOR_ID;
       const maxItems = options?.maxItems ?? 100;
-      const actorPath = encodeURIComponent(apifyActorId.trim());
 
       const runVariants = [
         { searchTerms, maxItems, sort: "Latest" },
@@ -50,38 +50,16 @@ export function createXApifyAdapter(
       let items: ApifyItem[] = [];
 
       for (const runInput of runVariants) {
-        const runRes = await fetch(
-          `https://api.apify.com/v2/acts/${actorPath}/runs?token=${encodeURIComponent(apifyToken)}`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(runInput),
-          },
-        );
-        if (!runRes.ok) {
+        try {
+          const batch = (await runApifyActorForItems(apifyActorId, apifyToken, runInput, {
+            maxWaitMs: 90_000,
+          })) as ApifyItem[];
+          if (batch.length > 0) {
+            items = batch;
+            break;
+          }
+        } catch {
           continue;
-        }
-
-        const runPayload = (await runRes.json()) as {
-          data?: { defaultDatasetId?: string };
-        };
-        const datasetId = runPayload.data?.defaultDatasetId;
-        if (!datasetId) {
-          continue;
-        }
-
-        const datasetRes = await fetch(
-          `https://api.apify.com/v2/datasets/${encodeURIComponent(datasetId)}/items?token=${encodeURIComponent(apifyToken)}`,
-        );
-        if (!datasetRes.ok) {
-          continue;
-        }
-        const batch = (await datasetRes.json()) as ApifyItem[];
-        if (Array.isArray(batch) && batch.length > 0) {
-          items = batch;
-          break;
         }
       }
 
