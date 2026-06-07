@@ -10,6 +10,7 @@ import {
   type PopularityWindow,
 } from "@/lib/trends/popularity";
 import { shouldHideArabicTrendItem } from "@/lib/ingestion/scriptFilter";
+import { dedupeTrendsByTitle } from "@/lib/trends/feedDedup";
 import { clusterMetaMatchesCategory, feedItemMatchesCategory } from "@/lib/trends/topicMatch";
 import { rawPostChannelKey, socialAuthoringUrlPattern } from "@/lib/trends/rawPostChannel";
 
@@ -687,6 +688,8 @@ export async function getTrendFeed(
     items = items.filter(
       (t) => !shouldHideArabicTrendItem(t.title ?? "", t.summary ?? ""),
     );
+
+    items = dedupeTrendsByTitle(items);
 
     if (items.length === 0) {
       return getFallbackFeed();

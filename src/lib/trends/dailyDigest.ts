@@ -1,5 +1,8 @@
 import { buildDisplayViews } from "@/lib/trends/displayViews";
 import type { TrendFeedItem } from "@/lib/trends/query";
+import { normalizeTrendTitleKey } from "@/lib/trends/titleKey";
+
+export { normalizeTrendTitleKey as digestTitleKey };
 
 export type DailyDigestBullet = {
   clusterId: string;
@@ -10,17 +13,6 @@ export type DailyDigestBullet = {
 
 export function isLiveDigestCluster(clusterId: string) {
   return clusterId.length > 0 && !clusterId.startsWith("fallback-");
-}
-
-/** Normalize titles so duplicate headlines from different clusters collapse to one row. */
-export function digestTitleKey(title: string): string {
-  return title
-    .toLowerCase()
-    .normalize("NFKD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^\p{L}\p{N}\s]/gu, " ")
-    .replace(/\s+/g, " ")
-    .trim();
 }
 
 /** Top headlines for the compact daily digest (unique by cluster + title). */
@@ -37,7 +29,7 @@ export function buildDailyDigest(
       continue;
     }
     const title = trend.title.trim();
-    const titleKey = digestTitleKey(title);
+    const titleKey = normalizeTrendTitleKey(title);
     if (!titleKey || seenTitles.has(titleKey)) {
       continue;
     }
