@@ -117,9 +117,14 @@ export function InfiniteTrendGrid({
         </div>
       ) : null}
       <section className="grid gap-4 md:grid-cols-2">
-        {visibleItems.map((trend) => (
-          <TrendCard key={trend.clusterId} trend={trend} />
-        ))}
+        {visibleItems.map((trend) => {
+          const hasVideo = trend.topSources.some((source) => source.embedUrl || source.videoUrl);
+          return (
+            <div key={trend.clusterId} className={hasVideo ? "" : "md:col-span-2"}>
+              <TrendCard trend={trend} />
+            </div>
+          );
+        })}
       </section>
 
       {hasMore ? (
