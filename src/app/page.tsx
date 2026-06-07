@@ -102,21 +102,21 @@ export default async function Home({ searchParams }: HomePageProps) {
       : null;
 
   return (
-    <div className="min-h-screen bg-neutral-950 text-neutral-100">
-      <header className="sticky top-0 z-30 border-b border-white/10 bg-neutral-950/95 backdrop-blur">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-100 text-slate-900">
+      <header className="sticky top-0 z-30 border-b border-slate-200/80 bg-white/90 shadow-sm backdrop-blur-md">
         <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-3 sm:px-6 sm:py-4">
           <div className="min-w-0 sm:max-w-[min(100%,28rem)]">
-            <p className="text-2xl font-extrabold tracking-tight text-red-400">{htCopy.brandName}</p>
-            <p className="text-xs text-neutral-400">{htCopy.tagLine}</p>
+            <p className="text-2xl font-extrabold tracking-tight text-slate-900">{htCopy.brandName}</p>
+            <p className="text-xs text-slate-500">{htCopy.tagLine}</p>
             {scoresUpdatedLabel ? (
-              <p className="mt-1 text-[11px] text-neutral-500">
+              <p className="mt-1 text-[11px] text-slate-400">
                 Dènye skò tandans: {scoresUpdatedLabel} (Ayiti)
               </p>
             ) : null}
             <div className="mt-2 flex flex-wrap items-center gap-2">
-              <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.04] px-2.5 py-1 text-[11px] text-neutral-200">
+              <div className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] text-slate-600">
                 <span className="h-2 w-2 rounded-full bg-[#1D4ED8]" />
-                <span className="h-2 w-2 rounded-full bg-white" />
+                <span className="h-2 w-2 rounded-full bg-slate-200" />
                 <span className="h-2 w-2 rounded-full bg-[#DC2626]" />
               </div>
               <SelfServeAdLauncher buttonLabel="Mete anons" subtle />
@@ -126,25 +126,25 @@ export default async function Home({ searchParams }: HomePageProps) {
             className="flex w-full flex-wrap items-center justify-center gap-x-2 gap-y-2 sm:w-auto sm:max-w-none sm:flex-nowrap sm:justify-end sm:gap-3"
             aria-label="Navigasyon"
           >
-            <span className="inline-flex min-h-9 shrink-0 items-center justify-center rounded-full border border-emerald-400/30 bg-emerald-400/10 px-3 py-1.5 text-xs font-medium text-emerald-200">
+            <span className="inline-flex min-h-9 shrink-0 items-center justify-center rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700">
               {htCopy.liveLabel}
             </span>
             <Link
               href="/news"
-              className="inline-flex min-h-11 touch-manipulation items-center justify-center rounded-full border border-white/20 px-4 text-sm font-semibold text-white active:bg-white/10"
+              className="inline-flex min-h-11 touch-manipulation items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50"
             >
               {htCopy.archiveCta}
             </Link>
             <Link
               href="/shop-la-caille"
-              className="order-first inline-flex min-h-[3.25rem] w-full max-w-[20rem] touch-manipulation flex-col items-center justify-center gap-0.5 self-center rounded-2xl border border-amber-400/55 bg-gradient-to-b from-amber-500/[0.22] to-amber-700/[0.08] px-4 py-2.5 text-center shadow-lg shadow-amber-950/40 ring-1 ring-inset ring-amber-200/15 transition active:scale-[0.98] sm:order-none sm:min-h-0 sm:w-auto sm:max-w-none sm:self-auto sm:flex-row sm:gap-1.5 sm:rounded-full sm:px-4 sm:py-2.5 sm:shadow-md sm:shadow-black/25 sm:ring-0"
+              className="order-first inline-flex min-h-[3.25rem] w-full max-w-[20rem] touch-manipulation flex-col items-center justify-center gap-0.5 self-center rounded-2xl border border-amber-200 bg-gradient-to-b from-amber-50 to-amber-100/80 px-4 py-2.5 text-center shadow-sm transition hover:border-amber-300 sm:order-none sm:min-h-0 sm:w-auto sm:max-w-none sm:self-auto sm:flex-row sm:gap-1.5 sm:rounded-full sm:px-4 sm:py-2.5"
             >
-              <span className="hidden text-sm font-semibold text-amber-50 sm:inline">{shopLaCailleCopy.navCta}</span>
+              <span className="hidden text-sm font-semibold text-amber-900 sm:inline">{shopLaCailleCopy.navCta}</span>
               <span className="flex flex-col items-center leading-none sm:hidden">
-                <span className="text-[0.8125rem] font-bold tracking-tight text-amber-50">
+                <span className="text-[0.8125rem] font-bold tracking-tight text-amber-900">
                   {shopLaCailleCopy.navCtaMobilePrimary}
                 </span>
-                <span className="mt-1 text-[0.625rem] font-semibold uppercase tracking-[0.2em] text-amber-200/95">
+                <span className="mt-1 text-[0.625rem] font-semibold uppercase tracking-[0.2em] text-amber-700/90">
                   {shopLaCailleCopy.navCtaMobileSecondary}
                 </span>
               </span>
@@ -152,7 +152,7 @@ export default async function Home({ searchParams }: HomePageProps) {
             <SubscribeDrawer />
             <Link
               href="/search"
-              className="inline-flex min-h-11 touch-manipulation items-center justify-center rounded-full bg-white px-4 text-sm font-semibold text-neutral-900 active:bg-neutral-200"
+              className="inline-flex min-h-11 touch-manipulation items-center justify-center rounded-full bg-slate-900 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800"
             >
               {htCopy.searchCta}
             </Link>
@@ -162,77 +162,62 @@ export default async function Home({ searchParams }: HomePageProps) {
 
       <main className="mx-auto grid max-w-7xl gap-6 px-4 py-8 sm:px-6 lg:grid-cols-[1fr_320px]">
         <section className="space-y-6">
-          <section className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03]">
-            <div className="h-1 w-full bg-gradient-to-r from-[#1D4ED8] via-white to-[#DC2626]" />
-            <p className="px-4 py-2 text-xs text-neutral-300">{htCopy.haitiSignatureText}</p>
+          <section className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
+            <div className="h-1 w-full bg-gradient-to-r from-[#1D4ED8] via-slate-200 to-[#DC2626]" />
+            <p className="px-4 py-2.5 text-xs text-slate-600">{htCopy.haitiSignatureText}</p>
           </section>
 
-          <section className="rounded-2xl border border-white/10 bg-gradient-to-br from-red-500/20 via-fuchsia-500/10 to-cyan-500/10 p-5">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-red-200">
+          <section className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm sm:p-8">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-rose-600">
               {htCopy.heroBadge}
             </p>
-            <h1 className="mt-2 text-3xl font-black leading-tight sm:text-4xl">
+            <h1 className="mt-2 text-3xl font-black leading-tight tracking-tight text-slate-900 sm:text-4xl">
               {htCopy.heroTitle}
             </h1>
-            <p className="mt-3 max-w-3xl text-sm text-neutral-200 sm:text-base">
+            <p className="mt-3 max-w-3xl text-sm leading-relaxed text-slate-600 sm:text-base">
               {htCopy.heroSubtitle}
             </p>
-            <div className="mt-4">
+            <div className="mt-6 border-t border-slate-100 pt-5">
               <TrendFilters
                 selectedCategory={category}
                 selectedTimeframe={timeframe}
                 popularityWindow={popularityWindow}
               />
-              <div className="mt-3 flex flex-wrap gap-2">
-                {(["1h", "5h", "24h"] as const).map((window) => (
-                  <Link
-                    key={window}
-                    href={`/?timeframe=${timeframe}&category=${category}&popularityWindow=${window}`}
-                    className={`rounded-full px-3 py-1 text-xs ${
-                      popularityWindow === window
-                        ? "bg-amber-300 text-black"
-                        : "border border-white/20 text-neutral-300"
-                    }`}
-                  >
-                    TikTok + X + Facebook + YouTube {window}
-                  </Link>
-                ))}
-              </div>
             </div>
           </section>
 
           <AdSlot slotId="feedTop" format="horizontal" />
 
           {headliner ? (
-            <section className="rounded-2xl border border-red-400/30 bg-white/[0.03] p-5">
+            <section className="rounded-2xl border border-rose-200/80 bg-white p-5 shadow-sm sm:p-6">
               <TrendViewPing clusterId={headliner.clusterId} />
-              <div className="mb-2 flex items-center justify-between text-xs text-neutral-400">
-                <span className="rounded-full border border-red-300/40 bg-red-300/10 px-2 py-1 text-red-200">
+              <div className="mb-2 flex items-center justify-between text-xs text-slate-500">
+                <span className="rounded-full border border-rose-200 bg-rose-50 px-2.5 py-1 font-medium text-rose-700">
                   {htCopy.megaTrendLabel}
                 </span>
                 <span>{htCopy.trendScoreLabel} {headliner.trendScore.toFixed(1)}</span>
               </div>
-              <div className="mb-2 flex flex-wrap gap-2 text-[11px] text-neutral-300">
-                <span className="rounded-full border border-white/20 px-2 py-1">
+              <div className="mb-2 flex flex-wrap gap-2 text-[11px] text-slate-600">
+                <span className="rounded-full border border-slate-200 bg-slate-50 px-2 py-1">
                   Popilarite entènèt {(headliner.popularityScore ?? 0).toFixed(1)}
                 </span>
-                <span className="rounded-full border border-white/20 px-2 py-1">
+                <span className="rounded-full border border-slate-200 bg-slate-50 px-2 py-1">
                   Google {(headliner.googleSearchScore ?? 0).toFixed(1)}
                 </span>
-                <span className="rounded-full border border-white/20 px-2 py-1">
+                <span className="rounded-full border border-slate-200 bg-slate-50 px-2 py-1">
                   Sosyal {(headliner.socialScore ?? 0).toFixed(1)}
                 </span>
-                <span className="rounded-full border border-white/20 px-2 py-1">
+                <span className="rounded-full border border-slate-200 bg-slate-50 px-2 py-1">
                   👁 {headliner.viewCount.toLocaleString()} views
                 </span>
               </div>
               <Link
                 href={`/cluster/${headliner.clusterId}`}
-                className="text-2xl font-bold leading-tight text-white transition hover:text-red-200"
+                className="text-2xl font-bold leading-tight text-slate-900 transition hover:text-rose-600"
               >
                 {headliner.title}
               </Link>
-              <p className="mt-3 text-neutral-300">{headliner.summary}</p>
+              <p className="mt-3 text-slate-600">{headliner.summary}</p>
               <div className="mt-4 grid gap-2 sm:grid-cols-2">
                 {headliner.topSources.map((source) => (
                   <a
@@ -240,10 +225,10 @@ export default async function Home({ searchParams }: HomePageProps) {
                     href={source.sourceUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="rounded-lg border border-white/10 bg-black/20 p-3 text-sm transition hover:border-red-300/40"
+                    className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm transition hover:border-rose-200 hover:bg-white"
                   >
-                    <p className="font-medium text-white">{source.sourceName}</p>
-                    <p className="line-clamp-2 text-xs text-neutral-400">{source.snippet}</p>
+                    <p className="font-medium text-slate-900">{source.sourceName}</p>
+                    <p className="line-clamp-2 text-xs text-slate-500">{source.snippet}</p>
                   </a>
                 ))}
               </div>
@@ -251,7 +236,7 @@ export default async function Home({ searchParams }: HomePageProps) {
           ) : null}
 
           {moreTrends.length === 0 && !headliner ? (
-            <div className="rounded-xl border border-white/10 bg-white/[0.03] p-6 text-neutral-300">
+            <div className="rounded-xl border border-slate-200 bg-white p-6 text-slate-600 shadow-sm">
               {htCopy.noData}
             </div>
           ) : (
@@ -260,17 +245,17 @@ export default async function Home({ searchParams }: HomePageProps) {
 
           <AdSlot slotId="feedMid" format="rectangle" />
 
-          <section className="rounded-2xl border border-cyan-400/20 bg-cyan-400/10 p-5 text-sm text-cyan-50">
+          <section className="rounded-2xl border border-sky-200/80 bg-sky-50 p-5 text-sm text-slate-700">
             <p>{htCopy.footerNote}</p>
-            <p className="mt-2 text-cyan-100/90">{htCopy.archiveBlurb}</p>
+            <p className="mt-2 text-slate-600">{htCopy.archiveBlurb}</p>
           </section>
 
-          <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+          <section className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm sm:p-5">
             <div className="mb-3 flex items-center justify-between">
-              <h2 className="text-sm font-bold uppercase tracking-[0.12em] text-cyan-200">
+              <h2 className="text-sm font-bold uppercase tracking-[0.12em] text-slate-800">
                 Pwen esansyèl jounen an
               </h2>
-              <Link href="/search" className="text-xs text-cyan-300 hover:text-cyan-200">
+              <Link href="/search" className="text-xs font-medium text-sky-600 hover:text-sky-700">
                 Gade plis →
               </Link>
             </div>
@@ -280,11 +265,11 @@ export default async function Home({ searchParams }: HomePageProps) {
                     <Link
                       key={t.clusterId}
                       href={`/cluster/${t.clusterId}`}
-                      className="block rounded-xl border border-white/10 bg-black/20 p-3 transition hover:border-cyan-400/40 hover:bg-black/30"
+                      className="block rounded-xl border border-slate-200 bg-slate-50 p-3 transition hover:border-sky-200 hover:bg-white hover:shadow-sm"
                     >
-                      <p className="text-sm font-semibold text-white">{t.title}</p>
-                      <p className="mt-1 line-clamp-3 text-xs text-neutral-300">{t.summary}</p>
-                      <p className="mt-2 text-[11px] text-cyan-200/90">
+                      <p className="text-sm font-semibold text-slate-900">{t.title}</p>
+                      <p className="mt-1 line-clamp-3 text-xs text-slate-600">{t.summary}</p>
+                      <p className="mt-2 text-[11px] font-medium text-sky-700">
                         {htCopy.trendScoreLabel} {t.trendScore.toFixed(1)}
                       </p>
                     </Link>
@@ -293,10 +278,10 @@ export default async function Home({ searchParams }: HomePageProps) {
                     <Link
                       key={item.title}
                       href={`/search?q=${encodeURIComponent(item.title)}`}
-                      className="block rounded-xl border border-white/10 bg-black/20 p-3 transition hover:border-cyan-400/40"
+                      className="block rounded-xl border border-slate-200 bg-slate-50 p-3 transition hover:border-sky-200 hover:bg-white"
                     >
-                      <p className="text-sm font-semibold text-white">{item.title}</p>
-                      <p className="mt-1 text-xs text-neutral-300">{item.snippet}</p>
+                      <p className="text-sm font-semibold text-slate-900">{item.title}</p>
+                      <p className="mt-1 text-xs text-slate-600">{item.snippet}</p>
                     </Link>
                   ))}
             </div>
@@ -309,15 +294,15 @@ export default async function Home({ searchParams }: HomePageProps) {
           <AdSlot slotId="sidebar" format="rectangle" />
           <SelfServeAdStrip />
 
-          <section className="rounded-2xl border border-amber-300/30 bg-amber-400/10 p-4">
+          <section className="rounded-2xl border border-amber-200/80 bg-amber-50/60 p-4 shadow-sm">
             <div className="flex items-start justify-between gap-2">
               <div>
-                <h2 className="text-lg font-bold text-white">{htCopy.immigrationHubTitle}</h2>
-                <p className="mt-1 text-xs text-neutral-300">{htCopy.immigrationHubSubtitle}</p>
+                <h2 className="text-lg font-bold text-slate-900">{htCopy.immigrationHubTitle}</h2>
+                <p className="mt-1 text-xs text-slate-600">{htCopy.immigrationHubSubtitle}</p>
               </div>
               <Link
                 href={`/?timeframe=${timeframe}&category=immigration&popularityWindow=${popularityWindow}`}
-                className="shrink-0 text-xs text-amber-200 underline-offset-2 hover:text-amber-100 hover:underline"
+                className="shrink-0 text-xs font-medium text-amber-800 underline-offset-2 hover:underline"
               >
                 Gade tout →
               </Link>
@@ -328,11 +313,11 @@ export default async function Home({ searchParams }: HomePageProps) {
                     <Link
                       key={t.clusterId}
                       href={`/cluster/${t.clusterId}`}
-                      className="block rounded-lg border border-white/10 bg-black/20 p-3 transition hover:border-amber-300/50 hover:bg-black/30"
+                      className="block rounded-xl border border-amber-100 bg-white p-3 transition hover:border-amber-200 hover:shadow-sm"
                     >
-                      <p className="text-sm font-semibold text-amber-100">{t.title}</p>
-                      <p className="mt-1 line-clamp-2 text-xs text-neutral-300">{t.summary}</p>
-                      <p className="mt-2 text-[11px] text-amber-200/90">
+                      <p className="text-sm font-semibold text-slate-900">{t.title}</p>
+                      <p className="mt-1 line-clamp-2 text-xs text-slate-600">{t.summary}</p>
+                      <p className="mt-2 text-[11px] font-medium text-amber-800">
                         {htCopy.trendScoreLabel} {t.trendScore.toFixed(1)}
                       </p>
                     </Link>
@@ -341,26 +326,26 @@ export default async function Home({ searchParams }: HomePageProps) {
                     <Link
                       key={topic.title}
                       href={`/search?q=${encodeURIComponent(topic.title)}`}
-                      className="block rounded-lg border border-white/10 bg-black/20 p-3 transition hover:border-amber-300/50"
+                      className="block rounded-xl border border-amber-100 bg-white p-3 transition hover:border-amber-200"
                     >
-                      <p className="text-sm font-semibold text-amber-100">{topic.title}</p>
-                      <p className="mt-1 text-xs text-neutral-300">{topic.snippet}</p>
-                      <p className="mt-2 text-[11px] text-amber-200">{topic.sourceHint}</p>
+                      <p className="text-sm font-semibold text-slate-900">{topic.title}</p>
+                      <p className="mt-1 text-xs text-slate-600">{topic.snippet}</p>
+                      <p className="mt-2 text-[11px] text-amber-800">{topic.sourceHint}</p>
                     </Link>
                   ))}
             </div>
           </section>
 
-          <section className="rounded-2xl border border-violet-400/25 bg-violet-500/10 p-4">
-            <h2 className="text-lg font-bold text-white">{htCopy.weeklyProgramTitle}</h2>
-            <p className="mt-1 text-xs leading-relaxed text-neutral-300">{htCopy.weeklyProgramSubtitle}</p>
+          <section className="rounded-2xl border border-violet-200/80 bg-violet-50/50 p-4 shadow-sm">
+            <h2 className="text-lg font-bold text-slate-900">{htCopy.weeklyProgramTitle}</h2>
+            <p className="mt-1 text-xs leading-relaxed text-slate-600">{htCopy.weeklyProgramSubtitle}</p>
             {weeklyEventsError ? (
-              <p className="mt-2 rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-100">
+              <p className="mt-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
                 {weeklyEventsError}
               </p>
             ) : null}
             {!weeklyEventsError && weeklyEvents.length === 0 ? (
-              <p className="mt-3 text-sm text-neutral-400">{htCopy.weeklyProgramEmpty}</p>
+              <p className="mt-3 text-sm text-slate-500">{htCopy.weeklyProgramEmpty}</p>
             ) : null}
             <div className="mt-4 space-y-3">
               {weeklyEvents.map((ev) => (
@@ -369,7 +354,7 @@ export default async function Home({ searchParams }: HomePageProps) {
                   href={ev.externalUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="block rounded-lg border border-white/10 bg-black/25 p-3 transition hover:border-violet-300/50 hover:bg-black/35"
+                  className="block rounded-xl border border-violet-100 bg-white p-3 transition hover:border-violet-200 hover:shadow-sm"
                 >
                   <div className="flex gap-3">
                     {ev.imageUrl ? (
@@ -381,17 +366,17 @@ export default async function Home({ searchParams }: HomePageProps) {
                       />
                     ) : null}
                     <div className="min-w-0 flex-1">
-                      <p className="text-[11px] font-medium uppercase tracking-wide text-violet-200/90">
+                      <p className="text-[11px] font-medium uppercase tracking-wide text-violet-700">
                         {sourceDisplayLabel(ev.source)} · {formatCommunityEventStartsAt(ev.startsAt)}
                       </p>
-                      <p className="mt-1 text-sm font-semibold text-white">{ev.title}</p>
+                      <p className="mt-1 text-sm font-semibold text-slate-900">{ev.title}</p>
                       {ev.locationLabel ? (
-                        <p className="mt-0.5 text-xs text-neutral-400">{ev.locationLabel}</p>
+                        <p className="mt-0.5 text-xs text-slate-500">{ev.locationLabel}</p>
                       ) : null}
                       {ev.description ? (
-                        <p className="mt-1 line-clamp-2 text-xs text-neutral-300">{ev.description}</p>
+                        <p className="mt-1 line-clamp-2 text-xs text-slate-600">{ev.description}</p>
                       ) : null}
-                      <p className="mt-2 text-[11px] font-semibold text-violet-200">
+                      <p className="mt-2 text-[11px] font-semibold text-violet-700">
                         {htCopy.weeklyProgramExternalCta} ↗
                       </p>
                     </div>
@@ -399,14 +384,14 @@ export default async function Home({ searchParams }: HomePageProps) {
                 </a>
               ))}
             </div>
-            <p className="mt-4 text-xs font-semibold uppercase tracking-wide text-violet-200/90">
+            <p className="mt-4 text-xs font-semibold uppercase tracking-wide text-violet-700">
               {htCopy.weeklyProgramSourcesIntro}
             </p>
             <ul className="mt-2 flex flex-wrap gap-2">
               {weeklyProgramSourcePills.map((name) => (
                 <li
                   key={name}
-                  className="rounded-full border border-violet-400/30 bg-black/25 px-3 py-1 text-xs text-violet-100"
+                  className="rounded-full border border-violet-200 bg-white px-3 py-1 text-xs text-violet-800"
                 >
                   {name}
                 </li>
@@ -414,15 +399,15 @@ export default async function Home({ searchParams }: HomePageProps) {
             </ul>
           </section>
 
-          <section className="rounded-2xl border border-emerald-400/30 bg-emerald-500/10 p-4">
+          <section className="rounded-2xl border border-emerald-200/80 bg-emerald-50/50 p-4 shadow-sm">
             <div className="flex items-start justify-between gap-2">
               <div>
-                <h2 className="text-lg font-bold text-white">{htCopy.sportsHubTitle}</h2>
-                <p className="mt-1 text-xs text-neutral-300">{htCopy.sportsHubSubtitle}</p>
+                <h2 className="text-lg font-bold text-slate-900">{htCopy.sportsHubTitle}</h2>
+                <p className="mt-1 text-xs text-slate-600">{htCopy.sportsHubSubtitle}</p>
               </div>
               <Link
                 href={`/?timeframe=${timeframe}&category=sports&popularityWindow=${popularityWindow}`}
-                className="shrink-0 text-xs text-emerald-200 underline-offset-2 hover:text-emerald-100 hover:underline"
+                className="shrink-0 text-xs font-medium text-emerald-800 underline-offset-2 hover:underline"
               >
                 Gade tout →
               </Link>
@@ -433,11 +418,11 @@ export default async function Home({ searchParams }: HomePageProps) {
                     <Link
                       key={t.clusterId}
                       href={`/cluster/${t.clusterId}`}
-                      className="block rounded-lg border border-white/10 bg-black/20 p-3 transition hover:border-emerald-300/50 hover:bg-black/30"
+                      className="block rounded-xl border border-emerald-100 bg-white p-3 transition hover:border-emerald-200 hover:shadow-sm"
                     >
-                      <p className="text-sm font-semibold text-emerald-200">{t.title}</p>
-                      <p className="mt-1 line-clamp-2 text-xs text-neutral-300">{t.summary}</p>
-                      <p className="mt-2 text-[11px] text-emerald-200/90">
+                      <p className="text-sm font-semibold text-slate-900">{t.title}</p>
+                      <p className="mt-1 line-clamp-2 text-xs text-slate-600">{t.summary}</p>
+                      <p className="mt-2 text-[11px] font-medium text-emerald-800">
                         {htCopy.trendScoreLabel} {t.trendScore.toFixed(1)}
                       </p>
                     </Link>
@@ -446,23 +431,23 @@ export default async function Home({ searchParams }: HomePageProps) {
                     <Link
                       key={topic.title}
                       href={`/search?q=${encodeURIComponent(topic.title)}`}
-                      className="block rounded-lg border border-white/10 bg-black/20 p-3 transition hover:border-emerald-300/50"
+                      className="block rounded-xl border border-emerald-100 bg-white p-3 transition hover:border-emerald-200"
                     >
-                      <p className="text-sm font-semibold text-emerald-200">{topic.title}</p>
-                      <p className="mt-1 text-xs text-neutral-300">{topic.snippet}</p>
+                      <p className="text-sm font-semibold text-slate-900">{topic.title}</p>
+                      <p className="mt-1 text-xs text-slate-600">{topic.snippet}</p>
                     </Link>
                   ))}
             </div>
           </section>
 
-          <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-            <h2 className="text-lg font-bold text-white">{htCopy.categoryTitle}</h2>
+          <section className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm">
+            <h2 className="text-lg font-bold text-slate-900">{htCopy.categoryTitle}</h2>
             <div className="mt-3 flex flex-wrap gap-2">
               {HOME_CATEGORY_TAGS.map(({ label, category: cat }) => (
                 <Link
                   key={`${label}-${cat}`}
                   href={`/?timeframe=${timeframe}&category=${cat}&popularityWindow=${popularityWindow}`}
-                  className="rounded-full border border-white/20 bg-white/[0.02] px-2 py-1 text-xs text-neutral-300 transition hover:border-cyan-400/50 hover:text-white"
+                  className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs text-slate-700 transition hover:border-sky-300 hover:bg-sky-50 hover:text-sky-800"
                 >
                   #{label}
                 </Link>
@@ -470,17 +455,17 @@ export default async function Home({ searchParams }: HomePageProps) {
             </div>
           </section>
 
-          <section className="rounded-2xl border border-cyan-300/25 bg-cyan-400/10 p-4">
-            <h2 className="text-lg font-bold text-white">Lyen itil kominote a</h2>
+          <section className="rounded-2xl border border-sky-200/80 bg-sky-50/50 p-4 shadow-sm">
+            <h2 className="text-lg font-bold text-slate-900">Lyen itil kominote a</h2>
             <div className="mt-3 space-y-3">
               {communityResourceLinks.map((item) => (
                 <Link
                   key={item.title}
                   href={`/?timeframe=${timeframe}&category=${item.category}&popularityWindow=${popularityWindow}`}
-                  className="block rounded-lg border border-white/15 bg-black/20 p-3 transition hover:border-cyan-300/40"
+                  className="block rounded-xl border border-sky-100 bg-white p-3 transition hover:border-sky-200 hover:shadow-sm"
                 >
-                  <p className="text-sm font-semibold text-cyan-100">{item.title}</p>
-                  <p className="mt-1 text-xs text-neutral-300">{item.description}</p>
+                  <p className="text-sm font-semibold text-slate-900">{item.title}</p>
+                  <p className="mt-1 text-xs text-slate-600">{item.description}</p>
                 </Link>
               ))}
             </div>
@@ -488,18 +473,18 @@ export default async function Home({ searchParams }: HomePageProps) {
         </aside>
       </main>
 
-      <footer className="border-t border-white/10 bg-neutral-950/90">
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-4 text-xs text-neutral-400 sm:px-6">
+      <footer className="border-t border-slate-200 bg-white">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-4 text-xs text-slate-500 sm:px-6">
           <div className="space-y-1">
             <p>{htCopy.footerRights}</p>
             <p>
               {htCopy.footerContactLead}{" "}
-              <a href={`mailto:${contactEmail}`} className="text-cyan-200 hover:text-cyan-100">
+              <a href={`mailto:${contactEmail}`} className="text-sky-600 hover:text-sky-700">
                 {contactEmail}
               </a>
             </p>
             <p>
-              <Link href="/privacy" className="text-cyan-200 underline-offset-2 hover:text-cyan-100 hover:underline">
+              <Link href="/privacy" className="text-sky-600 underline-offset-2 hover:text-sky-700 hover:underline">
                 {htCopy.footerPrivacy}
               </Link>
             </p>

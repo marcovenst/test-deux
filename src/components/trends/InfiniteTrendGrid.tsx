@@ -112,7 +112,7 @@ export function InfiniteTrendGrid({
   return (
     <div className="space-y-4">
       {visibleCount > initialVisibleCount ? (
-        <div className="rounded-xl border border-fuchsia-300/25 bg-fuchsia-400/10 px-3 py-2 text-[11px] text-fuchsia-100">
+        <div className="rounded-xl border border-violet-200 bg-violet-50 px-3 py-2 text-[11px] text-violet-800">
           Sijesyon yo optimize pou entèraksyon, men yo rete balanse pou w ka wè tout kalite sijè.
         </div>
       ) : null}
@@ -123,7 +123,7 @@ export function InfiniteTrendGrid({
       </section>
 
       {hasMore ? (
-        <div ref={sentinelRef} className="flex justify-center py-4 text-xs text-neutral-400">
+        <div ref={sentinelRef} className="flex justify-center py-4 text-xs text-slate-500">
           Chaje plis istwa...
         </div>
       ) : null}

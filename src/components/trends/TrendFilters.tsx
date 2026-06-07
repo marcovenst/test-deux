@@ -1,9 +1,7 @@
 import Link from "next/link";
-import { categoryLabelsHt } from "@/lib/i18n/ht";
-import { TREND_CATEGORIES } from "@/lib/trends/categories";
 import { normalizePopularityWindow } from "@/lib/trends/popularity";
 
-const CATEGORIES = TREND_CATEGORIES;
+const POPULARITY_WINDOWS = ["1h", "5h", "24h"] as const;
 
 export function TrendFilters({
   selectedCategory,
@@ -15,40 +13,52 @@ export function TrendFilters({
   popularityWindow?: string;
 }) {
   const windowParam = normalizePopularityWindow(popularityWindow);
-  const qs = (cat: string, tf: string) =>
-    `/?timeframe=${tf}&category=${cat}&popularityWindow=${windowParam}`;
+  const qs = (tf: string, pop: string) =>
+    `/?timeframe=${tf}&category=${selectedCategory}&popularityWindow=${pop}`;
 
   return (
-    <div className="flex flex-col gap-4 rounded-2xl border border-white/10 bg-white/[0.03] p-4 md:flex-row md:items-center md:justify-between">
-      <div className="flex flex-wrap gap-2">
+    <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+      <div
+        className="inline-flex rounded-full border border-slate-200 bg-slate-100/80 p-1 shadow-inner"
+        role="group"
+        aria-label="Peryòd"
+      >
         {(["daily", "weekly"] as const).map((timeframe) => {
           const active = timeframe === selectedTimeframe;
           return (
             <Link
               key={timeframe}
-              href={qs(selectedCategory, timeframe)}
-              className={`rounded-full px-3 py-1 text-sm ${
-                active ? "bg-cyan-300 text-slate-900" : "border border-white/20 text-slate-300"
+              href={qs(timeframe, windowParam)}
+              className={`rounded-full px-4 py-1.5 text-sm font-medium transition ${
+                active
+                  ? "bg-white text-slate-900 shadow-sm"
+                  : "text-slate-600 hover:text-slate-900"
               }`}
             >
-              {timeframe === "daily" ? "jounen an" : "semèn nan"}
+              {timeframe === "daily" ? "Jounen an" : "Semèn nan"}
             </Link>
           );
         })}
       </div>
 
-      <div className="flex flex-wrap gap-2">
-        {CATEGORIES.map((category) => {
-          const active = category === selectedCategory;
+      <div
+        className="inline-flex rounded-full border border-slate-200 bg-slate-100/80 p-1 shadow-inner"
+        role="group"
+        aria-label="Fenèt popilarite"
+      >
+        {POPULARITY_WINDOWS.map((window) => {
+          const active = windowParam === window;
           return (
             <Link
-              key={category}
-              href={qs(category, selectedTimeframe)}
-              className={`rounded-full px-3 py-1 text-xs sm:text-sm ${
-                active ? "bg-white text-slate-900" : "border border-white/20 text-slate-300"
+              key={window}
+              href={qs(selectedTimeframe, window)}
+              className={`rounded-full px-3.5 py-1.5 text-sm font-medium transition ${
+                active
+                  ? "bg-slate-900 text-white shadow-sm"
+                  : "text-slate-600 hover:text-slate-900"
               }`}
             >
-              {categoryLabelsHt[category] ?? category}
+              {window}
             </Link>
           );
         })}
@@ -56,4 +66,3 @@ export function TrendFilters({
     </div>
   );
 }
-
