@@ -18,6 +18,15 @@ export const htCopy = {
   heroSubtitle:
     "Nou mete sijè ki cho yo devan, ak snippets klè pou w ka deside si w vle klike sou sous orijinal la.",
   megaTrendLabel: "Mega tandans",
+  dailyDigestBadge: "Rezime nouvèl",
+  dailyDigestTitleDaily: "Gwo istwa jounen an",
+  dailyDigestTitleWeekly: "Gwo istwa semèn nan",
+  dailyDigestIntroDaily:
+    "Men yon rezime an pwen sou pi gwo istwa k ap fè bri jodi a nan kominote ayisyen an — soti nan imigrasyon ak espò rive nan mizik, politik, ak sa k ap viral sou rezo yo.",
+  dailyDigestIntroWeekly:
+    "Men yon rezime an pwen sou pi gwo istwa ki te domine semèn nan pou kominote ayisyen an, ak kèk mo klè sou sa k ap pase.",
+  dailyDigestUpdated: "Dènye mizajou:",
+  dailyDigestReadMore: "Li plis sou istwa sa a",
   trendScoreLabel: "Nivo tandans",
   noData:
     "Pa gen done ap viv ankò. Lanse pipeline ingestion la pou chaje done yo epi wè tandans yo.",

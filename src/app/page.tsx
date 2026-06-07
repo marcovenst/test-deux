@@ -5,9 +5,9 @@ import { AdSlot } from "@/components/ads/AdSlot";
 import { SelfServeAdLauncher } from "@/components/ads/SelfServeAdLauncher";
 import { SelfServeAdStrip } from "@/components/ads/SelfServeAdStrip";
 import { SubscribeDrawer } from "@/components/subscribers/SubscribeDrawer";
+import { DailyDigest } from "@/components/trends/DailyDigest";
 import { InfiniteTrendGrid } from "@/components/trends/InfiniteTrendGrid";
 import { TrendFilters } from "@/components/trends/TrendFilters";
-import { TrendViewPing } from "@/components/trends/TrendViewPing";
 import { VideoSpotlight } from "@/components/trends/VideoSpotlight";
 import { communityResourceLinks, dailyHighlights } from "@/lib/content/editorial";
 import { immigrationHubTopics, sportsHubTopics } from "@/lib/content/influencers";
@@ -17,6 +17,7 @@ import {
   listUpcomingCommunityEvents,
   sourceDisplayLabel,
 } from "@/lib/events/weeklyProgram";
+import { buildDailyDigest } from "@/lib/trends/dailyDigest";
 import { buildHomeSidebarSlices } from "@/lib/trends/homeSidebar";
 import { normalizeTrendCategory } from "@/lib/trends/categories";
 import { normalizePopularityWindow } from "@/lib/trends/popularity";
@@ -88,8 +89,9 @@ export default async function Home({ searchParams }: HomePageProps) {
     sportsFeed,
   });
   const { events: weeklyEvents, error: weeklyEventsError } = await listUpcomingCommunityEvents(10);
-  const headliner = trends[0];
-  const moreTrends = trends.slice(1);
+  const digestBullets = buildDailyDigest(trends, 10);
+  const digestClusterIds = new Set(digestBullets.map((b) => b.clusterId));
+  const gridTrends = trends.filter((t) => !digestClusterIds.has(t.clusterId));
   const contactEmail = process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? htCopy.footerContactEmail;
   const scoresUpdatedAt = await getLatestScoresComputedAt(timeframe);
   const scoresUpdatedLabel =
@@ -186,62 +188,19 @@ export default async function Home({ searchParams }: HomePageProps) {
             </div>
           </section>
 
-          <AdSlot slotId="feedTop" format="horizontal" />
+          <DailyDigest
+            bullets={digestBullets}
+            timeframe={timeframe}
+            updatedLabel={scoresUpdatedLabel}
+          />
 
-          {headliner ? (
-            <section className="rounded-2xl border border-rose-200/80 bg-white p-5 shadow-sm sm:p-6">
-              <TrendViewPing clusterId={headliner.clusterId} />
-              <div className="mb-2 flex items-center justify-between text-xs text-slate-500">
-                <span className="rounded-full border border-rose-200 bg-rose-50 px-2.5 py-1 font-medium text-rose-700">
-                  {htCopy.megaTrendLabel}
-                </span>
-                <span>{htCopy.trendScoreLabel} {headliner.trendScore.toFixed(1)}</span>
-              </div>
-              <div className="mb-2 flex flex-wrap gap-2 text-[11px] text-slate-600">
-                <span className="rounded-full border border-slate-200 bg-slate-50 px-2 py-1">
-                  Popilarite entènèt {(headliner.popularityScore ?? 0).toFixed(1)}
-                </span>
-                <span className="rounded-full border border-slate-200 bg-slate-50 px-2 py-1">
-                  Google {(headliner.googleSearchScore ?? 0).toFixed(1)}
-                </span>
-                <span className="rounded-full border border-slate-200 bg-slate-50 px-2 py-1">
-                  Sosyal {(headliner.socialScore ?? 0).toFixed(1)}
-                </span>
-                <span className="rounded-full border border-slate-200 bg-slate-50 px-2 py-1">
-                  👁 {headliner.viewCount.toLocaleString()} views
-                </span>
-              </div>
-              <Link
-                href={`/cluster/${headliner.clusterId}`}
-                className="text-2xl font-bold leading-tight text-slate-900 transition hover:text-rose-600"
-              >
-                {headliner.title}
-              </Link>
-              <p className="mt-3 text-slate-600">{headliner.summary}</p>
-              <div className="mt-4 grid gap-2 sm:grid-cols-2">
-                {headliner.topSources.map((source) => (
-                  <a
-                    key={`${source.sourceName}-${source.sourceUrl}`}
-                    href={source.sourceUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm transition hover:border-rose-200 hover:bg-white"
-                  >
-                    <p className="font-medium text-slate-900">{source.sourceName}</p>
-                    <p className="line-clamp-2 text-xs text-slate-500">{source.snippet}</p>
-                  </a>
-                ))}
-              </div>
-            </section>
-          ) : null}
-
-          {moreTrends.length === 0 && !headliner ? (
+          {gridTrends.length > 0 ? (
+            <InfiniteTrendGrid trends={gridTrends} initialVisibleCount={8} chunkSize={8} />
+          ) : digestBullets.length === 0 ? (
             <div className="rounded-xl border border-slate-200 bg-white p-6 text-slate-600 shadow-sm">
               {htCopy.noData}
             </div>
-          ) : (
-            <InfiniteTrendGrid trends={moreTrends} initialVisibleCount={8} chunkSize={8} />
-          )}
+          ) : null}
 
           <AdSlot slotId="feedMid" format="rectangle" />
 

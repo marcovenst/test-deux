@@ -49,6 +49,34 @@ export function getAdsConfigFromEnv(): AdsConfig {
   };
 }
 
+const PLACEHOLDER_AD_SLOTS = new Set(["1000001", "1000002", "1000003"]);
+
+/** True when this slot can show real content (avoids empty gray AdSense placeholders). */
+export function isRenderableAdSlot(
+  ads: AdsConfig,
+  slotKey: keyof AdsConfig["slotIds"],
+): boolean {
+  if (!ads.enabled) {
+    return false;
+  }
+  if (ads.provider === "direct") {
+    const { imageUrl, targetUrl } = ads.directAd;
+    return Boolean(imageUrl?.trim() && targetUrl?.trim() && targetUrl !== "#");
+  }
+  if (ads.provider === "google") {
+    const client = ads.googleClientId.trim();
+    const slot = (ads.slotIds[slotKey] ?? "").trim();
+    if (!client.includes("pub-") || !slot) {
+      return false;
+    }
+    if (PLACEHOLDER_AD_SLOTS.has(slot)) {
+      return false;
+    }
+    return true;
+  }
+  return false;
+}
+
 export function mergeAdsConfig(base: AdsConfig, overrides?: AdsConfigOverrides | null): AdsConfig {
   if (!overrides) {
     return base;
