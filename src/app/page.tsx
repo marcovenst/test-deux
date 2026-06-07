@@ -89,7 +89,7 @@ export default async function Home({ searchParams }: HomePageProps) {
     sportsFeed,
   });
   const { events: weeklyEvents, error: weeklyEventsError } = await listUpcomingCommunityEvents(10);
-  const digestBullets = buildDailyDigest(trends, 10);
+  const digestBullets = buildDailyDigest(trends, 5);
   const digestClusterIds = new Set(digestBullets.map((b) => b.clusterId));
   const gridTrends = trends.filter((t) => !digestClusterIds.has(t.clusterId));
   const contactEmail = process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? htCopy.footerContactEmail;

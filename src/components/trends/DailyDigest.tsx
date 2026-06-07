@@ -11,67 +11,43 @@ type DailyDigestProps = {
 
 export function DailyDigest({ bullets, timeframe, updatedLabel }: DailyDigestProps) {
   if (bullets.length === 0) {
-    return (
-      <section className="rounded-2xl border border-slate-200/80 bg-white p-6 text-sm text-slate-600 shadow-sm">
-        {htCopy.noData}
-      </section>
-    );
+    return null;
   }
 
-  const intro =
-    timeframe === "weekly" ? htCopy.dailyDigestIntroWeekly : htCopy.dailyDigestIntroDaily;
-
   return (
-    <article className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm sm:p-8">
-      <header className="border-b border-slate-100 pb-4">
-        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-rose-600">
-          {htCopy.dailyDigestBadge}
-        </p>
-        <h2 className="mt-2 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+    <section className="rounded-xl border border-slate-200/80 bg-white px-4 py-3 shadow-sm">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <h2 className="text-sm font-bold text-slate-900">
           {timeframe === "weekly" ? htCopy.dailyDigestTitleWeekly : htCopy.dailyDigestTitleDaily}
         </h2>
-        <p className="mt-3 max-w-3xl text-sm leading-relaxed text-slate-600 sm:text-base">{intro}</p>
         {updatedLabel ? (
-          <p className="mt-2 text-xs text-slate-400">
+          <p className="text-[10px] text-slate-400">
             {htCopy.dailyDigestUpdated} {updatedLabel}
           </p>
         ) : null}
-      </header>
+      </div>
 
-      <ul className="mt-6 space-y-6">
+      <ol className="mt-2 space-y-1.5">
         {bullets.map((item, index) => (
-          <li key={item.clusterId} className="flex gap-4">
-            <span
-              className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-900 text-xs font-bold text-white"
-              aria-hidden
-            >
-              {index + 1}
+          <li key={item.clusterId} className="flex items-start gap-2 text-sm leading-snug">
+            <span className="mt-px w-4 shrink-0 text-right text-xs font-semibold text-slate-400" aria-hidden>
+              {index + 1}.
             </span>
-            <div className="min-w-0 flex-1">
-              <div className="mb-1 flex flex-wrap items-center gap-2">
-                <span className="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-slate-600">
-                  {item.trendCategory}
-                </span>
-              </div>
-              <h3 className="text-base font-semibold leading-snug text-slate-900 sm:text-lg">
-                <Link
-                  href={`/cluster/${item.clusterId}`}
-                  className="transition hover:text-rose-600"
-                >
-                  {item.title}
-                </Link>
-              </h3>
-              <p className="mt-2 text-sm leading-relaxed text-slate-600">{item.summary}</p>
-              <Link
-                href={`/cluster/${item.clusterId}`}
-                className="mt-2 inline-flex text-xs font-semibold text-sky-700 hover:text-sky-800"
-              >
-                {htCopy.dailyDigestReadMore} →
-              </Link>
-            </div>
+            <Link
+              href={`/cluster/${item.clusterId}`}
+              className="min-w-0 flex-1 font-medium text-slate-800 transition hover:text-rose-600"
+            >
+              {item.title}
+            </Link>
+            <span
+              className="shrink-0 tabular-nums text-[11px] text-slate-400"
+              title={htCopy.dailyDigestViews}
+            >
+              👁 {item.viewCount.toLocaleString()}
+            </span>
           </li>
         ))}
-      </ul>
-    </article>
+      </ol>
+    </section>
   );
 }

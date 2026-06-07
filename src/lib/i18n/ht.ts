@@ -26,6 +26,7 @@ export const htCopy = {
   dailyDigestIntroWeekly:
     "Men yon rezime an pwen sou pi gwo istwa ki te domine semèn nan pou kominote ayisyen an, ak kèk mo klè sou sa k ap pase.",
   dailyDigestUpdated: "Dènye mizajou:",
+  dailyDigestViews: "Kantite moun ki li istwa sa a",
   dailyDigestReadMore: "Li plis sou istwa sa a",
   trendScoreLabel: "Nivo tandans",
   noData:
