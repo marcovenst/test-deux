@@ -47,7 +47,7 @@ export const htCopy = {
   categoryTitle: "Kategori k ap pete",
   footerNote:
     "Zen Rezo A rasanble sous piblik yo sèlman. Toujou verifye enfòmasyon enpòtan yo ak sous ofisyèl.",
-  summaryListenTitle: "Rezime vwa",
+  summaryListenTitle: "Résumé vocal",
   summaryListenCtaPlay: "Koute",
   summaryListenCtaPause: "Kanpe",
   summaryListenHint:
