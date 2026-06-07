@@ -1,94 +1,77 @@
 import Link from "next/link";
 
 import { htCopy } from "@/lib/i18n/ht";
-import type { DailyDigestStory } from "@/lib/trends/dailyDigest";
+import type { DailyDigestBullet } from "@/lib/trends/dailyDigest";
 
 type DailyDigestProps = {
-  stories: DailyDigestStory[];
+  bullets: DailyDigestBullet[];
   timeframe: "daily" | "weekly";
+  updatedLabel?: string | null;
 };
 
-function categoryGradient(category: string) {
-  const key = category.toLowerCase();
-  if (key.includes("sport") || key.includes("esp")) {
-    return "from-emerald-500 to-teal-600";
-  }
-  if (key.includes("immig") || key.includes("diaspora")) {
-    return "from-amber-500 to-orange-600";
-  }
-  if (key.includes("mizik") || key.includes("music") || key.includes("viral")) {
-    return "from-fuchsia-500 to-purple-600";
-  }
-  return "from-sky-500 to-indigo-600";
-}
-
-export function DailyDigest({ stories, timeframe }: DailyDigestProps) {
-  if (stories.length === 0) {
-    return null;
+export function DailyDigest({ bullets, timeframe, updatedLabel }: DailyDigestProps) {
+  if (bullets.length === 0) {
+    return (
+      <section className="rounded-2xl border border-slate-200/80 bg-white p-6 text-sm text-slate-600 shadow-sm">
+        {htCopy.noData}
+      </section>
+    );
   }
 
-  const label =
-    timeframe === "weekly" ? htCopy.socialDigestLabelWeekly : htCopy.socialDigestLabelDaily;
+  const intro =
+    timeframe === "weekly" ? htCopy.dailyDigestIntroWeekly : htCopy.dailyDigestIntroDaily;
 
   return (
-    <section className="space-y-3">
-      <div className="flex items-center justify-between px-1">
-        <h2 className="text-[15px] font-bold text-zinc-900">{label}</h2>
-        <span className="text-xs text-zinc-500">{stories.length} pòs</span>
-      </div>
+    <article className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm sm:p-8">
+      <header className="border-b border-slate-100 pb-4">
+        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-rose-600">
+          {htCopy.dailyDigestBadge}
+        </p>
+        <h2 className="mt-2 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+          {timeframe === "weekly" ? htCopy.dailyDigestTitleWeekly : htCopy.dailyDigestTitleDaily}
+        </h2>
+        <p className="mt-3 max-w-3xl text-sm leading-relaxed text-slate-600 sm:text-base">{intro}</p>
+        {updatedLabel ? (
+          <p className="mt-2 text-xs text-slate-400">
+            {htCopy.dailyDigestUpdated} {updatedLabel}
+          </p>
+        ) : null}
+      </header>
 
-      <div className="space-y-3">
-        {stories.map((story) => (
-          <article
-            key={story.clusterId}
-            className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-zinc-200/80"
-          >
-            <header className="flex items-center gap-3 px-3 pb-2 pt-3">
-              <div
-                className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br text-xs font-bold text-white ${categoryGradient(story.trendCategory)}`}
-                aria-hidden
+      <ul className="mt-6 space-y-6">
+        {bullets.map((item, index) => (
+          <li key={item.clusterId} className="flex gap-4">
+            <span
+              className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-900 text-xs font-bold text-white"
+              aria-hidden
+            >
+              {index + 1}
+            </span>
+            <div className="min-w-0 flex-1">
+              <div className="mb-1 flex flex-wrap items-center gap-2">
+                <span className="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-slate-600">
+                  {item.trendCategory}
+                </span>
+              </div>
+              <h3 className="text-base font-semibold leading-snug text-slate-900 sm:text-lg">
+                <Link
+                  href={`/cluster/${item.clusterId}`}
+                  className="transition hover:text-rose-600"
+                >
+                  {item.title}
+                </Link>
+              </h3>
+              <p className="mt-2 text-sm leading-relaxed text-slate-600">{item.summary}</p>
+              <Link
+                href={`/cluster/${item.clusterId}`}
+                className="mt-2 inline-flex text-xs font-semibold text-sky-700 hover:text-sky-800"
               >
-                {story.trendCategory.slice(0, 2).toUpperCase()}
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold text-zinc-900">
-                  {story.sourceName ?? "Zen Rezo A"}
-                </p>
-                <p className="text-xs text-zinc-500">#{story.trendCategory} · {htCopy.socialDigestHot}</p>
-              </div>
-            </header>
-
-            <Link href={`/cluster/${story.clusterId}`} className="block">
-              {story.imageUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={story.imageUrl}
-                  alt=""
-                  className="aspect-[4/3] w-full object-cover sm:aspect-video"
-                />
-              ) : (
-                <div className="flex aspect-[2/1] w-full items-center justify-center bg-gradient-to-br from-zinc-100 to-zinc-200 text-3xl">
-                  🇭🇹
-                </div>
-              )}
-            </Link>
-
-            <div className="space-y-2 px-3 py-3">
-              <div className="flex flex-wrap gap-3 text-xs text-zinc-500">
-                <span>👁 {story.viewCount.toLocaleString()}</span>
-                <span>🔥 {story.socialScore.toFixed(0)}</span>
-                {story.totalVotes > 0 ? <span>💬 {story.totalVotes}</span> : null}
-              </div>
-              <Link href={`/cluster/${story.clusterId}`} className="block">
-                <p className="text-[15px] font-semibold leading-snug text-zinc-900">{story.title}</p>
-                <p className="mt-1 line-clamp-2 text-sm leading-relaxed text-zinc-600">
-                  {story.summary}
-                </p>
+                {htCopy.dailyDigestReadMore} →
               </Link>
             </div>
-          </article>
+          </li>
         ))}
-      </div>
-    </section>
+      </ul>
+    </article>
   );
 }

@@ -17,9 +17,9 @@ export function TrendFilters({
     `/?timeframe=${tf}&category=${selectedCategory}&popularityWindow=${pop}`;
 
   return (
-    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+    <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
       <div
-        className="inline-flex rounded-full bg-zinc-100 p-0.5"
+        className="inline-flex rounded-full border border-slate-200 bg-slate-100/80 p-1 shadow-inner"
         role="group"
         aria-label="Peryòd"
       >
@@ -42,7 +42,7 @@ export function TrendFilters({
       </div>
 
       <div
-        className="inline-flex rounded-full bg-zinc-100 p-0.5"
+        className="inline-flex rounded-full border border-slate-200 bg-slate-100/80 p-1 shadow-inner"
         role="group"
         aria-label="Fenèt popilarite"
       >
