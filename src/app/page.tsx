@@ -8,7 +8,6 @@ import { SubscribeDrawer } from "@/components/subscribers/SubscribeDrawer";
 import { DailyDigest } from "@/components/trends/DailyDigest";
 import { InfiniteTrendGrid } from "@/components/trends/InfiniteTrendGrid";
 import { TrendFilters } from "@/components/trends/TrendFilters";
-import { VideoSpotlight } from "@/components/trends/VideoSpotlight";
 import { communityResourceLinks, dailyHighlights } from "@/lib/content/editorial";
 import { immigrationHubTopics, sportsHubTopics } from "@/lib/content/influencers";
 import { htCopy, shopLaCailleCopy, weeklyProgramSourcePills } from "@/lib/i18n/ht";
@@ -245,8 +244,6 @@ export default async function Home({ searchParams }: HomePageProps) {
                   ))}
             </div>
           </section>
-
-          <VideoSpotlight trends={trends} />
         </section>
 
         <aside className="space-y-4">

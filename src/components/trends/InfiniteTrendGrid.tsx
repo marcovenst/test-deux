@@ -4,6 +4,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 import type { TrendFeedItem } from "@/lib/trends/query";
 import { TrendCard } from "@/components/trends/TrendCard";
+import { htCopy } from "@/lib/i18n/ht";
+import { splitTrendFeed } from "@/lib/trends/splitFeed";
 
 type InfiniteTrendGridProps = {
   trends: TrendFeedItem[];
@@ -51,7 +53,6 @@ export function InfiniteTrendGrid({
       buckets.set(key, list);
     }
 
-    // Balanced round-robin: keeps interaction optimization but avoids one-sided feeds.
     const balanced: TrendFeedItem[] = [];
     const categories = [...buckets.entries()]
       .sort((a, b) => (b[1][0]?.score ?? 0) - (a[1][0]?.score ?? 0))
@@ -79,6 +80,11 @@ export function InfiniteTrendGrid({
     return [...pinned, ...balanced];
   }, [trends, initialVisibleCount]);
 
+  const { videoTrends, articleTrends } = useMemo(
+    () => splitTrendFeed(orderedTrends.slice(0, visibleCount)),
+    [orderedTrends, visibleCount],
+  );
+
   useEffect(() => {
     setVisibleCount(initialVisibleCount);
   }, [initialVisibleCount, trends.length]);
@@ -103,29 +109,44 @@ export function InfiniteTrendGrid({
     return () => observer.disconnect();
   }, [chunkSize, orderedTrends.length]);
 
-  const visibleItems = useMemo(
-    () => orderedTrends.slice(0, visibleCount),
-    [orderedTrends, visibleCount],
-  );
   const hasMore = visibleCount < orderedTrends.length;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {visibleCount > initialVisibleCount ? (
         <div className="rounded-xl border border-violet-200 bg-violet-50 px-3 py-2 text-[11px] text-violet-800">
           Sijesyon yo optimize pou entèraksyon, men yo rete balanse pou w ka wè tout kalite sijè.
         </div>
       ) : null}
-      <section className="grid gap-4 md:grid-cols-2">
-        {visibleItems.map((trend) => {
-          const hasVideo = trend.topSources.some((source) => source.embedUrl || source.videoUrl);
-          return (
-            <div key={trend.clusterId} className={hasVideo ? "" : "md:col-span-2"}>
-              <TrendCard trend={trend} />
-            </div>
-          );
-        })}
-      </section>
+
+      {videoTrends.length > 0 ? (
+        <section className="space-y-3">
+          <div className="flex items-center justify-between gap-2">
+            <h2 className="text-sm font-bold uppercase tracking-[0.12em] text-violet-900">
+              {htCopy.videoFeedTitle}
+            </h2>
+            <p className="text-[11px] text-violet-700">YouTube, TikTok, Facebook, Instagram, X</p>
+          </div>
+          <div className="grid gap-4 md:grid-cols-2">
+            {videoTrends.map((trend) => (
+              <TrendCard key={trend.clusterId} trend={trend} />
+            ))}
+          </div>
+        </section>
+      ) : null}
+
+      {articleTrends.length > 0 ? (
+        <section className="space-y-3">
+          <h2 className="text-sm font-bold uppercase tracking-[0.12em] text-slate-800">
+            {htCopy.articleFeedTitle}
+          </h2>
+          <div className="space-y-4">
+            {articleTrends.map((trend) => (
+              <TrendCard key={trend.clusterId} trend={trend} />
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       {hasMore ? (
         <div ref={sentinelRef} className="flex justify-center py-4 text-xs text-slate-500">

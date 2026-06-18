@@ -50,6 +50,8 @@ export const htCopy = {
   newsCardLabel: "Nouvèl",
   newsCardReadFull: "Li tout istwa a",
   newsCardSources: "Sous",
+  videoFeedTitle: "Videyo k ap fè bri",
+  articleFeedTitle: "Nouvèl",
   summaryListenTitle: "Résumé vocal",
   summaryListenCtaPlay: "Koute",
   summaryListenCtaPause: "Kanpe",
