@@ -160,35 +160,75 @@ function detectFocusedPlatform(input: {
 }
 
 function getFallbackFeed(): TrendFeedItem[] {
-  return fallbackCreoleTrends.map((item, index) => ({
-    clusterId: `fallback-${index + 1}`,
-    title: item.title,
-    summary: item.summary,
-    trendCategory: item.trendCategory,
-    trendScore: item.trendScore,
-    viewCount: 0,
-    reactions: {
-      saRaz: 0,
-      saKomik: 0,
-      saEnteresan: 0,
-      totalVotes: 0,
+  const fallbackVideos: Record<
+    number,
+    { sourceName: string; sourceUrl: string; embedUrl: string; platform: string; snippet: string }
+  > = {
+    0: {
+      sourceName: "YouTube",
+      sourceUrl: "https://www.youtube.com/watch?v=kg3_vkhWVf4",
+      embedUrl: "https://www.youtube.com/embed/kg3_vkhWVf4",
+      platform: "youtube",
+      snippet: "Egzanp videyo sou mizik ak kilti ayisyen pandan done ap viv yo ap chaje.",
     },
-    reactionScore: 0,
-    playCount: 0,
-    averagePlaySeconds: 0,
-    interactionScore: 0,
-    sentiment: item.sentiment,
-    tags: item.tags,
-    sourceCount: item.sourceCount,
-    topSources: [
-      {
-        sourceName: "Koleksyon piblik entènèt",
-        sourceUrl: "#",
-        snippet: "Done tanporè pandan sistèm scraping ap ranmase done ap viv yo.",
+    3: {
+      sourceName: "FIFA",
+      sourceUrl: "https://www.youtube.com/watch?v=kg3_vkhWVf4",
+      embedUrl: "https://www.youtube.com/embed/kg3_vkhWVf4",
+      platform: "youtube",
+      snippet: "Highlights sou ekip nasyonal ayisyen an.",
+    },
+    4: {
+      sourceName: "Concacaf",
+      sourceUrl: "https://www.youtube.com/watch?v=0_JoMdKGU0s",
+      embedUrl: "https://www.youtube.com/embed/0_JoMdKGU0s",
+      platform: "youtube",
+      snippet: "Match ak analiz sou foutbòl ayisyen.",
+    },
+  };
+
+  return fallbackCreoleTrends.map((item, index) => {
+    const video = fallbackVideos[index];
+    return {
+      clusterId: `fallback-${index + 1}`,
+      title: item.title,
+      summary: item.summary,
+      trendCategory: item.trendCategory,
+      trendScore: item.trendScore,
+      viewCount: 0,
+      reactions: {
+        saRaz: 0,
+        saKomik: 0,
+        saEnteresan: 0,
+        totalVotes: 0,
       },
-    ],
-    influencers: haitianInfluencers.map((influencer) => influencer.name).slice(0, 2),
-  }));
+      reactionScore: 0,
+      playCount: 0,
+      averagePlaySeconds: 0,
+      interactionScore: 0,
+      sentiment: item.sentiment,
+      tags: item.tags,
+      sourceCount: item.sourceCount,
+      topSources: video
+        ? [video]
+        : [
+            {
+              sourceName: "Koleksyon piblik entènèt",
+              sourceUrl: "#",
+              snippet: "Done tanporè pandan sistèm scraping ap ranmase done ap viv yo.",
+            },
+          ],
+      influencers: haitianInfluencers.map((influencer) => influencer.name).slice(0, 2),
+    };
+  });
+}
+
+export function isFallbackClusterId(clusterId: string) {
+  return clusterId.startsWith("fallback-");
+}
+
+export function isFallbackTrendFeed(trends: TrendFeedItem[]) {
+  return trends.length > 0 && trends.every((trend) => isFallbackClusterId(trend.clusterId));
 }
 
 export function getInfluencerTopics(): InfluencerTopic[] {
@@ -293,7 +333,7 @@ export async function getTrendFeed(
     }
     const scoredClusterIds = Array.from(latestByCluster.keys());
     if (scoredClusterIds.length === 0) {
-      return [];
+      return getFallbackFeed();
     }
 
     const clusterMetaQuery = supabaseAdmin
@@ -305,7 +345,7 @@ export async function getTrendFeed(
       throw clusterError;
     }
     if (!clusterMetaRows || clusterMetaRows.length === 0) {
-      return [];
+      return getFallbackFeed();
     }
 
     const clusterMetaById = new Map(

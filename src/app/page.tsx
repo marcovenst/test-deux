@@ -6,6 +6,7 @@ import { SelfServeAdLauncher } from "@/components/ads/SelfServeAdLauncher";
 import { SelfServeAdStrip } from "@/components/ads/SelfServeAdStrip";
 import { SubscribeDrawer } from "@/components/subscribers/SubscribeDrawer";
 import { DailyDigest } from "@/components/trends/DailyDigest";
+import { FeedDataNotice } from "@/components/trends/FeedDataNotice";
 import { InfiniteTrendGrid } from "@/components/trends/InfiniteTrendGrid";
 import { TrendFilters } from "@/components/trends/TrendFilters";
 import { communityResourceLinks, dailyHighlights } from "@/lib/content/editorial";
@@ -20,7 +21,7 @@ import { buildDailyDigest } from "@/lib/trends/dailyDigest";
 import { buildHomeSidebarSlices } from "@/lib/trends/homeSidebar";
 import { normalizeTrendCategory } from "@/lib/trends/categories";
 import { normalizePopularityWindow } from "@/lib/trends/popularity";
-import { getLatestScoresComputedAt, getTrendFeed } from "@/lib/trends/query";
+import { getLatestScoresComputedAt, getTrendFeed, isFallbackTrendFeed } from "@/lib/trends/query";
 import {
   absoluteUrl,
   DEFAULT_DESCRIPTION,
@@ -91,6 +92,7 @@ export default async function Home({ searchParams }: HomePageProps) {
   const digestBullets = buildDailyDigest(trends, 5);
   const digestClusterIds = new Set(digestBullets.map((b) => b.clusterId));
   const gridTrends = trends.filter((t) => !digestClusterIds.has(t.clusterId));
+  const usingFallbackFeed = isFallbackTrendFeed(trends);
   const contactEmail = process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? htCopy.footerContactEmail;
   const scoresUpdatedAt = await getLatestScoresComputedAt(timeframe);
   const scoresUpdatedLabel =
@@ -192,6 +194,8 @@ export default async function Home({ searchParams }: HomePageProps) {
             timeframe={timeframe}
             updatedLabel={scoresUpdatedLabel}
           />
+
+          {usingFallbackFeed ? <FeedDataNotice /> : null}
 
           {gridTrends.length > 0 ? (
             <InfiniteTrendGrid trends={gridTrends} initialVisibleCount={8} chunkSize={8} />

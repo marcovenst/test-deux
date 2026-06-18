@@ -133,7 +133,14 @@ export function InfiniteTrendGrid({
             ))}
           </div>
         </section>
-      ) : null}
+      ) : (
+        <section className="space-y-2 rounded-xl border border-violet-200 bg-violet-50/60 px-4 py-3">
+          <h2 className="text-sm font-bold uppercase tracking-[0.12em] text-violet-900">
+            {htCopy.videoFeedTitle}
+          </h2>
+          <p className="text-xs leading-relaxed text-violet-900/80">{htCopy.videoFeedEmpty}</p>
+        </section>
+      )}
 
       {articleTrends.length > 0 ? (
         <section className="space-y-3">

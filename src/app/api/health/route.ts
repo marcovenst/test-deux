@@ -89,17 +89,24 @@ export async function GET() {
   ];
 
   let dbReachable = false;
+  let dbMessage = "cannot query Supabase";
   try {
     const { error } = await supabaseAdmin.from("clusters").select("id", { count: "exact", head: true });
     dbReachable = !error;
-  } catch {
+    if (error?.message) {
+      dbMessage = error.message;
+    }
+  } catch (error) {
     dbReachable = false;
+    if (error instanceof Error && error.message) {
+      dbMessage = error.message;
+    }
   }
 
   checks.push({
     name: "database-connection",
     ok: dbReachable,
-    message: dbReachable ? "reachable" : "cannot query Supabase",
+    message: dbReachable ? "reachable" : dbMessage,
   });
 
   const ok = checks.every(
