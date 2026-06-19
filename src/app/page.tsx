@@ -113,9 +113,11 @@ export default async function Home({ searchParams }: HomePageProps) {
             <p className="text-xs text-slate-500">{htCopy.tagLine}</p>
             {scoresUpdatedLabel ? (
               <p className="mt-1 text-[11px] text-slate-400">
-                Dènye skò tandans: {scoresUpdatedLabel} (Ayiti)
+                Dènye skò tandans: {scoresUpdatedLabel} (Ayiti) · {htCopy.feedHourlyNote}
               </p>
-            ) : null}
+            ) : (
+              <p className="mt-1 text-[11px] text-slate-400">{htCopy.feedHourlyNote}</p>
+            )}
             <div className="mt-2 flex flex-wrap items-center gap-2">
               <div className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] text-slate-600">
                 <span className="h-2 w-2 rounded-full bg-[#1D4ED8]" />

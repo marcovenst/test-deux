@@ -56,6 +56,7 @@ export const htCopy = {
   feedFallbackTitle: "Done ap viv yo poko chaje",
   feedFallbackBody:
     "Sit la montre egzanp pou kounye a paske li pa ka konekte ak baz done Supabase a. Verifye SUPABASE_URL ak SUPABASE_SERVICE_ROLE_KEY sou Vercel, epi relanse pipeline ingestion la.",
+  feedHourlyNote: "Nouvo istwa antre chak èdtan lè ingestion la ap mache.",
   summaryListenTitle: "Résumé vocal",
   summaryListenCtaPlay: "Koute",
   summaryListenCtaPause: "Kanpe",
