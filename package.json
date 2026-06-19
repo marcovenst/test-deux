@@ -5,6 +5,7 @@
   "scripts": {
     "pipeline:run": "node scripts/trigger-pipeline.mjs",
     "schedules:setup": "node scripts/setup-schedules.mjs",
+    "schedules:reset": "node scripts/reset-schedules.mjs",
     "dev": "next dev",
     "build": "next build --turbopack",
     "start": "next start",

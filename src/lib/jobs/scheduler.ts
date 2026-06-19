@@ -28,10 +28,20 @@ export async function setupQStashSchedules() {
     token: env.UPSTASH_QSTASH_TOKEN,
   });
 
+  const appOrigin = env.NEXT_PUBLIC_APP_URL.replace(/\/$/, "");
+  const existing = await client.schedules.list();
+  for (const schedule of existing) {
+    const destination = schedule.destination ?? "";
+    const isOurs = SCHEDULES.some((entry) => destination.includes(entry.destinationPath));
+    if (isOurs && schedule.scheduleId) {
+      await client.schedules.delete(schedule.scheduleId);
+    }
+  }
+
   const results: Array<{ destinationPath: string; scheduleId: string }> = [];
 
   for (const schedule of SCHEDULES) {
-    const destination = `${env.NEXT_PUBLIC_APP_URL}${schedule.destinationPath}`;
+    const destination = `${appOrigin}${schedule.destinationPath}`;
     const response = await client.schedules.create({
       destination,
       cron: schedule.cron,
