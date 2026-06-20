@@ -213,6 +213,46 @@ function getFallbackFeed(): TrendFeedItem[] {
       postTitle: "Yon viktwa ayiti vs brezil posib dapre reyaksyon pèp la",
       snippet: "Reyaksyon ak analiz sou dènye nouvèl politik ak espò.",
     },
+    5: {
+      sourceName: "The Haitian Times",
+      sourceUrl: "https://www.youtube.com/watch?v=t_unvfxpJb8",
+      embedUrl: "https://www.youtube.com/embed/t_unvfxpJb8",
+      platform: "youtube",
+      postTitle: "We're not going to come out and roll over",
+      snippet: "Grenadye yo pare pou defi Brezil la.",
+    },
+    6: {
+      sourceName: "Tele Pam",
+      sourceUrl: "https://www.youtube.com/watch?v=VfcbNkyiTaI",
+      embedUrl: "https://www.youtube.com/embed/VfcbNkyiTaI",
+      platform: "youtube",
+      postTitle: "ANN VIV AYISYEN KI REYINI NAN PHILADELPHIA K AP CHANTE",
+      snippet: "Dyaspora ayisyen nan Philadelphia ap chante pou ekip la.",
+    },
+    7: {
+      sourceName: "Voa Lakay",
+      sourceUrl: "https://www.youtube.com/watch?v=sVA0EpKl37Y",
+      embedUrl: "https://www.youtube.com/embed/sVA0EpKl37Y",
+      platform: "youtube",
+      postTitle: "BRESIL VS HAITI AN DIRÈK // KOUP DI MOND 2026",
+      snippet: "Match Ayiti vs Brezil ap fè bri sou entènèt.",
+    },
+    8: {
+      sourceName: "Zantray Media",
+      sourceUrl: "https://www.youtube.com/watch?v=HCcZps0n1ik",
+      embedUrl: "https://www.youtube.com/embed/HCcZps0n1ik",
+      platform: "youtube",
+      postTitle: "Ayiti Pral Fwonte Brezil, Grenadye Yo Voye",
+      snippet: "Medya ayisyen ap debat sou chans ekip nasyonal la.",
+    },
+    9: {
+      sourceName: "Radio Television Caraïbes",
+      sourceUrl: "https://www.youtube.com/watch?v=UoKipEv-8-c",
+      embedUrl: "https://www.youtube.com/embed/UoKipEv-8-c",
+      platform: "youtube",
+      postTitle: "Reyaksyon Anbasadè Brazil la sou Match Ayiti vs Brazil",
+      snippet: "Diplomatik ak medya lokal ap kòmantè sou match la.",
+    },
   };
 
   return fallbackCreoleTrends.map((item, index) => {
@@ -381,7 +421,7 @@ export async function getTrendFeed(
       clusterMetaRows.map((cluster) => [cluster.id as string, cluster]),
     );
     const scopedScoredIds = scoredClusterIds.filter((id) => clusterMetaById.has(id));
-    const baseClusterIds = scopedScoredIds.slice(0, 40);
+    const baseClusterIds = scopedScoredIds.slice(0, 72);
 
     const { data: reactionRows } = await supabaseAdmin
       .from("cluster_reaction_votes")
@@ -462,7 +502,7 @@ export async function getTrendFeed(
           (latestByCluster.get(b)?.score ?? 0) - (latestByCluster.get(a)?.score ?? 0)
         );
       })
-      .slice(0, 20);
+      .slice(0, 36);
 
     const clusterIds =
       boostedCategories.size > 0 ? [...baseClusterIds, ...relatedCandidates] : baseClusterIds;

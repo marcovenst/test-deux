@@ -200,7 +200,7 @@ export default async function Home({ searchParams }: HomePageProps) {
           {usingFallbackFeed ? <FeedDataNotice /> : null}
 
           {gridTrends.length > 0 ? (
-            <InfiniteTrendGrid trends={gridTrends} initialVisibleCount={8} chunkSize={8} />
+            <InfiniteTrendGrid trends={gridTrends} initialVisibleCount={6} chunkSize={6} />
           ) : digestBullets.length === 0 ? (
             <div className="rounded-xl border border-white/10 bg-black/20 p-6 text-neutral-300">
               {htCopy.noData}

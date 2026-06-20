@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import type { TrendFeedItem } from "@/lib/trends/query";
 import { TrendCard } from "@/components/trends/TrendCard";
 import { htCopy } from "@/lib/i18n/ht";
+import { nextFeedVisibleCount } from "@/lib/trends/infiniteFeed";
 import { splitTrendFeed } from "@/lib/trends/splitFeed";
 
 type InfiniteTrendGridProps = {
@@ -15,11 +16,13 @@ type InfiniteTrendGridProps = {
 
 export function InfiniteTrendGrid({
   trends,
-  initialVisibleCount = 8,
-  chunkSize = 8,
+  initialVisibleCount = 6,
+  chunkSize = 6,
 }: InfiniteTrendGridProps) {
   const [visibleCount, setVisibleCount] = useState(initialVisibleCount);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
+  const totalRef = useRef(0);
 
   const orderedTrends = useMemo(() => {
     if (trends.length <= initialVisibleCount) {
@@ -80,16 +83,30 @@ export function InfiniteTrendGrid({
     return [...pinned, ...balanced];
   }, [trends, initialVisibleCount]);
 
+  totalRef.current = orderedTrends.length;
+
   const { videoTrends, articleTrends } = useMemo(
     () => splitTrendFeed(orderedTrends.slice(0, visibleCount)),
     [orderedTrends, visibleCount],
   );
 
-  useEffect(() => {
-    setVisibleCount(initialVisibleCount);
-  }, [initialVisibleCount, trends.length]);
+  const hasMore = visibleCount < orderedTrends.length;
+
+  const loadMore = useCallback(() => {
+    setVisibleCount((current) => nextFeedVisibleCount(current, totalRef.current, chunkSize));
+  }, [chunkSize]);
 
   useEffect(() => {
+    setVisibleCount(initialVisibleCount);
+    setIsLoadingMore(false);
+  }, [initialVisibleCount, trends]);
+
+  useEffect(() => {
+    if (!hasMore) {
+      setIsLoadingMore(false);
+      return;
+    }
+
     const node = sentinelRef.current;
     if (!node) {
       return;
@@ -100,16 +117,21 @@ export function InfiniteTrendGrid({
         if (!entries.some((entry) => entry.isIntersecting)) {
           return;
         }
-        setVisibleCount((current) => Math.min(orderedTrends.length, current + chunkSize));
+        setIsLoadingMore(true);
+        loadMore();
       },
-      { rootMargin: "800px 0px" },
+      { rootMargin: "320px 0px", threshold: 0.01 },
     );
 
     observer.observe(node);
     return () => observer.disconnect();
-  }, [chunkSize, orderedTrends.length]);
+  }, [hasMore, loadMore, visibleCount, orderedTrends.length]);
 
-  const hasMore = visibleCount < orderedTrends.length;
+  useEffect(() => {
+    if (isLoadingMore) {
+      setIsLoadingMore(false);
+    }
+  }, [visibleCount, isLoadingMore]);
 
   return (
     <div className="space-y-6">
@@ -156,9 +178,24 @@ export function InfiniteTrendGrid({
       ) : null}
 
       {hasMore ? (
-        <div ref={sentinelRef} className="flex justify-center py-4 text-xs text-neutral-500">
-          Chaje plis istwa...
+        <div
+          ref={sentinelRef}
+          className="flex flex-col items-center justify-center gap-3 py-6"
+          aria-live="polite"
+        >
+          <p className="text-xs text-neutral-500">
+            {isLoadingMore ? "N ap chaje plis istwa..." : "Desann pou chaje plis istwa..."}
+          </p>
+          <button
+            type="button"
+            onClick={loadMore}
+            className="rounded-full border border-white/20 bg-white/[0.04] px-4 py-2 text-xs font-semibold text-neutral-200 transition hover:border-cyan-300/50 hover:text-white"
+          >
+            Chaje plis istwa
+          </button>
         </div>
+      ) : orderedTrends.length > initialVisibleCount ? (
+        <p className="py-4 text-center text-xs text-neutral-500">Ou rive nan fen feed la pou kounye a.</p>
       ) : null}
     </div>
   );
