@@ -88,8 +88,8 @@ export function SelfServeAdLauncher({
         onClick={() => setOpen(true)}
         className={
           subtle
-            ? "rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 shadow-sm transition hover:border-sky-300 hover:text-sky-700"
-            : "rounded-full border border-sky-200 bg-sky-50 px-4 py-2 text-xs font-semibold text-sky-800 transition hover:bg-sky-100"
+            ? "rounded-full border border-white/15 bg-white/[0.04] px-3 py-1.5 text-xs font-semibold text-neutral-300 transition hover:border-cyan-300/50 hover:text-white"
+            : "rounded-full border border-white/20 bg-white/[0.04] px-4 py-2 text-xs font-semibold text-white transition hover:border-cyan-300/50 hover:bg-white/10"
         }
       >
         {buttonLabel}

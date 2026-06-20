@@ -12,7 +12,7 @@ export function SubscribeDrawer() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="rounded-full border border-sky-200 bg-sky-50 px-4 py-2 text-sm font-semibold text-sky-800 transition hover:bg-sky-100"
+        className="rounded-full border border-white/20 bg-white/[0.04] px-4 py-2 text-sm font-semibold text-white transition hover:border-cyan-300/50 hover:bg-white/10"
       >
         Abòne
       </button>

@@ -19,7 +19,7 @@ export function TrendFilters({
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
       <div
-        className="inline-flex rounded-full border border-slate-200 bg-slate-100/80 p-1 shadow-inner"
+        className="inline-flex rounded-full border border-white/15 bg-black/30 p-1"
         role="group"
         aria-label="Peryòd"
       >
@@ -31,8 +31,8 @@ export function TrendFilters({
               href={qs(timeframe, windowParam)}
               className={`rounded-full px-4 py-1.5 text-sm font-medium transition ${
                 active
-                  ? "bg-white text-slate-900 shadow-sm"
-                  : "text-slate-600 hover:text-slate-900"
+                  ? "bg-white text-neutral-900 shadow-sm"
+                  : "text-neutral-300 hover:text-white"
               }`}
             >
               {timeframe === "daily" ? "Jounen an" : "Semèn nan"}
@@ -42,7 +42,7 @@ export function TrendFilters({
       </div>
 
       <div
-        className="inline-flex rounded-full border border-slate-200 bg-slate-100/80 p-1 shadow-inner"
+        className="inline-flex rounded-full border border-white/15 bg-black/30 p-1"
         role="group"
         aria-label="Fenèt popilarite"
       >
@@ -54,8 +54,8 @@ export function TrendFilters({
               href={qs(selectedTimeframe, window)}
               className={`rounded-full px-3.5 py-1.5 text-sm font-medium transition ${
                 active
-                  ? "bg-slate-900 text-white shadow-sm"
-                  : "text-slate-600 hover:text-slate-900"
+                  ? "bg-cyan-400/20 text-cyan-100 shadow-sm"
+                  : "text-neutral-300 hover:text-white"
               }`}
             >
               {window}

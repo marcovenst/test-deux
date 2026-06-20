@@ -32,7 +32,7 @@ function googleSiteVerification(): Record<string, string> | undefined {
 }
 
 export const viewport: Viewport = {
-  themeColor: "#f8fafc",
+  themeColor: "#0a0a0a",
   width: "device-width",
   initialScale: 1,
 };

@@ -87,7 +87,7 @@ export function AdSlot({ slotId, className, format = "auto" }: AdSlotProps) {
 
   if (ads.provider === "google" && ads.googleClientId) {
     return (
-      <div className={`rounded-xl border border-slate-200 bg-slate-50 p-2 ${className ?? ""}`}>
+      <div className={`rounded-xl border border-white/10 bg-black/20 p-2 ${className ?? ""}`}>
         <ins
           className={`adsbygoogle block w-full overflow-hidden rounded-md ${adFormatClass(format)}`}
           style={{ display: "block" }}

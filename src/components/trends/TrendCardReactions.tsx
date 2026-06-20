@@ -32,17 +32,17 @@ export function TrendCardReactions({ engagement }: TrendCardReactionsProps) {
   } = engagement;
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-slate-50 p-2.5">
-      <p className="text-[10px] uppercase tracking-[0.12em] text-slate-500">
+    <div className="rounded-xl border border-white/10 bg-black/20 p-2.5">
+      <p className="text-[10px] uppercase tracking-[0.12em] text-slate-400">
         Ki jan ou te wè post sa?
       </p>
       {selectedReaction ? (
         <div className="mt-2 space-y-2 text-[11px]">
           {(
             [
-              { key: "sa_raz", label: "Raz", emoji: "🪫", activeClass: "bg-rose-50 text-rose-800" },
-              { key: "sa_komik", label: "Komik", emoji: "😂", activeClass: "bg-amber-50 text-amber-800" },
-              { key: "sa_enteresan", label: "Enteresan", emoji: "🔥", activeClass: "bg-sky-50 text-sky-800" },
+              { key: "sa_raz", label: "Raz", emoji: "🪫", activeClass: "bg-rose-400/15 text-rose-200" },
+              { key: "sa_komik", label: "Komik", emoji: "😂", activeClass: "bg-amber-400/15 text-amber-200" },
+              { key: "sa_enteresan", label: "Enteresan", emoji: "🔥", activeClass: "bg-cyan-400/15 text-cyan-200" },
             ] as const
           ).map((option) => {
             const percent = reactionPercentForKey(option.key, reactionBreakdown);
@@ -50,8 +50,8 @@ export function TrendCardReactions({ engagement }: TrendCardReactionsProps) {
             return (
               <div
                 key={option.key}
-                className={`relative overflow-hidden rounded-lg border border-slate-200 px-3 py-2 ${
-                  isSelected ? option.activeClass : "bg-white text-slate-700"
+                className={`relative overflow-hidden rounded-lg border border-white/15 px-3 py-2 ${
+                  isSelected ? option.activeClass : "bg-black/20 text-slate-200"
                 }`}
               >
                 <div
@@ -67,7 +67,7 @@ export function TrendCardReactions({ engagement }: TrendCardReactionsProps) {
               </div>
             );
           })}
-          <div className="pt-0.5 text-[10px] text-slate-500">{reactionTotals.totalVotes} vòt</div>
+          <div className="pt-0.5 text-[10px] text-slate-400">{reactionTotals.totalVotes} vòt</div>
         </div>
       ) : (
         <>
@@ -78,8 +78,8 @@ export function TrendCardReactions({ engagement }: TrendCardReactionsProps) {
               disabled={isSubmittingReaction}
               className={`rounded-lg border px-2 py-2 transition ${
                 selectedReaction === "sa_raz"
-                  ? "border-rose-300 bg-rose-50 text-rose-800"
-                  : "border-slate-200 bg-white text-slate-700 hover:border-rose-300"
+                  ? "border-rose-400/40 bg-rose-400/15 text-rose-200"
+                  : "border-white/15 bg-black/20 text-slate-200 hover:border-rose-400/40"
               } ${animatingReaction === "sa_raz" ? "zra-reaction-raz" : ""}`}
             >
               <span className="inline-flex items-center gap-1.5">
@@ -93,8 +93,8 @@ export function TrendCardReactions({ engagement }: TrendCardReactionsProps) {
               disabled={isSubmittingReaction}
               className={`rounded-lg border px-2 py-2 transition ${
                 selectedReaction === "sa_komik"
-                  ? "border-amber-300 bg-amber-50 text-amber-800"
-                  : "border-slate-200 bg-white text-slate-700 hover:border-amber-300"
+                  ? "border-amber-400/40 bg-amber-400/15 text-amber-200"
+                  : "border-white/15 bg-black/20 text-slate-200 hover:border-amber-400/40"
               } ${animatingReaction === "sa_komik" ? "zra-reaction-komik" : ""}`}
             >
               <span className="inline-flex items-center gap-1.5">
@@ -108,8 +108,8 @@ export function TrendCardReactions({ engagement }: TrendCardReactionsProps) {
               disabled={isSubmittingReaction}
               className={`rounded-lg border px-2 py-2 transition ${
                 selectedReaction === "sa_enteresan"
-                  ? "border-sky-300 bg-sky-50 text-sky-800"
-                  : "border-slate-200 bg-white text-slate-700 hover:border-sky-300"
+                  ? "border-cyan-400/40 bg-cyan-400/15 text-cyan-200"
+                  : "border-white/15 bg-black/20 text-slate-200 hover:border-cyan-400/40"
               } ${animatingReaction === "sa_enteresan" ? "zra-reaction-enteresan" : ""}`}
             >
               <span className="inline-flex items-center gap-1.5">
@@ -118,7 +118,7 @@ export function TrendCardReactions({ engagement }: TrendCardReactionsProps) {
               </span>
             </button>
           </div>
-          <p className="mt-2 text-[10px] text-slate-500">Klike sou yon bouton pou wè rezilta yo.</p>
+          <p className="mt-2 text-[10px] text-slate-400">Klike sou yon bouton pou wè rezilta yo.</p>
         </>
       )}
       <style jsx>{`

@@ -15,13 +15,13 @@ export function DailyDigest({ bullets, timeframe, updatedLabel }: DailyDigestPro
   }
 
   return (
-    <section className="rounded-xl border border-slate-200/80 bg-white px-4 py-3 shadow-sm">
+    <section className="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 shadow-lg shadow-black/20">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h2 className="text-sm font-bold text-slate-900">
+        <h2 className="text-sm font-bold text-white">
           {timeframe === "weekly" ? htCopy.dailyDigestTitleWeekly : htCopy.dailyDigestTitleDaily}
         </h2>
         {updatedLabel ? (
-          <p className="text-[10px] text-slate-400">
+          <p className="text-[10px] text-neutral-500">
             {htCopy.dailyDigestUpdated} {updatedLabel}
           </p>
         ) : null}
@@ -30,17 +30,17 @@ export function DailyDigest({ bullets, timeframe, updatedLabel }: DailyDigestPro
       <ol className="mt-2 space-y-1.5">
         {bullets.map((item, index) => (
           <li key={item.clusterId} className="flex items-start gap-2 text-sm leading-snug">
-            <span className="mt-px w-4 shrink-0 text-right text-xs font-semibold text-slate-400" aria-hidden>
+            <span className="mt-px w-4 shrink-0 text-right text-xs font-semibold text-neutral-500" aria-hidden>
               {index + 1}.
             </span>
             <Link
               href={`/cluster/${item.clusterId}`}
-              className="min-w-0 flex-1 font-medium text-slate-800 transition hover:text-rose-600"
+              className="min-w-0 flex-1 font-medium text-neutral-200 transition hover:text-cyan-200"
             >
               {item.title}
             </Link>
             <span
-              className="shrink-0 tabular-nums text-[11px] text-slate-400"
+              className="shrink-0 tabular-nums text-[11px] text-neutral-500"
               title={htCopy.dailyDigestViews}
             >
               👁 {item.viewCount.toLocaleString()}

@@ -114,7 +114,7 @@ export function InfiniteTrendGrid({
   return (
     <div className="space-y-6">
       {visibleCount > initialVisibleCount ? (
-        <div className="rounded-xl border border-violet-200 bg-violet-50 px-3 py-2 text-[11px] text-violet-800">
+        <div className="rounded-xl border border-violet-400/25 bg-violet-400/10 px-3 py-2 text-[11px] text-violet-200">
           Sijesyon yo optimize pou entèraksyon, men yo rete balanse pou w ka wè tout kalite sijè.
         </div>
       ) : null}
@@ -122,10 +122,10 @@ export function InfiniteTrendGrid({
       {videoTrends.length > 0 ? (
         <section className="space-y-3">
           <div className="flex items-center justify-between gap-2">
-            <h2 className="text-sm font-bold uppercase tracking-[0.12em] text-violet-900">
+            <h2 className="text-sm font-bold uppercase tracking-[0.12em] text-violet-200">
               {htCopy.videoFeedTitle}
             </h2>
-            <p className="text-[11px] text-violet-700">YouTube, TikTok, Facebook, Instagram, X</p>
+            <p className="text-[11px] text-violet-300/80">YouTube, TikTok, Facebook, Instagram, X</p>
           </div>
           <div className="grid gap-4 md:grid-cols-2">
             {videoTrends.map((trend) => (
@@ -134,17 +134,17 @@ export function InfiniteTrendGrid({
           </div>
         </section>
       ) : (
-        <section className="space-y-2 rounded-xl border border-violet-200 bg-violet-50/60 px-4 py-3">
-          <h2 className="text-sm font-bold uppercase tracking-[0.12em] text-violet-900">
+        <section className="space-y-2 rounded-xl border border-violet-400/25 bg-violet-400/10 px-4 py-3">
+          <h2 className="text-sm font-bold uppercase tracking-[0.12em] text-violet-200">
             {htCopy.videoFeedTitle}
           </h2>
-          <p className="text-xs leading-relaxed text-violet-900/80">{htCopy.videoFeedEmpty}</p>
+          <p className="text-xs leading-relaxed text-violet-200/80">{htCopy.videoFeedEmpty}</p>
         </section>
       )}
 
       {articleTrends.length > 0 ? (
         <section className="space-y-3">
-          <h2 className="text-sm font-bold uppercase tracking-[0.12em] text-slate-800">
+          <h2 className="text-sm font-bold uppercase tracking-[0.12em] text-neutral-200">
             {htCopy.articleFeedTitle}
           </h2>
           <div className="space-y-4">
@@ -156,7 +156,7 @@ export function InfiniteTrendGrid({
       ) : null}
 
       {hasMore ? (
-        <div ref={sentinelRef} className="flex justify-center py-4 text-xs text-slate-500">
+        <div ref={sentinelRef} className="flex justify-center py-4 text-xs text-neutral-500">
           Chaje plis istwa...
         </div>
       ) : null}
