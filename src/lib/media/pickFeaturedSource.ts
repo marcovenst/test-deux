@@ -14,6 +14,7 @@ type SourceLike = {
   embedUrl?: string;
   videoUrl?: string;
   imageUrl?: string;
+  postTitle?: string;
 };
 
 export function pickFeaturedVideoSource<T extends SourceLike>(sources: T[]): T | null {
@@ -30,4 +31,23 @@ export function pickFeaturedImageSource<T extends SourceLike>(sources: T[]): T |
   return [...withImage].sort(
     (a, b) => socialSourceUrlRank(a.sourceUrl) - socialSourceUrlRank(b.sourceUrl),
   )[0]!;
+}
+
+/** Prefer the original headline from the source that drives the card media. */
+export function pickFeaturedPostTitle<T extends SourceLike>(sources: T[]): string | null {
+  const video = pickFeaturedVideoSource(sources);
+  if (video?.postTitle?.trim()) {
+    return video.postTitle.trim();
+  }
+  const image = pickFeaturedImageSource(sources);
+  if (image?.postTitle?.trim()) {
+    return image.postTitle.trim();
+  }
+  for (const source of sources) {
+    const title = source.postTitle?.trim();
+    if (title) {
+      return title;
+    }
+  }
+  return null;
 }

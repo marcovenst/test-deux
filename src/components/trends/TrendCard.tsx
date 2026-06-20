@@ -223,7 +223,7 @@ function VideoTrendCard({
           >
             <iframe
               src={embedUrl}
-              title={`trend-video-${trend.clusterId}`}
+              title={`trend-video-${trend.title}`}
               className="h-full w-full"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
               allowFullScreen

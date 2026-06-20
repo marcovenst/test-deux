@@ -3,6 +3,7 @@ import { unstable_noStore } from "next/cache";
 import { supabaseAdmin } from "@/lib/db/client";
 import { fallbackCreoleTrends, haitianInfluencers } from "@/lib/content/influencers";
 import { extractPostMedia } from "@/lib/media/postMedia";
+import { pickFeaturedPostTitle } from "@/lib/media/pickFeaturedSource";
 import {
   computeSocialPopularityScore,
   extractCandidateKeywords,
@@ -41,6 +42,7 @@ export type TrendFeedItem = {
     sourceName: string;
     sourceUrl: string;
     snippet: string;
+    postTitle?: string;
     platform?: string;
     imageUrl?: string;
     videoUrl?: string;
@@ -162,13 +164,21 @@ function detectFocusedPlatform(input: {
 function getFallbackFeed(): TrendFeedItem[] {
   const fallbackVideos: Record<
     number,
-    { sourceName: string; sourceUrl: string; embedUrl: string; platform: string; snippet: string }
+    {
+      sourceName: string;
+      sourceUrl: string;
+      embedUrl: string;
+      platform: string;
+      snippet: string;
+      postTitle: string;
+    }
   > = {
     0: {
       sourceName: "The Haitian Times",
       sourceUrl: "https://www.youtube.com/watch?v=Yu-ywsl83W8",
       embedUrl: "https://www.youtube.com/embed/Yu-ywsl83W8",
       platform: "youtube",
+      postTitle: "Haiti's loss to Brazil with Derrick Etienne Jr.",
       snippet: "Dènye bri sou ekip nasyonal la ak kominote espò ayisyen an.",
     },
     1: {
@@ -176,6 +186,7 @@ function getFallbackFeed(): TrendFeedItem[] {
       sourceUrl: "https://www.youtube.com/watch?v=juH4Uaqc1YY",
       embedUrl: "https://www.youtube.com/embed/juH4Uaqc1YY",
       platform: "youtube",
+      postTitle: "SI NOU TA MET PIERROT FÈ YON CHITA SOU BAN, SANN T AP PALE",
       snippet: "Videyo sou dyaspora ak reyaksyon kominote ayisyen yo.",
     },
     2: {
@@ -183,13 +194,15 @@ function getFallbackFeed(): TrendFeedItem[] {
       sourceUrl: "https://www.youtube.com/watch?v=O8zSBLS1thI",
       embedUrl: "https://www.youtube.com/embed/O8zSBLS1thI",
       platform: "youtube",
+      postTitle: "BRESIL vs HAÏTI EN DIRECT | HAÏTI PEUT-ELLE CRÉER LA SURPRISE?",
       snippet: "Nouvèl aktyèl sou Ayiti an Kreyòl pandan done ap viv yo ap chaje.",
     },
     3: {
-      sourceName: "Zantray Media",
+      sourceName: "Peeterson St Dic",
       sourceUrl: "https://www.youtube.com/watch?v=fT0_Gc0YeSE",
       embedUrl: "https://www.youtube.com/embed/fT0_Gc0YeSE",
       platform: "youtube",
+      postTitle: "HAITI VS BRAZIL. GRENADYE YO PARE E NOU PRAL FE LISTWA",
       snippet: "Grenadye yo — dènye analiz ak reyaksyon sou match yo.",
     },
     4: {
@@ -197,15 +210,25 @@ function getFallbackFeed(): TrendFeedItem[] {
       sourceUrl: "https://www.youtube.com/watch?v=GQQXmyeOhHA",
       embedUrl: "https://www.youtube.com/embed/GQQXmyeOhHA",
       platform: "youtube",
+      postTitle: "Yon viktwa ayiti vs brezil posib dapre reyaksyon pèp la",
       snippet: "Reyaksyon ak analiz sou dènye nouvèl politik ak espò.",
     },
   };
 
   return fallbackCreoleTrends.map((item, index) => {
     const video = fallbackVideos[index];
+    const topSources = video
+      ? [video]
+      : [
+          {
+            sourceName: "Koleksyon piblik entènèt",
+            sourceUrl: "#",
+            snippet: "Done tanporè pandan sistèm scraping ap ranmase done ap viv yo.",
+          },
+        ];
     return {
       clusterId: `fallback-${index + 1}`,
-      title: item.title,
+      title: video?.postTitle ?? item.title,
       summary: item.summary,
       trendCategory: item.trendCategory,
       trendScore: item.trendScore,
@@ -223,15 +246,7 @@ function getFallbackFeed(): TrendFeedItem[] {
       sentiment: item.sentiment,
       tags: item.tags,
       sourceCount: item.sourceCount,
-      topSources: video
-        ? [video]
-        : [
-            {
-              sourceName: "Koleksyon piblik entènèt",
-              sourceUrl: "#",
-              snippet: "Done tanporè pandan sistèm scraping ap ranmase done ap viv yo.",
-            },
-          ],
+      topSources,
       influencers: haitianInfluencers.map((influencer) => influencer.name).slice(0, 2),
     };
   });
@@ -501,6 +516,7 @@ export async function getTrendFeed(
         sourceName: rawPost.source_name,
         sourceUrl: rawPost.source_url,
         snippet: rawPost.snippet ?? "",
+        postTitle: (rawPost.title as string | null | undefined)?.trim() || undefined,
         platform: rawPost.platform,
         ...extractPostMedia({
           sourceUrl: rawPost.source_url,
@@ -684,6 +700,7 @@ export async function getTrendFeed(
         return {
           clusterId: cluster.id as string,
           title:
+            pickFeaturedPostTitle(sources) ??
             (summary?.cluster_title as string | undefined) ??
             (cluster.title as string) ??
             "Untitled cluster",
