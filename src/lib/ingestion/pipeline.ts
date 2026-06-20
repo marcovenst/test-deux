@@ -8,7 +8,8 @@ import { createRedditAdapter } from "@/lib/ingestion/sources/reddit";
 import { createRssAdapter } from "@/lib/ingestion/sources/rss";
 import { createScrapeAdapter } from "@/lib/ingestion/sources/scrape";
 import { createXApifyAdapter } from "@/lib/ingestion/sources/xApify";
-import { createYoutubeAdapter } from "@/lib/ingestion/sources/youtube";
+import { createYoutubeAdapter, createYoutubeChannelAdapter } from "@/lib/ingestion/sources/youtube";
+import { haitiYoutubeChannels, YOUTUBE_SEARCH_QUERIES } from "@/lib/content/youtubeChannels";
 import type { FeedSourceConfig, ScrapeSourceConfig, SourceAdapter } from "@/lib/ingestion/types";
 
 const DEFAULT_RSS_FEEDS: FeedSourceConfig[] = [
@@ -121,7 +122,7 @@ const SOCIAL_SEARCH_EXPANSION = uniqTrimmed([
   ...Object.values(CATEGORY_QUERY_HINTS).flat(),
 ]);
 
-async function getEngagementBoostQueries(limit = 4) {
+async function getEngagementBoostQueries(limit = 6) {
   const { data: clusters } = await supabaseAdmin
     .from("clusters")
     .select("id,trend_category,last_seen_at")
@@ -361,18 +362,42 @@ export async function runIngestionPipeline() {
     createRedditAdapter("Haitian diaspora OR Ayisyen OR Haiti politics OR TPS Haiti", {
       sourceName: "reddit-haiti-diaspora-politics",
     }),
-    createYoutubeAdapter("Haiti OR Ayiti diaspora news"),
-    createYoutubeAdapter("USCIS Haitian TPS update OR Haitian immigration lawyer"),
+    createYoutubeAdapter("Haiti OR Ayiti diaspora news", { maxResults: 50 }),
+    createYoutubeAdapter("USCIS Haitian TPS update OR Haitian immigration lawyer", {
+      maxResults: 40,
+    }),
+    createYoutubeAdapter("Haiti news kreyol OR Ayiti nouvèl", {
+      sourceName: "youtube-kreyol-news",
+      maxResults: 40,
+      relevanceLanguage: "fr",
+    }),
+    createYoutubeAdapter("Grenadye Haiti OR Haiti football highlights", {
+      sourceName: "youtube-sports",
+      maxResults: 35,
+      order: "viewCount",
+    }),
+    ...YOUTUBE_SEARCH_QUERIES.map((query, index) =>
+      createYoutubeAdapter(query, {
+        sourceName: `youtube-topic-${index + 1}`,
+        maxResults: 25,
+      }),
+    ),
+    ...haitiYoutubeChannels.map((channel) =>
+      createYoutubeChannelAdapter(channel.channelId, {
+        sourceName: `youtube-${channel.sourceName.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`,
+        maxResults: 25,
+      }),
+    ),
     ...engagementBoostQueries.map((query, index) =>
       createYoutubeAdapter(query, {
         sourceName: `youtube-engagement-${index + 1}`,
-        maxResults: 20,
+        maxResults: 30,
       }),
     ),
     ...influencerYouTubeQueries.map((item) =>
       createYoutubeAdapter(item.query, {
         sourceName: item.sourceName,
-        maxResults: 15,
+        maxResults: 25,
       }),
     ),
     createXApifyAdapter(["Haiti", "Ayiti", "Haitian", "Kreyol"], {

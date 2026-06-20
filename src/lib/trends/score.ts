@@ -114,7 +114,7 @@ export async function computeTrendScores(timeframe: Timeframe) {
   }> = [];
 
   for (const [clusterId, stats] of byCluster.entries()) {
-    const socialRelevant = new Set(["x", "instagram", "tiktok", "facebook"]);
+    const socialRelevant = new Set(["x", "instagram", "tiktok", "facebook", "youtube"]);
     const socialChannelCount = [...stats.socialChannels].filter((c) => socialRelevant.has(c)).length;
 
     const components = calculateTrendComponents({

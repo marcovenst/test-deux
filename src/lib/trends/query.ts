@@ -165,25 +165,39 @@ function getFallbackFeed(): TrendFeedItem[] {
     { sourceName: string; sourceUrl: string; embedUrl: string; platform: string; snippet: string }
   > = {
     0: {
-      sourceName: "YouTube",
-      sourceUrl: "https://www.youtube.com/watch?v=kg3_vkhWVf4",
-      embedUrl: "https://www.youtube.com/embed/kg3_vkhWVf4",
+      sourceName: "The Haitian Times",
+      sourceUrl: "https://www.youtube.com/watch?v=Yu-ywsl83W8",
+      embedUrl: "https://www.youtube.com/embed/Yu-ywsl83W8",
       platform: "youtube",
-      snippet: "Egzanp videyo sou mizik ak kilti ayisyen pandan done ap viv yo ap chaje.",
+      snippet: "Dènye bri sou ekip nasyonal la ak kominote espò ayisyen an.",
+    },
+    1: {
+      sourceName: "Tele Pam",
+      sourceUrl: "https://www.youtube.com/watch?v=juH4Uaqc1YY",
+      embedUrl: "https://www.youtube.com/embed/juH4Uaqc1YY",
+      platform: "youtube",
+      snippet: "Videyo sou dyaspora ak reyaksyon kominote ayisyen yo.",
+    },
+    2: {
+      sourceName: "Voa Lakay",
+      sourceUrl: "https://www.youtube.com/watch?v=O8zSBLS1thI",
+      embedUrl: "https://www.youtube.com/embed/O8zSBLS1thI",
+      platform: "youtube",
+      snippet: "Nouvèl aktyèl sou Ayiti an Kreyòl pandan done ap viv yo ap chaje.",
     },
     3: {
-      sourceName: "FIFA",
-      sourceUrl: "https://www.youtube.com/watch?v=kg3_vkhWVf4",
-      embedUrl: "https://www.youtube.com/embed/kg3_vkhWVf4",
+      sourceName: "Zantray Media",
+      sourceUrl: "https://www.youtube.com/watch?v=fT0_Gc0YeSE",
+      embedUrl: "https://www.youtube.com/embed/fT0_Gc0YeSE",
       platform: "youtube",
-      snippet: "Highlights sou ekip nasyonal ayisyen an.",
+      snippet: "Grenadye yo — dènye analiz ak reyaksyon sou match yo.",
     },
     4: {
-      sourceName: "Concacaf",
-      sourceUrl: "https://www.youtube.com/watch?v=0_JoMdKGU0s",
-      embedUrl: "https://www.youtube.com/embed/0_JoMdKGU0s",
+      sourceName: "Radio Television Caraïbes",
+      sourceUrl: "https://www.youtube.com/watch?v=GQQXmyeOhHA",
+      embedUrl: "https://www.youtube.com/embed/GQQXmyeOhHA",
       platform: "youtube",
-      snippet: "Match ak analiz sou foutbòl ayisyen.",
+      snippet: "Reyaksyon ak analiz sou dènye nouvèl politik ak espò.",
     },
   };
 
@@ -656,8 +670,12 @@ export async function getTrendFeed(
         const onlyYoutubeSurface =
           sources.length > 0 &&
           sources.every((s) => /youtube\.com|youtu\.be/i.test(s.sourceUrl ?? ""));
+        const hasPlayableVideo = sources.some((s) => Boolean(s.embedUrl || s.videoUrl));
         const popularityScore = Number(
-          (popularityScoreRaw * (onlyYoutubeSurface ? 0.82 : 1)).toFixed(2),
+          (
+            popularityScoreRaw *
+            (onlyYoutubeSurface && hasPlayableVideo ? 1.12 : 1)
+          ).toFixed(2),
         );
 
         const isFallbackSummary =

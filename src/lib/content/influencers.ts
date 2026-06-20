@@ -13,7 +13,11 @@ export const haitianInfluencers: InfluencerSeed[] = [
     name: "Greg Promo",
     aliases: ["Greg Promo", "Gregory Promo"],
     xHandles: ["gregpromo"],
-    youtubeQueries: ["Greg Promo Haiti", "Greg Promo aktyalite ayiti"],
+    youtubeQueries: [
+      "Greg Promo Haiti",
+      "Greg Promo aktyalite ayiti",
+      "Greg Promo showbiz Haiti",
+    ],
     facebookProfiles: [
       // Apify facebook-posts-scraper needs page/profile URLs, not /search/ — use scrapable publishers until vanity URLs are known.
       "https://www.facebook.com/HaitianTimes",
@@ -25,7 +29,11 @@ export const haitianInfluencers: InfluencerSeed[] = [
     name: "Jeanne Douze",
     aliases: ["Jeanne Douze", "Jeanne12"],
     xHandles: ["jeannedouze"],
-    youtubeQueries: ["Jeanne Douze Haiti", "Jeanne Douze diaspora"],
+    youtubeQueries: [
+      "Jeanne Douze Haiti",
+      "Jeanne Douze diaspora",
+      "Jeanne Douze nouvèl ayiti",
+    ],
     facebookProfiles: ["https://www.facebook.com/lenouvelliste"],
     tiktokProfiles: ["https://www.tiktok.com/search?q=jeanne%20douze%20haiti"],
     focus: "opinyon, lavi kominote, dyaspora",
@@ -34,7 +42,11 @@ export const haitianInfluencers: InfluencerSeed[] = [
     name: "Influansè Ayiti Viral",
     aliases: ["Ayiti Viral", "Haiti Viral"],
     xHandles: [],
-    youtubeQueries: ["Haiti news kreol viral", "Ayiti trend jodi a"],
+    youtubeQueries: [
+      "Haiti news kreol viral",
+      "Ayiti trend jodi a",
+      "Haiti viral video today",
+    ],
     facebookProfiles: [
       "https://www.facebook.com/uscis",
     ],
