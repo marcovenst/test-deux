@@ -8,11 +8,12 @@ type ScheduleEntry = {
 };
 
 /**
- * Hourly ingestion via QStash. Vercel Hobby cron stays once/day in `vercel.json` as a backup.
+ * Full pipeline every 2 hours via QStash (ingest → cluster → score → summarize).
+ * Vercel Cron in `vercel.json` uses the same cadence for zenlakay.com.
  * After changing this list, run `pnpm schedules:setup` (or POST /api/jobs/schedule) once.
  */
 const SCHEDULES: ScheduleEntry[] = [
-  { destinationPath: "/api/jobs/pipeline", cron: "5 * * * *" },
+  { destinationPath: "/api/jobs/pipeline", cron: "0 */2 * * *" },
   { destinationPath: "/api/jobs/newsletter", cron: "0 13 * * *" },
 ];
 
